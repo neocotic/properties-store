@@ -25,6 +25,7 @@
     "chai": "^3.5.0",
     "coveralls": "^2.11.12",
     "eslint": "^3.4.0",
+    "eslint-config-skelp": "^0.1.0",
     "istanbul": "^0.4.5",
     "mocha": "^3.0.2",
     "mocha-istanbul": "^0.3.0"

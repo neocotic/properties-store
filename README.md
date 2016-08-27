@@ -40,7 +40,7 @@ If you want to contribute, you're a legend! Information on how you can do so can
 [CONTRIBUTING.md](https://github.com/Skelp/properties-store/blob/master/CONTRIBUTING.md). We want your suggestions and
 pull requests!
 
-A list of  contributors can be found in [AUTHORS.md](https://github.com/Skelp/properties-store/blob/master/AUTHORS.md).
+A list of contributors can be found in [AUTHORS.md](https://github.com/Skelp/properties-store/blob/master/AUTHORS.md).
 
 ## License
 
