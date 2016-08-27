@@ -1,0 +1,5 @@
+test/
+.*
+AUTHORS.md
+CONTRIBUTING.md
+README.md

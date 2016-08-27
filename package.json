@@ -1,0 +1,38 @@
+{
+  "name": "properties-store",
+  "version": "0.1.0",
+  "description": "Store for .properties files in Node.js",
+  "homepage": "https://github.com/Skelp/properties-store",
+  "bugs": {
+    "url": "https://github.com/Skelp/properties-store/issues"
+  },
+  "author": {
+    "name": "Alasdair Mercer",
+    "email": "mercer.alasdair@gmail.com",
+    "url": "http://neocotic.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "properties",
+    "file",
+    "store"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Skelp/properties-store.git"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "coveralls": "^2.11.12",
+    "eslint": "^3.4.0",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.0.2",
+    "mocha-istanbul": "^0.3.0"
+  },
+  "main": "lib/index.js",
+  "scripts": {
+    "lint": "eslint lib/**/*.js test/**/*.js",
+    "test": "npm run lint && npm run unit-test",
+    "unit-test": "mocha test/**/*.spec.js"
+  }
+}
