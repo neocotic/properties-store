@@ -2,8 +2,5 @@
   "extends": "skelp",
   "env": {
     "node": true
-  },
-  "rules": {
-    "no-underscore-dangle": "off"
   }
 }
