@@ -4,6 +4,7 @@
     "node": true
   },
   "rules": {
+    "no-magic-numbers": "off",
     "no-param-reassign": "off",
     "no-underscore-dangle": "off"
   }
