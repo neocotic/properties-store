@@ -22,13 +22,15 @@
     "url": "git+https://github.com/Skelp/properties-store.git"
   },
   "dependencies": {
+    "iconv-lite": "^0.4.13",
+    "native2ascii": "0.0.5",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
     "chai": "^3.5.0",
     "coveralls": "^2.11.12",
     "eslint": "^3.4.0",
-    "eslint-config-skelp": "^0.1.0",
+    "eslint-config-skelp": "^0.1.2",
     "istanbul": "^0.4.5",
     "mocha": "^3.0.2",
     "mocha-istanbul": "^0.3.0"
