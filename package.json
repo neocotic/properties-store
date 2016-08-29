@@ -33,11 +33,12 @@
     "eslint-config-skelp": "^0.1.2",
     "istanbul": "^0.4.5",
     "mocha": "^3.0.2",
-    "mocha-istanbul": "^0.3.0"
+    "mocha-istanbul": "^0.3.0",
+    "node-version-check": "^2.1.1"
   },
   "main": "lib/index.js",
   "scripts": {
-    "lint": "eslint lib/**/*.js test/**/*.js",
+    "lint": "node-version-check \">=4\" && eslint lib/**/*.js test/**/*.js || node-version-check \"<4\"",
     "test": "npm run lint && npm run unit-test",
     "unit-test": "mocha test/**/*.spec.js"
   }
