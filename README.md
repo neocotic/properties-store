@@ -14,7 +14,8 @@
              \/___/   \/__/\/___/  \/_/ \/____/
 
 [properties-store](https://github.com/Skelp/properties-store) is a Node.js library for working with `.properties` file
-stores.
+stores with the goal of maintaining the original source of the file as much as possible, which can be really useful when
+merging `.properties` files and wanting to minimizing diffs.
 
 [![Build Status](https://img.shields.io/travis/Skelp/properties-store/develop.svg?style=flat-square)](https://travis-ci.org/Skelp/properties-store)
 [![Dependency Status](https://img.shields.io/david/Skelp/properties-store.svg?style=flat-square)](https://david-dm.org/Skelp/properties-store)
