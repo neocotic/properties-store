@@ -1,9 +1,10 @@
 {
-  "extends": "skelp",
+  "extends": "notninja/es6",
   "env": {
     "node": true
   },
   "rules": {
-    "no-underscore-dangle": "off"
+    "no-underscore-dangle": "off",
+    "prefer-rest-params": "off"
   }
 }

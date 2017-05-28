@@ -1,8 +1,15 @@
+sudo: false
 language: node_js
 node_js:
-  - "0.10"
-  - "0.12"
-  - "4.0"
-  - "6.0"
+  - "4"
+  - "6"
+  - "7"
 script:
-  - npm test
+  - npm run ci
+after_script:
+  - npm run report-coverage
+notifications:
+  slack:
+    rooms:
+      - secure: ZPkVXDP0pmBbiYNU4dT3J2ntRlAV9aN+pE6OyZwQUd9cuol2cKk/cbo3tVMEaIW3bcJTLi8lnS1/Q5s8wGdhO8Jtjdv8FKRS3IWWLDM5Grh3EQ4FxV0fZPsVvj+xVTCvT6S7GUmTEw7G51FjxhQIgDmy1U/JIIp++gtwmdOip9xYGU+7YnmWdBv/a0mP4Mg0cUO1bVTErBUW909tqTINE97wYJOBZ9arrCtwDHZNSHDZ/n3CliEsJ9TWPYmaTNPDyYQU+GUCa4OdIM19wxVcMgCRXiihNuOO4Me+/gcRRnUq4VHthunVZl8vGY/fNQhAfmCcLLf9nnH7W+3Xy1DJA1ZRhBXROg7M4ubc+hsVnudSB6DXse9S4C5qh8z4XHaRWQoxP9BWZoNs11LgV9uJcsy7xx9jSoISapdtfbW38WSSFdGp8UnUYuNioylAqsE36PhBWdkWrf/e5DJFMPeXRSd/65Vqw4G7DDX+bNxwZtKvaDr1oe3Po9q+q8vFIkLfgqrbUa5lUA+jyEeUZByFY+eJ9mI7BXAnzZTJAc93MprVL1iblURgIPYhJhLTtEVAgEqfSO1grMxIJfxyqjVc/jYPDByPl8FuFhyPENChREdtTrLvdX3qi5Gyp/i2moodMfE5ihl6zcSzmZ8+IprT9UD8TPqNPUbu8r+sfe8fiNg=
+    on_success: change

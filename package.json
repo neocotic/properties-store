@@ -1,15 +1,15 @@
 {
   "name": "properties-store",
-  "version": "0.1.0",
+  "version": "0.1.0-beta",
   "description": "Store for .properties files in Node.js",
-  "homepage": "https://github.com/Skelp/properties-store",
+  "homepage": "https://github.com/NotNinja/properties-store",
   "bugs": {
-    "url": "https://github.com/Skelp/properties-store/issues"
+    "url": "https://github.com/NotNinja/properties-store/issues"
   },
   "author": {
     "name": "Alasdair Mercer",
     "email": "mercer.alasdair@gmail.com",
-    "url": "https://neocotic.com"
+    "url": "https://not.ninja"
   },
   "license": "MIT",
   "keywords": [
@@ -19,27 +19,30 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Skelp/properties-store.git"
+    "url": "https://github.com/NotNinja/properties-store.git"
   },
   "dependencies": {
-    "iconv-lite": "^0.4.13",
-    "native2ascii": "0.0.5",
+    "iconv-lite": "^0.4.17",
+    "native2ascii": "^0.0.5",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
-    "coveralls": "^2.11.12",
-    "eslint": "^3.4.0",
-    "eslint-config-skelp": "^0.1.2",
+    "chai": "^4.0.0",
+    "codecov": "^2.2.0",
+    "eslint": "^3.19.0",
+    "eslint-config-notninja": "^0.1.1",
     "istanbul": "^0.4.5",
-    "mocha": "^3.0.2",
-    "mocha-istanbul": "^0.3.0",
-    "node-version-check": "^2.1.1"
+    "mocha": "^3.4.2"
   },
-  "main": "lib/index.js",
+  "main": "src/store.js",
   "scripts": {
-    "lint": "node-version-check \">=4\" && eslint lib/**/*.js test/**/*.js || node-version-check \"<4\"",
-    "test": "npm run lint && npm run unit-test",
-    "unit-test": "mocha test/**/*.spec.js"
+    "ci": "npm run test",
+    "report-coverage": "istanbul cover _mocha --report lcovonly -- -R list \"test/**/*.spec.js\" && codecov",
+    "pretest": "eslint \"src/**/*.js\" \"test/**/*.js\"",
+    "test": "istanbul cover _mocha -- -R list \"test/**/*.spec.js\"",
+    "posttest": "istanbul check-coverage"
+  },
+  "engines": {
+    "node": ">=4"
   }
 }

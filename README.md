@@ -1,26 +1,31 @@
-                                               __
-                                              /\ \__  __
-     _____   _ __   ___   _____      __   _ __\ \ ,_\/\_\     __    ____
-    /\ '__`\/\`'__\/ __`\/\ '__`\  /'__`\/\`'__\ \ \/\/\ \  /'__`\ /',__\
-    \ \ \L\ \ \ \//\ \L\ \ \ \L\ \/\  __/\ \ \/ \ \ \_\ \ \/\  __//\__, `\
-     \ \ ,__/\ \_\\ \____/\ \ ,__/\ \____\\ \_\  \ \__\\ \_\ \____\/\____/
-      \ \ \/  \/_/ \/___/  \ \ \/  \/____/ \/_/   \/__/ \/_/\/____/\/___/
-       \ \_\       __       \ \_\
-        \/_/      /\ \__     \/_/
-              ____\ \ ,_\   ___   _ __    __
-             /',__\\ \ \/  / __`\/\`'__\/'__`\
-            /\__, `\\ \ \_/\ \L\ \ \ \//\  __/
-            \/\____/ \ \__\ \____/\ \_\\ \____\
-             \/___/   \/__/\/___/  \/_/ \/____/
+                                                       888    d8b
+                                                       888    Y8P
+                                                       888
+    88888b.  888d888 .d88b.  88888b.   .d88b.  888d888 888888 888  .d88b.  .d8888b
+    888 "88b 888P"  d88""88b 888 "88b d8P  Y8b 888P"   888    888 d8P  Y8b 88K
+    888  888 888    888  888 888  888 88888888 888     888    888 88888888 "Y8888b.
+    888 d88P 888    Y88..88P 888 d88P Y8b.     888     Y88b.  888 Y8b.          X88
+    88888P"  888     "Y88P"  88888P"   "Y8888  888      "Y888 888  "Y8888   88888P'
+    888                      888
+    888                      888
+    888                      888
+                             888
+                             888
+                    .d8888b  888888 .d88b.  888d888 .d88b.
+                    88K      888   d88""88b 888P"  d8P  Y8b
+                    "Y8888b. 888   888  888 888    88888888
+                         X88 Y88b. Y88..88P 888    Y8b.
+                     88888P'  "Y888 "Y88P"  888     "Y8888
 
-[properties-store](https://github.com/Skelp/properties-store) is a Node.js library for working with `.properties` file
-stores with the goal of maintaining the original source of the file as much as possible, which can be really useful when
-merging `.properties` files and wanting to minimizing diffs.
+[properties-store](https://github.com/NotNinja/properties-store) is a Node.js library for working with `.properties`
+file stores with the goal of maintaining the original source of the file as much as possible, which can be really useful
+when merging `.properties` files and wanting to minimizing diffs.
 
-[![Build Status](https://img.shields.io/travis/Skelp/properties-store/develop.svg?style=flat-square)](https://travis-ci.org/Skelp/properties-store)
-[![Dependency Status](https://img.shields.io/david/Skelp/properties-store.svg?style=flat-square)](https://david-dm.org/Skelp/properties-store)
-[![Dev Dependency Status](https://img.shields.io/david/dev/Skelp/properties-store.svg?style=flat-square)](https://david-dm.org/Skelp/properties-store#info=devDependencies)
-[![License](https://img.shields.io/npm/l/properties-store.svg?style=flat-square)](https://github.com/Skelp/properties-store/blob/master/LICENSE.md)
+[![Build Status](https://img.shields.io/travis/NotNinja/properties-store/develop.svg?style=flat-square)](https://travis-ci.org/NotNinja/properties-store)
+[![Coverage](https://img.shields.io/codecov/c/github/NotNinja/properties-store/develop.svg?style=flat-square)](https://codecov.io/gh/NotNinja/properties-store)
+[![Dependency Status](https://img.shields.io/david/NotNinja/properties-store.svg?style=flat-square)](https://david-dm.org/NotNinja/properties-store)
+[![Dev Dependency Status](https://img.shields.io/david/dev/NotNinja/properties-store.svg?style=flat-square)](https://david-dm.org/NotNinja/properties-store?type=dev)
+[![License](https://img.shields.io/npm/l/properties-store.svg?style=flat-square)](https://github.com/NotNinja/properties-store/blob/master/LICENSE.md)
 [![Release](https://img.shields.io/npm/v/properties-store.svg?style=flat-square)](https://www.npmjs.com/package/properties-store)
 
 * [Install](#install)
@@ -37,7 +42,7 @@ Install using `npm`:
 $ npm install --save properties-store
 ```
 
-You'll need to have at least [Node.js](https://nodejs.org) installed.
+You'll need to have at least [Node.js](https://nodejs.org) 4 or newer.
 
 ## API
 
@@ -46,20 +51,20 @@ TODO: Document API
 ## Bugs
 
 If you have any problems with this library or would like to see changes currently in development you can do so
-[here](https://github.com/Skelp/properties-store/issues).
+[here](https://github.com/NotNinja/properties-store/issues).
 
 ## Contributors
 
 If you want to contribute, you're a legend! Information on how you can do so can be found in
-[CONTRIBUTING.md](https://github.com/Skelp/properties-store/blob/master/CONTRIBUTING.md). We want your suggestions and
-pull requests!
+[CONTRIBUTING.md](https://github.com/NotNinja/properties-store/blob/master/CONTRIBUTING.md). We want your suggestions
+and pull requests!
 
-A list of contributors can be found in [AUTHORS.md](https://github.com/Skelp/properties-store/blob/master/AUTHORS.md).
+A list of contributors can be found in
+[AUTHORS.md](https://github.com/NotNinja/properties-store/blob/master/AUTHORS.md).
 
 ## License
 
-See [LICENSE.md](https://github.com/Skelp/properties-store/raw/master/LICENSE.md) for more information on our MIT
+See [LICENSE.md](https://github.com/NotNinja/properties-store/raw/master/LICENSE.md) for more information on our MIT
 license.
 
-© 2016 [Skelp](https://skelp.io)
-<img align="right" width="16" height="16" src="https://raw.githubusercontent.com/Skelp/skelp-branding/master/assets/logo/base/skelp-logo-16x16.png">
+[![Copyright !ninja](https://cdn.rawgit.com/NotNinja/branding/master/assets/copyright/base/not-ninja-copyright-186x25.png)](https://not.ninja)
