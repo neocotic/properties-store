@@ -1,6 +1,6 @@
 {
   "name": "properties-store",
-  "version": "0.1.0-beta",
+  "version": "0.1.0",
   "description": "Store for .properties files in Node.js",
   "homepage": "https://github.com/NotNinja/properties-store",
   "bugs": {
