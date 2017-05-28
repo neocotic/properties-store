@@ -22,7 +22,6 @@
 
 'use strict';
 
-const _ = require('underscore');
 const expect = require('chai').expect;
 
 const Line = require('../src/line');
@@ -98,11 +97,11 @@ describe('Line', () => {
       it('should throw an error', () => {
         let line = new Line('# foo');
 
-        expect(_.bind(line.getKey, line)).to.throw(Error, /Cannot get key for non-property line/);
+        expect(line.getKey.bind(line)).to.throw(Error, /Cannot get key for non-property line/);
 
         line = new Line('');
 
-        expect(_.bind(line.getKey, line)).to.throw(Error, /Cannot get key for non-property line/);
+        expect(line.getKey.bind(line)).to.throw(Error, /Cannot get key for non-property line/);
       });
     });
   });
@@ -144,11 +143,11 @@ describe('Line', () => {
       it('should throw an error', () => {
         let line = new Line('# foo');
 
-        expect(_.bind(line.getValue, line)).to.throw(Error, /Cannot get value for non-property line/);
+        expect(line.getValue.bind(line)).to.throw(Error, /Cannot get value for non-property line/);
 
         line = new Line('');
 
-        expect(_.bind(line.getValue, line)).to.throw(Error, /Cannot get value for non-property line/);
+        expect(line.getValue.bind(line)).to.throw(Error, /Cannot get value for non-property line/);
       });
     });
   });
@@ -257,11 +256,11 @@ describe('Line', () => {
       it('should throw an error', () => {
         let line = new Line('# foo');
 
-        expect(_.bind(line.setValue, line, 'bar')).to.throw(Error, /Cannot set value for non-property line/);
+        expect(line.setValue.bind(line, 'bar')).to.throw(Error, /Cannot set value for non-property line/);
 
         line = new Line('');
 
-        expect(_.bind(line.setValue, line, 'bar')).to.throw(Error, /Cannot set value for non-property line/);
+        expect(line.setValue.bind(line, 'bar')).to.throw(Error, /Cannot set value for non-property line/);
       });
     });
   });

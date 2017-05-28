@@ -22,13 +22,9 @@
 
 'use strict';
 
-/**
- * The regular expression used to check whether the source of a {@link Line} represents a comment.
- *
- * @private
- * @type {RegExp}
- */
-const commentRegexp = /^\s*[#!].*/;
+const _key = Symbol('key');
+const _source = Symbol('source');
+const _value = Symbol('value');
 
 /**
  * The default string to be used to separate a property key from its value when none already exists or it's new.
@@ -44,10 +40,10 @@ const defaultSeparator = '=';
  * @private
  * @type {RegExp}
  */
-const propertyRegexp = /^(\s*[^\s=:]+)(\s*[=:]?\s*|\s+)(.*)$/;
+const lineRegexp = /^(\s*[^\s=:#!]+)(\s*[=:]?\s*|\s+)(.*)$/;
 
 /**
- * TODO: Document
+ * Contains the source of a single line from a <code>.properties</code> file.
  *
  * @public
  */
@@ -85,9 +81,9 @@ class Line {
      * @private
      * @type {string}
      */
-    this._source = source != null ? source : '';
+    this[_source] = source != null ? source : '';
 
-    const match = !commentRegexp.test(this._source) ? this._source.match(propertyRegexp) : null;
+    const match = this[_source].match(lineRegexp);
 
     /**
      * The key of the property contained within this {@link Line}.
@@ -97,7 +93,7 @@ class Line {
      * @private
      * @type {string}
      */
-    this._key = match ? match[1].trim() : null;
+    this[_key] = match ? match[1].trim() : null;
 
     /**
      * The value of the property contained within this {@link Line}.
@@ -107,7 +103,7 @@ class Line {
      * @private
      * @type {string}
      */
-    this._value = match ? match[3].trim() : null;
+    this[_value] = match ? match[3].trim() : null;
   }
 
   /**
@@ -125,7 +121,7 @@ class Line {
       throw new Error('Cannot get key for non-property line');
     }
 
-    return this._key;
+    return this[_key];
   }
 
   /**
@@ -135,7 +131,7 @@ class Line {
    * @public
    */
   getSource() {
-    return this._source;
+    return this[_source];
   }
 
   /**
@@ -153,7 +149,7 @@ class Line {
       throw new Error('Cannot get value for non-property line');
     }
 
-    return this._value;
+    return this[_value];
   }
 
   /**
@@ -163,7 +159,7 @@ class Line {
    * @public
    */
   isProperty() {
-    return this._key != null && this._value != null;
+    return this[_key] != null && this[_value] != null;
   }
 
   /**
@@ -187,10 +183,10 @@ class Line {
 
     value = value != null ? value.trim() : '';
 
-    this._source = this._source.replace(propertyRegexp, (match, key, separator) => {
+    this[_source] = this[_source].replace(lineRegexp, (match, key, separator) => {
       return key + (separator || defaultSeparator) + value;
     });
-    this._value = value;
+    this[_value] = value;
   }
 
 }

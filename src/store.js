@@ -31,6 +31,23 @@ const os = require('os');
 
 const Line = require('./line');
 
+const _findLineIndex = Symbol('findLineIndex');
+const _findLines = Symbol('findLines');
+const _lines = Symbol('lines');
+const _properties = Symbol('properties');
+const _removeLines = Symbol('removeLines');
+
+/**
+ * The default options to be used by {@link Store#load} and {@link Store#store}.
+ *
+ * @private
+ * @type {Store~options}
+ */
+const defaultOptions = {
+  convert: true,
+  encoding: 'iso-8859-1'
+};
+
 /**
  * TODO: Document
  *
@@ -38,20 +55,6 @@ const Line = require('./line');
  * @extends events.EventEmitter
  */
 class Store extends EventEmitter {
-
-  /**
-   * The default options to be used by {@link Store#load} and {@link Store#store}.
-   *
-   * @public
-   * @static
-   * @type {Store~options}
-   */
-  static get DEFAULTS() {
-    return {
-      convert: true,
-      encoding: 'iso-8859-1'
-    };
-  }
 
   /**
    * Creates an instance of {@link Store}.
@@ -70,7 +73,7 @@ class Store extends EventEmitter {
      * @private
      * @type {Line[]}
      */
-    this._lines = store ? _.clone(store._lines) : [];
+    this[_lines] = store ? _.clone(store[_lines]) : [];
 
     /**
      * A map of properties within this {@link Store}.
@@ -78,7 +81,7 @@ class Store extends EventEmitter {
      * @private
      * @type {Object.<string, string>}
      */
-    this._properties = store ? _.clone(store._properties) : {};
+    this[_properties] = store ? _.clone(store[_properties]) : {};
   }
 
   /**
@@ -91,8 +94,8 @@ class Store extends EventEmitter {
    * @public
    */
   clear() {
-    this._lines = [];
-    this._properties = {};
+    this[_lines] = [];
+    this[_properties] = {};
 
     this.emit('clear');
   }
@@ -105,7 +108,7 @@ class Store extends EventEmitter {
    * @public
    */
   contains(key) {
-    return this._properties[key] != null;
+    return this[_properties][key] != null;
   }
 
   /**
@@ -115,7 +118,7 @@ class Store extends EventEmitter {
    * @public
    */
   entries() {
-    return _.mapObject(this._properties, (value, key) => {
+    return _.mapObject(this[_properties], (value, key) => {
       return [ key, value ];
     });
   }
@@ -136,7 +139,7 @@ class Store extends EventEmitter {
    * @public
    */
   get(key, defaultValue) {
-    const value = this._properties[key];
+    const value = this[_properties][key];
     if (value != null) {
       return value;
     }
@@ -155,7 +158,7 @@ class Store extends EventEmitter {
    * @public
    */
   isEmpty() {
-    return _.isEmpty(this._properties);
+    return _.isEmpty(this[_properties]);
   }
 
   /**
@@ -168,7 +171,7 @@ class Store extends EventEmitter {
    * @public
    */
   keys() {
-    return _.keys(this._properties);
+    return _.keys(this[_properties]);
   }
 
   /**
@@ -187,8 +190,7 @@ class Store extends EventEmitter {
       options = {};
     }
 
-    options = _.defaults({}, options, Store.DEFAULTS);
-
+    options = _.defaults({}, options, defaultOptions);
 
     input.pipe(iconv.decodeStream(options.encoding))
       .collect((error, str) => {
@@ -203,10 +205,10 @@ class Store extends EventEmitter {
         _.forEach(str.split(/\r?\n/), (source) => {
           const line = new Line(source);
 
-          this._lines.push(line);
+          this[_lines].push(line);
 
           if (line.isProperty()) {
-            this._properties[line.getKey()] = line.getValue();
+            this[_properties][line.getKey()] = line.getValue();
           }
         });
 
@@ -231,9 +233,9 @@ class Store extends EventEmitter {
     _.chain(arguments)
       .flatten()
       .forEach(keys, (key) => {
-        delete this._properties[key];
+        delete this[_properties][key];
 
-        this._removeLines(key);
+        this[_removeLines](key);
 
         this.emit('remove', { key });
       });
@@ -262,12 +264,12 @@ class Store extends EventEmitter {
     if (value == null) {
       this.remove(key);
     } else if (this.get(key) === value) {
-      this._properties[key] = value;
+      this[_properties][key] = value;
 
-      lines = this._findLines(key);
+      lines = this[_findLines](key);
 
       if (_.isEmpty(lines)) {
-        this._lines.push(Line.forProperty(key, value));
+        this[_lines].push(Line.forProperty(key, value));
       } else {
         _.forEach(lines, (line) => {
           line.setValue(value);
@@ -288,7 +290,7 @@ class Store extends EventEmitter {
    * @public
    */
   size() {
-    return _.size(this._properties);
+    return _.size(this[_properties]);
   }
 
   /**
@@ -307,9 +309,9 @@ class Store extends EventEmitter {
       options = {};
     }
 
-    options = _.defaults({}, options, Store.DEFAULTS);
+    options = _.defaults({}, options, defaultOptions);
 
-    let str = _.reduce(this._lines, (memo, line) => {
+    let str = _.reduce(this[_lines], (memo, line) => {
       return memo + line.getSource() + os.EOL;
     }, '');
 
@@ -334,21 +336,7 @@ class Store extends EventEmitter {
    * @public
    */
   values() {
-    return _.values(this._properties);
-  }
-
-  /**
-   * Returns all of the lines within the source of this {@link Store} that contain a property with the specified
-   * <code>key</code>.
-   *
-   * @param {string} key - the key of the property whose lines are to be returned
-   * @return {Line[]} The lines representing the property with <code>key</code>.
-   * @private
-   */
-  _findLines(key) {
-    return _.filter(this._lines, (line) => {
-      return line.isProperty() && line.getKey() === key;
-    });
+    return _.values(this[_properties]);
   }
 
   /**
@@ -360,8 +348,22 @@ class Store extends EventEmitter {
    * no matching lines could be found.
    * @private
    */
-  _findLineIndex(key) {
-    return _.findIndex(this._lines, (line) => {
+  [_findLineIndex](key) {
+    return _.findIndex(this[_lines], (line) => {
+      return line.isProperty() && line.getKey() === key;
+    });
+  }
+
+  /**
+   * Returns all of the lines within the source of this {@link Store} that contain a property with the specified
+   * <code>key</code>.
+   *
+   * @param {string} key - the key of the property whose lines are to be returned
+   * @return {Line[]} The lines representing the property with <code>key</code>.
+   * @private
+   */
+  [_findLines](key) {
+    return _.filter(this[_lines], (line) => {
       return line.isProperty() && line.getKey() === key;
     });
   }
@@ -374,11 +376,11 @@ class Store extends EventEmitter {
    * @return {void}
    * @private
    */
-  _removeLines(key) {
+  [_removeLines](key) {
     let index;
 
-    while ((index = this._findLineIndex(key)) >= 0) {
-      this._lines = this._lines.splice(index, 1);
+    while ((index = this[_findLineIndex](key)) >= 0) {
+      this[_lines] = this[_lines].splice(index, 1);
     }
   }
 
