@@ -67,4 +67,4 @@ A list of contributors can be found in
 See [LICENSE.md](https://github.com/NotNinja/properties-store/raw/master/LICENSE.md) for more information on our MIT
 license.
 
-[![Copyright !ninja](https://cdn.rawgit.com/NotNinja/branding/master/assets/copyright/base/not-ninja-copyright-186x25.png)](https://not.ninja)
+[![Copyright !ninja](https://cdn.rawgit.com/NotNinja/branding/master/assets/copyright/base/not-ninja-copyright-372x50.png)](https://not.ninja)
