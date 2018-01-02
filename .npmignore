@@ -1,7 +1,8 @@
+.nyc_output/
 coverage/
 test/
 .*
 AUTHORS.md
 CHANGES.md
+codecov.yml
 CONTRIBUTING.md
-README.md

@@ -22,25 +22,24 @@
     "url": "https://github.com/NotNinja/properties-store.git"
   },
   "dependencies": {
-    "iconv-lite": "^0.4.17",
+    "iconv-lite": "^0.4.19",
     "native2ascii": "^0.0.5",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "chai": "^4.0.0",
-    "codecov": "^2.2.0",
-    "eslint": "^3.19.0",
-    "eslint-config-notninja": "^0.1.1",
-    "istanbul": "^0.4.5",
-    "mocha": "^3.4.2"
+    "chai": "^4.1.2",
+    "codecov": "^3.0.0",
+    "eslint": "^4.14.0",
+    "eslint-config-notninja": "^0.2.3",
+    "mocha": "^4.1.0",
+    "nyc": "^11.4.1"
   },
   "main": "src/store.js",
   "scripts": {
-    "ci": "npm run test",
-    "report-coverage": "istanbul cover _mocha --report lcovonly -- -R list \"test/**/*.spec.js\" && codecov",
+    "coverage": "nyc report && codecov",
     "pretest": "eslint \"src/**/*.js\" \"test/**/*.js\"",
-    "test": "istanbul cover _mocha -- -R list \"test/**/*.spec.js\"",
-    "posttest": "istanbul check-coverage"
+    "test": "nyc mocha -R list \"test/**/*.spec.js\"",
+    "posttest": "nyc check-coverage"
   },
   "engines": {
     "node": ">=4"
