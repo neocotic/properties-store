@@ -42,7 +42,7 @@ Install using `npm`:
 $ npm install --save properties-store
 ```
 
-You'll need to have at least [Node.js](https://nodejs.org) 4 or newer.
+You'll need to have at least [Node.js](https://nodejs.org) 8 or newer.
 
 ## API
 

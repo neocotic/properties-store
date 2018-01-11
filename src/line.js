@@ -22,106 +22,108 @@
 
 'use strict';
 
+const trimStart = require('lodash.trimstart');
+
 const _key = Symbol('key');
 const _source = Symbol('source');
 const _value = Symbol('value');
 
-/**
- * The default string to be used to separate a property key from its value when none already exists or it's new.
- *
- * @private
- * @type {string}
- */
-const defaultSeparator = '=';
+const DEFAULT_COMMENT_PREFIX = '#';
+const DEFAULT_PROPERTY_SEPARATOR = '=';
+const R_LINE = /^(\s*[^\s=:#!]+)(\s*[=:]?\s*|\s+)(.*)$/;
 
 /**
- * The regular expression used to check and extract property information within the source of a {@link Line}.
- *
- * @private
- * @type {RegExp}
- */
-const lineRegexp = /^(\s*[^\s=:#!]+)(\s*[=:]?\s*|\s+)(.*)$/;
-
-/**
- * Contains the source of a single line from a <code>.properties</code> file.
+ * Contains the source of a single line that has been read from or can be written to a <code>.properties</code> file.
  *
  * @public
  */
 class Line {
 
   /**
-   * Creates a {@link Line} instance based on the property <code>key</code> and <code>value</code> provided.
+   * Creates a blank {@link Line}.
    *
-   * @param {string} key - the key of the property to be represented in the {@link Line} (will be trimmed)
-   * @param {string} [value=""] - the value of of the property to be represented in the {@link Line} (will be trimmed)
-   * @return {Line} The {@link Line} created to contain the property information.
+   * @return {Line} The created {@link Line} containing nothing.
    * @public
-   * @static
    */
-  static forProperty(key, value) {
-    key = key.trim();
-    value = value != null ? value.trim() : '';
+  static createBlank() {
+    return new Line();
+  }
 
-    return new Line(key + defaultSeparator + value);
+  /**
+   * Creates a {@link Line} with the specified <code>comment</code>.
+   *
+   * @param {?string} [comment=""] - the comment to be used (without leading whitespace - may be <code>null</code>)
+   * @return {Line} The created {@link Line} containing <code>comment</code>.
+   * @public
+   */
+  static createComment(comment) {
+    comment = trimStart(comment);
+    if (comment) {
+      comment = ` ${comment}`;
+    }
+
+    return new Line(`${DEFAULT_COMMENT_PREFIX}${comment}`);
+  }
+
+  /**
+   * Creates a {@link Line} declaring a property with the specified <code>key</code> and <code>value</code>.
+   *
+   * @param {string} key - the key of the property to be declared in the {@link Line} (without leading/trailing
+   * whitespace)
+   * @param {?string} [value=""] - the value of of the property to be declared in the {@link Line} (without leading
+   * whitespace - may be <code>null</code>)
+   * @return {Line} The created {@link Line} containing the property information.
+   * @public
+   */
+  static createProperty(key, value) {
+    key = key.trim();
+    value = trimStart(value);
+
+    return new Line(`${key}${DEFAULT_PROPERTY_SEPARATOR}${value}`);
   }
 
   /**
    * Creates an instance of {@link Line} for the specified <code>source</code> string.
    *
-   * This is a representation of a source line which has been or can be stored in a <code>properties</code> file. It may
-   * contain property information or not (e.g. blank line, comment).
+   * This is a representation of a source line which can be stored in a <code>.properties</code> file. It may contain
+   * property information or not (e.g. blank, comment), however, if it does declare a property, this information will be
+   * extracted and be made available via {@link Line#key} and {@link Line#value}.
    *
-   * @param {string} [source=""] - the source string to be parsed
+   * @param {?string} [source=""] - the source to be used (may be <code>null</code>)
    * @public
    */
   constructor(source) {
-    /**
-     * The source string for this {@link Line}.
-     *
-     * @private
-     * @type {string}
-     */
     this[_source] = source != null ? source : '';
 
-    const match = this[_source].match(lineRegexp);
+    const match = this[_source].match(R_LINE);
 
-    /**
-     * The key of the property contained within this {@link Line}.
-     *
-     * This will be <code>null</code> if this {@link Line} does not contain property information.
-     *
-     * @private
-     * @type {string}
-     */
-    this[_key] = match ? match[1].trim() : null;
-
-    /**
-     * The value of the property contained within this {@link Line}.
-     *
-     * This will be <code>null</code> if this {@link Line} does not contain property information.
-     *
-     * @private
-     * @type {string}
-     */
-    this[_value] = match ? match[3].trim() : null;
+    if (match) {
+      this[_key] = match[1].trim();
+      this[_value] = trimStart(match[3]);
+    }
   }
 
   /**
-   * Returns the key of the property information contained within this {@link Line}.
+   * Returns the key of the property declared in this {@link Line}.
    *
-   * This method will throw an error if this {@link Line} does not contain property information. It's always recommended
-   * that {@link Line#isProperty} is called before this method to avoid such errors.
+   * <code>undefined</code> will be returned if this {@link Line} does not contain any property information. This can be
+   * checked via {@link Line#property}.
    *
-   * @return {string} The key of the property.
-   * @throws {Error} If this {@link Line} does not contain property information.
+   * @return {?string} The key from the declared property or <code>undefined</code> if there is no property information.
    * @public
    */
-  getKey() {
-    if (!this.isProperty()) {
-      throw new Error('Cannot get key for non-property line');
-    }
-
+  get key() {
     return this[_key];
+  }
+
+  /**
+   * Returns whether this {@link Line} contains property information.
+   *
+   * @return {boolean} <code>true</code> if contains property information; otherwise <code>false</code>.
+   * @public
+   */
+  get property() {
+    return this[_key] != null && this[_value] != null;
   }
 
   /**
@@ -130,61 +132,47 @@ class Line {
    * @return {string} The source.
    * @public
    */
-  getSource() {
+  get source() {
     return this[_source];
   }
 
   /**
-   * Returns the value of the property information contained within this {@link Line}.
+   * Returns the value of the property declared in this {@link Line}.
    *
-   * This method will throw an error if this {@link Line} does not contain property information. It's always recommended
-   * that {@link Line#isProperty} is called before this method to avoid such errors.
+   * <code>undefined</code> will be returned if this {@link Line} does not contain any property information. This can be
+   * checked via {@link Line#property}.
    *
-   * @return {string} The value of the property.
-   * @throws {Error} If this {@link Line} does not contain property information.
+   * @return {?string} The value from the declared property or <code>undefined</code> if there is no property
+   * information.
    * @public
    */
-  getValue() {
-    if (!this.isProperty()) {
-      throw new Error('Cannot get value for non-property line');
-    }
-
+  get value() {
     return this[_value];
   }
 
   /**
-   * Returns whether this {@link Line} contains property information.
-   *
-   * @return {boolean} <code>true</code> if property information exists; otherwise <code>false</code>.
-   * @public
-   */
-  isProperty() {
-    return this[_key] != null && this[_value] != null;
-  }
-
-  /**
-   * Sets the value of the property information contained within this {@link Line} to <code>value</code>.
-   *
-   * This method will throw an error if this {@link Line} does not contain property information. It's always recommended
-   * that {@link Line#isProperty} is called before this method to avoid such errors.
+   * Sets the value of the property declared in this {@link Line} to <code>value</code>.
    *
    * Only the value segment of the source should be altered by this method, however, a separator may be added if none
    * already existed.
    *
-   * @param {string} [value=""] - the value to be set for the property (will be trimmed)
+   * Nothing will happen if this {@link Line} does not contain any property information. This can be checked via
+   * {@link Line#property}.
+   *
+   * @param {?string} [value=""] - the value to be set within the declared property (without leading whitespace- may be
+   * <code>null</code>)
    * @return {void}
-   * @throws {Error} If this {@link Line} does not contain property information.
    * @public
    */
-  setValue(value) {
-    if (!this.isProperty()) {
-      throw new Error('Cannot set value for non-property line');
+  set value(value) {
+    value = trimStart(value);
+
+    if (!this[_key] || this[_value] === value) {
+      return;
     }
 
-    value = value != null ? value.trim() : '';
-
-    this[_source] = this[_source].replace(lineRegexp, (match, key, separator) => {
-      return key + (separator || defaultSeparator) + value;
+    this[_source] = this[_source].replace(R_LINE, (match, key, separator) => {
+      return `${key}${(separator || DEFAULT_PROPERTY_SEPARATOR)}${value}`;
     });
     this[_value] = value;
   }

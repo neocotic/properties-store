@@ -22,19 +22,19 @@
     "url": "https://github.com/NotNinja/properties-store.git"
   },
   "dependencies": {
-    "iconv-lite": "^0.4.19",
-    "native2ascii": "^0.0.5",
-    "underscore": "^1.8.3"
+    "lodash.trimstart": "^4.5.1",
+    "node-native2ascii": "^0.1.1"
   },
   "devDependencies": {
     "chai": "^4.1.2",
     "codecov": "^3.0.0",
-    "eslint": "^4.14.0",
+    "eslint": "^4.15.0",
     "eslint-config-notninja": "^0.2.3",
     "mocha": "^4.1.0",
-    "nyc": "^11.4.1"
+    "nyc": "^11.4.1",
+    "sinon": "^4.1.4"
   },
-  "main": "src/store.js",
+  "main": "src/properties-store.js",
   "scripts": {
     "coverage": "nyc report && codecov",
     "pretest": "eslint \"src/**/*.js\" \"test/**/*.js\"",
@@ -42,6 +42,6 @@
     "posttest": "nyc check-coverage"
   },
   "engines": {
-    "node": ">=4"
+    "node": ">=8"
   }
 }

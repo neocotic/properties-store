@@ -1,10 +1,6 @@
 {
-  "extends": "notninja/es6",
+  "extends": "notninja/es8",
   "env": {
     "node": true
-  },
-  "rules": {
-    "no-underscore-dangle": "off",
-    "prefer-rest-params": "off"
   }
 }
