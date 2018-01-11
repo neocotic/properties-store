@@ -1,25 +1,8 @@
-                                                       888    d8b
-                                                       888    Y8P
-                                                       888
-    88888b.  888d888 .d88b.  88888b.   .d88b.  888d888 888888 888  .d88b.  .d8888b
-    888 "88b 888P"  d88""88b 888 "88b d8P  Y8b 888P"   888    888 d8P  Y8b 88K
-    888  888 888    888  888 888  888 88888888 888     888    888 88888888 "Y8888b.
-    888 d88P 888    Y88..88P 888 d88P Y8b.     888     Y88b.  888 Y8b.          X88
-    88888P"  888     "Y88P"  88888P"   "Y8888  888      "Y888 888  "Y8888   88888P'
-    888                      888
-    888                      888
-    888                      888
-                             888
-                             888
-                    .d8888b  888888 .d88b.  888d888 .d88b.
-                    88K      888   d88""88b 888P"  d8P  Y8b
-                    "Y8888b. 888   888  888 888    88888888
-                         X88 Y88b. Y88..88P 888    Y8b.
-                     88888P'  "Y888 "Y88P"  888     "Y8888
-
-[properties-store](https://github.com/NotNinja/properties-store) is a Node.js library for working with `.properties`
-file stores with the goal of maintaining the original source of the file as much as possible, which can be really useful
-when merging `.properties` files and wanting to minimizing diffs.
+    _____                     _   _         _____ _
+    |  _  |___ ___ ___ ___ ___| |_|_|___ ___|   __| |_ ___ ___ ___
+    |   __|  _| . | . | -_|  _|  _| | -_|_ -|__   |  _| . |  _| -_|
+    |__|  |_| |___|  _|___|_| |_| |_|___|___|_____|_| |___|_| |___|
+                  |_|
 
 [![Build Status](https://img.shields.io/travis/NotNinja/properties-store/develop.svg?style=flat-square)](https://travis-ci.org/NotNinja/properties-store)
 [![Coverage](https://img.shields.io/codecov/c/github/NotNinja/properties-store/develop.svg?style=flat-square)](https://codecov.io/gh/NotNinja/properties-store)
@@ -27,6 +10,12 @@ when merging `.properties` files and wanting to minimizing diffs.
 [![Dev Dependency Status](https://img.shields.io/david/dev/NotNinja/properties-store.svg?style=flat-square)](https://david-dm.org/NotNinja/properties-store?type=dev)
 [![License](https://img.shields.io/npm/l/properties-store.svg?style=flat-square)](https://github.com/NotNinja/properties-store/blob/master/LICENSE.md)
 [![Release](https://img.shields.io/npm/v/properties-store.svg?style=flat-square)](https://www.npmjs.com/package/properties-store)
+
+[properties-store](https://github.com/NotNinja/properties-store) is a Node.js library for working with `.properties`
+file stores while also supporting the ability (via options) to maintain the original source of the file as much as possible, which can be really useful
+when merging `.properties` files and wanting to minimizing diffs.
+
+It does not currently support the full syntax for Java `.properties` files (e.g. multiline properties) but this is planned for a future release.
 
 * [Install](#install)
 * [API](#api)
