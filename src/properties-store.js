@@ -118,12 +118,21 @@ class PropertiesStore extends EventEmitter {
   /**
    * Creates an instance of {@link PropertiesStore} using the <code>options</code> provided.
    *
+   * Optionally, a <code>store</code> can be specified whose properties (and lines, if preserved) will be used as the
+   * base for the new {@link PropertiesStore} instance.
+   *
+   * @param {?PropertiesStore} [store] - a {@link PropertiesStore} whose properties and lines, where applicable, are to
+   * be used initially
    * @param {?PropertiesStore~Options} [options] - the options to be used
    * @public
    */
-  constructor(options) {
-    // TODO: Allow another store to be passed whose properties (and lines?) should be used as a based (options should be honored)
+  constructor(store, options) {
     super();
+
+    if (store != null && !(store instanceof PropertiesStore)) {
+      options = store;
+      store = null;
+    }
 
     options = Object.assign({ preserveLines: false }, options);
 
@@ -131,6 +140,25 @@ class PropertiesStore extends EventEmitter {
 
     if (options.preserveLines) {
       this[_doc] = new Doc();
+    }
+
+    if (store != null) {
+      for (const [ key, value ] of store) {
+        this[_properties].set(key, value);
+      }
+
+      if (this[_doc]) {
+        if (store[_doc]) {
+          for (const line of store[_doc]) {
+            // Lines are mutable so recreate from source to avoid unexpected synchronization issues
+            this[_doc].add(new Line(line.source));
+          }
+        } else {
+          for (const [ key, value ] of store) {
+            this[_doc].add(Line.createProperty(key, value));
+          }
+        }
+      }
     }
   }
 

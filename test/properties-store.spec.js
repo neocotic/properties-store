@@ -204,6 +204,211 @@ describe('PropertiesStore', () => {
     });
   });
 
+  it('should contain no properties initially', () => {
+    const expected = [];
+    const store = new PropertiesStore();
+
+    expect(Array.from(store)).to.deep.equal(expected);
+  });
+
+  context('when store is specified', () => {
+    it('should contain properties from store initially', () => {
+      const properties = [
+        [ 'foo', 'bar' ],
+        [ 'fu', 'baz' ]
+      ];
+      const other = new PropertiesStore();
+
+      for (const [ key, value ] of properties) {
+        other.set(key, value);
+      }
+
+      const store = new PropertiesStore(other);
+
+      expect(Array.from(store)).to.deep.equal(properties);
+    });
+
+    it('should not reflect any changes to store afterwards', async() => {
+      const input = new MockReadable(Buffer.from([
+        '',
+        '# foo',
+        'foo=bar',
+        '',
+        'fu=baz'
+      ].join('\n')));
+      const output = new MockWritable();
+      const expectedOutput = [
+        '',
+        '# foo',
+        'foo=bar',
+        '',
+        'fu=baz'
+      ].join(EOL);
+      const expectedProperties = [
+        [ 'foo', 'bar' ],
+        [ 'fu', 'baz' ]
+      ];
+      const other = new PropertiesStore({ preserveLines: true });
+      await other.load(input);
+
+      const store = new PropertiesStore(other, { preserveLines: true });
+
+      other.clear();
+
+      expect(Array.from(store)).to.deep.equal(expectedProperties);
+
+      await store.store(output);
+
+      expect(output.buffer.toString()).to.equal(expectedOutput);
+    });
+
+    context('when preserveLines option is disabled', () => {
+      context('and preserveLines option is disabled on store', () => {
+        it('should contain properties but not lines from store initially', async() => {
+          const input = new MockReadable(Buffer.from([
+            '',
+            '# foo',
+            'foo=bar',
+            '',
+            'fu=baz'
+          ].join('\n')));
+          const output = new MockWritable();
+          const expectedOutput = [
+            'foo=bar',
+            'fu=baz'
+          ].join(EOL);
+          const expectedProperties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ]
+          ];
+          const other = new PropertiesStore({ preserveLines: false });
+          await other.load(input);
+
+          const store = new PropertiesStore(other, { preserveLines: false });
+
+          expect(Array.from(store)).to.deep.equal(expectedProperties);
+
+          await store.store(output);
+
+          expect(output.buffer.toString()).to.equal(expectedOutput);
+        });
+      });
+
+      context('and preserveLines option is enabled on store', () => {
+        it('should contain properties but not lines from store initially', async() => {
+          const input = new MockReadable(Buffer.from([
+            '',
+            '# foo',
+            'foo=bar',
+            '',
+            'fu=baz'
+          ].join('\n')));
+          const output = new MockWritable();
+          const expectedOutput = [
+            'foo=bar',
+            'fu=baz'
+          ].join(EOL);
+          const expectedProperties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ]
+          ];
+          const other = new PropertiesStore({ preserveLines: true });
+          await other.load(input);
+
+          const store = new PropertiesStore(other, { preserveLines: false });
+
+          expect(Array.from(store)).to.deep.equal(expectedProperties);
+
+          await store.store(output);
+
+          expect(output.buffer.toString()).to.equal(expectedOutput);
+        });
+      });
+    });
+
+    context('when preserveLines option is enabled', () => {
+      context('and preserveLines option is disabled on store', () => {
+        it('should contain properties but not lines from store initially', async() => {
+          const input = new MockReadable(Buffer.from([
+            '',
+            '# foo',
+            'foo=bar',
+            '',
+            'fu=baz'
+          ].join('\n')));
+          const output = new MockWritable();
+          const expectedOutput = [
+            'foo=bar',
+            'fu=baz'
+          ].join(EOL);
+          const expectedProperties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ]
+          ];
+          const other = new PropertiesStore({ preserveLines: false });
+          await other.load(input);
+
+          const store = new PropertiesStore(other, { preserveLines: true });
+
+          expect(Array.from(store)).to.deep.equal(expectedProperties);
+
+          await store.store(output);
+
+          expect(output.buffer.toString()).to.equal(expectedOutput);
+        });
+      });
+
+      context('and preserveLines option is enabled on store', () => {
+        it('should contain properties and lines from store initially', async() => {
+          const input = new MockReadable(Buffer.from([
+            '',
+            '# foo',
+            'foo=bar',
+            '',
+            'fu=baz'
+          ].join('\n')));
+          const output = new MockWritable();
+          const expectedOutput = [
+            '',
+            '# foo',
+            'foo=bar',
+            '',
+            'fu=baz'
+          ].join(EOL);
+          const expectedProperties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ]
+          ];
+          const other = new PropertiesStore({ preserveLines: true });
+          await other.load(input);
+
+          const store = new PropertiesStore(other, { preserveLines: true });
+
+          expect(Array.from(store)).to.deep.equal(expectedProperties);
+
+          await store.store(output);
+
+          expect(output.buffer.toString()).to.equal(expectedOutput);
+        });
+      });
+    });
+  });
+
+  context('when preserveLines option is enabled', () => {
+    it('should contain no properties or lines initially', async() => {
+      const output = new MockWritable();
+      const expectedOutput = '';
+      const expectedProperties = [];
+      const store = new PropertiesStore({ preserveLines: true });
+
+      expect(Array.from(store)).to.deep.equal(expectedProperties);
+
+      await store.store(output);
+
+      expect(output.buffer.toString()).to.equal(expectedOutput);
+    });
+  });
+
   describe('#clear', () => {
     it('should remove all properties', () => {
       const properties = [
