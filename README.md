@@ -11,9 +11,9 @@
 [![License](https://img.shields.io/npm/l/properties-store.svg?style=flat-square)](https://github.com/NotNinja/properties-store/blob/master/LICENSE.md)
 [![Release](https://img.shields.io/npm/v/properties-store.svg?style=flat-square)](https://www.npmjs.com/package/properties-store)
 
-[properties-store](https://github.com/NotNinja/properties-store) is a Node.js library for working with `.properties`
-file stores while also supporting the ability (via options) to maintain the original source of the file as much as possible, which can be really useful
-when merging `.properties` files and wanting to minimizing diffs.
+[properties-store](https://notninja.github.io/properties-store) is a Node.js library for working with `.properties` file
+stores while also supporting the ability (via options) to maintain the original source of the file as much as possible,
+which can be really useful when merging `.properties` files and wanting to minimizing diffs.
 
 It does not currently support the full syntax for Java `.properties` files (e.g. multiline properties) but this is planned for a future release.
 

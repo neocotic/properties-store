@@ -45,6 +45,9 @@ const _writeStream = Symbol('writeStream');
  * maintain non-properties lines that are loaded from an input stream, which can be useful when wanting to make
  * non-intrusive changes to the original source.
  *
+ * The <code>preserveLines</code> option can be enabled so that all lines read by {@link PropertiesStore#load} are
+ * maintained and also written by {@link PropertiesStore#store}.
+ *
  * @public
  */
 class PropertiesStore extends EventEmitter {
