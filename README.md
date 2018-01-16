@@ -35,7 +35,9 @@ You'll need to have at least [Node.js](https://nodejs.org) 8 or newer.
 
 ## API
 
-TODO: Document API
+The API documentation can be found below:
+
+https://notninja.github.io/properties-store
 
 ## Bugs
 

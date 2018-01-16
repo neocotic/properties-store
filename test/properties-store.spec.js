@@ -452,7 +452,7 @@ describe('PropertiesStore', () => {
       const clearCalls = clearCallback.getCalls();
 
       expect(clearCalls[0].args).to.deep.equal([
-        { store }
+        { properties: store }
       ]);
 
       const deleteCalls = deleteCallback.getCalls();
@@ -460,21 +460,21 @@ describe('PropertiesStore', () => {
       expect(deleteCalls[0].args).to.deep.equal([
         {
           key: 'foo',
-          store,
+          properties: store,
           value: 'bar'
         }
       ]);
       expect(deleteCalls[1].args).to.deep.equal([
         {
           key: 'fu',
-          store,
+          properties: store,
           value: 'baz'
         }
       ]);
       expect(deleteCalls[2].args).to.deep.equal([
         {
           key: 'fizz',
-          store,
+          properties: store,
           value: 'buzz'
         }
       ]);
@@ -497,7 +497,7 @@ describe('PropertiesStore', () => {
         const clearCalls = clearCallback.getCalls();
 
         expect(clearCalls[0].args).to.deep.equal([
-          { store }
+          { properties: store }
         ]);
       });
     });
@@ -577,7 +577,7 @@ describe('PropertiesStore', () => {
       expect(deleteCalls[0].args).to.deep.equal([
         {
           key: 'foo',
-          store,
+          properties: store,
           value: 'bar'
         }
       ]);
@@ -1134,6 +1134,104 @@ describe('PropertiesStore', () => {
     });
   });
 
+  describe('#lines', () => {
+    it('should return iterator for each property line', () => {
+      const properties = [
+        [ 'foo', 'bar' ],
+        [ 'fu', 'baz' ],
+        [ 'fizz', 'buzz' ]
+      ];
+      const expected = [
+        'foo=bar',
+        'fu=baz',
+        'fizz=buzz'
+      ];
+      const store = new PropertiesStore();
+
+      for (const [ key, value ] of properties) {
+        store.set(key, value);
+      }
+
+      const iterator = store.lines();
+
+      expect(iterator.next().value).to.equal(expected[0]);
+      expect(iterator.next().value).to.equal(expected[1]);
+      expect(iterator.next().value).to.equal(expected[2]);
+      expect(iterator.next().value).to.equal(undefined);
+
+      expect(Array.from(store.lines())).to.deep.equal(expected);
+    });
+
+    context('when no properties exist', () => {
+      it('should return an empty iterator', () => {
+        const store = new PropertiesStore();
+        const iterator = store.lines();
+
+        expect(iterator.next().value).to.equal(undefined);
+
+        expect(Array.from(store.lines())).to.deep.equal([]);
+      });
+    });
+
+    context('when preserveLines option is enabled', () => {
+      it('should return iterator for each line', async() => {
+        const input = new MockReadable(Buffer.from([
+          '',
+          '# foo',
+          'foo=bar',
+          '',
+          'fu=baz',
+          'fizz=buzz'
+        ].join('\n')));
+        const expected = [
+          '',
+          '# foo',
+          'foo=bar',
+          '',
+          'fu=baz',
+          'fizz=buzz'
+        ];
+        const store = new PropertiesStore({ preserveLines: true });
+        await store.load(input);
+
+        const iterator = store.lines();
+
+        expect(iterator.next().value).to.equal(expected[0]);
+        expect(iterator.next().value).to.equal(expected[1]);
+        expect(iterator.next().value).to.equal(expected[2]);
+        expect(iterator.next().value).to.equal(expected[3]);
+        expect(iterator.next().value).to.equal(expected[4]);
+        expect(iterator.next().value).to.equal(expected[5]);
+        expect(iterator.next().value).to.equal(undefined);
+
+        expect(Array.from(store.lines())).to.deep.equal(expected);
+      });
+
+      context('when no properties exist', () => {
+        it('should return iterator for each non-property line', async() => {
+          const input = new MockReadable(Buffer.from([
+            '',
+            '# foo'
+          ].join('\n')));
+          const expected = [
+            '',
+            '# foo'
+          ];
+          const store = new PropertiesStore({ preserveLines: true });
+          await store.load(input);
+
+          const iterator = store.lines();
+
+          expect(iterator.next().value).to.equal(expected[0]);
+          expect(iterator.next().value).to.equal(expected[1]);
+          expect(iterator.next().value).to.equal(undefined);
+
+          expect(Array.from(store.lines())).to.deep.equal(expected);
+        });
+      });
+    });
+  });
+
   describe('#load', () => {
     it('should read properties from input', async() => {
       const input = new MockReadable(Buffer.from([
@@ -1187,7 +1285,7 @@ describe('PropertiesStore', () => {
           key: 'foo',
           newValue: 'bar',
           oldValue: undefined,
-          store
+          properties: store
         }
       ]);
       expect(changeCalls[1].args).to.deep.equal([
@@ -1195,7 +1293,7 @@ describe('PropertiesStore', () => {
           key: 'foo',
           newValue: 'baz',
           oldValue: 'bar',
-          store
+          properties: store
         }
       ]);
       expect(changeCalls[2].args).to.deep.equal([
@@ -1203,7 +1301,7 @@ describe('PropertiesStore', () => {
           key: 'foo',
           newValue: 'buzz',
           oldValue: 'baz',
-          store
+          properties: store
         }
       ]);
       expect(changeCalls[3].args).to.deep.equal([
@@ -1211,7 +1309,7 @@ describe('PropertiesStore', () => {
           key: 'fu',
           newValue: 'bar',
           oldValue: undefined,
-          store
+          properties: store
         }
       ]);
 
@@ -1224,7 +1322,7 @@ describe('PropertiesStore', () => {
             encoding: 'latin1',
             unescape: true
           },
-          store
+          properties: store
         }
       ]);
     });
@@ -1304,7 +1402,7 @@ describe('PropertiesStore', () => {
               encoding: 'latin1',
               unescape: true
             },
-            store
+            properties: store
           }
         ]);
       });
@@ -1615,7 +1713,7 @@ describe('PropertiesStore', () => {
             key: 'foo',
             newValue: 'bar',
             oldValue: undefined,
-            store
+            properties: store
           }
         ]);
       });
@@ -1714,7 +1812,7 @@ describe('PropertiesStore', () => {
             key: 'foo',
             newValue: 'quux',
             oldValue: 'bar',
-            store
+            properties: store
           }
         ]);
       });
@@ -1786,7 +1884,7 @@ describe('PropertiesStore', () => {
           expect(deleteCalls[0].args).to.deep.equal([
             {
               key: 'foo',
-              store,
+              properties: store,
               value: 'bar'
             }
           ]);
@@ -1924,7 +2022,7 @@ describe('PropertiesStore', () => {
             key: 'FOO',
             newValue: 'buzz',
             oldValue: undefined,
-            store
+            properties: store
           }
         ]);
         expect(changeCalls[1].args).to.deep.equal([
@@ -1932,7 +2030,7 @@ describe('PropertiesStore', () => {
             key: 'fu',
             newValue: 'quux',
             oldValue: undefined,
-            store
+            properties: store
           }
         ]);
       });
@@ -2100,7 +2198,7 @@ describe('PropertiesStore', () => {
             escape: true
           },
           output,
-          store
+          properties: store
         }
       ]);
     });
@@ -2136,7 +2234,7 @@ describe('PropertiesStore', () => {
               escape: true
             },
             output,
-            store
+            properties: store
           }
         ]);
       });

@@ -33,15 +33,51 @@ const DEFAULT_PROPERTY_SEPARATOR = '=';
 const R_LINE = /^(\s*[^\s=:#!]+)(\s*[=:]?\s*|\s+)(.*)$/;
 
 /**
- * Contains the source of a single line that has been read from or can be written to a <code>.properties</code> file.
+ * Contains the source of a single line that has been read from and/or can be written to a <code>.properties</code>
+ * file.
  *
- * @public
+ * A <code>Line</code> represents a single source line which can be stored in a <code>.properties</code> file. It may
+ * contain property information or not (e.g. blank, comment), however, if it does declare a property, this information
+ * is be extracted and made available via {@link Line#key} and {@link Line#value}.
+ *
+ * @example
+ * const Line = require("properties-store/src/line");
+ *
+ * const propertyLine = new Line("foo = bar");
+ * propertyLine.source;
+ * //=> "foo = bar"
+ * propertyLine.property;
+ * //=> true
+ * propertyLine.key;
+ * //=> "foo"
+ * propertyLine.value;
+ * //=> "bar"
+ *
+ * const commentLine = new Line("# foo");
+ * commentLine.source;
+ * //=> "# foo"
+ * commentLine.property;
+ * //=> false
+ *
+ * const emptyLine = new Line();
+ * emptyLine.source;
+ * //=> ""
+ * emptyLine.property;
+ * //=> false
+ * @param {string} [source=""] - the source to be used (may be <code>null</code>)
+ * @protected
  */
 class Line {
 
   /**
    * Creates a blank {@link Line}.
    *
+   * @example
+   * const blankLine = Line.createBlank();
+   * blankLine.source;
+   * //=> ""
+   * blankLine.property;
+   * //=> false
    * @return {Line} The created {@link Line} containing nothing.
    * @public
    */
@@ -52,7 +88,19 @@ class Line {
   /**
    * Creates a {@link Line} with the specified <code>comment</code>.
    *
-   * @param {?string} [comment=""] - the comment to be used (without leading whitespace - may be <code>null</code>)
+   * @example
+   * const commentLine = Line.createComment("foo");
+   * commentLine.source;
+   * //=> "# foo"
+   * commentLine.property;
+   * //=> false
+   *
+   * const emptyCommentLine = Line.createComment();
+   * emptyCommentLine.source;
+   * //=> "#"
+   * emptyCommentLine.property;
+   * //=> false
+   * @param {string} [comment=""] - the comment to be used (without leading whitespace - may be <code>null</code>)
    * @return {Line} The created {@link Line} containing <code>comment</code>.
    * @public
    */
@@ -68,9 +116,29 @@ class Line {
   /**
    * Creates a {@link Line} declaring a property with the specified <code>key</code> and <code>value</code>.
    *
+   * @example
+   * const propertyLine = Line.createProperty("foo", "bar");
+   * propertyLine.source;
+   * //=> "foo=bar"
+   * propertyLine.property;
+   * //=> true
+   * propertyLine.key;
+   * //=> "foo"
+   * propertyLine.value;
+   * //=> "bar"
+   *
+   * const emptyPropertyLine = Line.createProperty("foo");
+   * emptyPropertyLine.source;
+   * //=> "foo="
+   * emptyPropertyLine.property;
+   * //=> true
+   * emptyPropertyLine.key;
+   * //=> "foo"
+   * emptyPropertyLine.value;
+   * //=> ""
    * @param {string} key - the key of the property to be declared in the {@link Line} (without leading/trailing
    * whitespace)
-   * @param {?string} [value=""] - the value of of the property to be declared in the {@link Line} (without leading
+   * @param {string} [value=""] - the value of of the property to be declared in the {@link Line} (without leading
    * whitespace - may be <code>null</code>)
    * @return {Line} The created {@link Line} containing the property information.
    * @public
@@ -82,16 +150,6 @@ class Line {
     return new Line(`${key}${DEFAULT_PROPERTY_SEPARATOR}${value}`);
   }
 
-  /**
-   * Creates an instance of {@link Line} for the specified <code>source</code> string.
-   *
-   * This is a representation of a source line which can be stored in a <code>.properties</code> file. It may contain
-   * property information or not (e.g. blank, comment), however, if it does declare a property, this information will be
-   * extracted and be made available via {@link Line#key} and {@link Line#value}.
-   *
-   * @param {?string} [source=""] - the source to be used (may be <code>null</code>)
-   * @public
-   */
   constructor(source) {
     this[_source] = source != null ? source : '';
 
@@ -109,6 +167,22 @@ class Line {
    * <code>undefined</code> will be returned if this {@link Line} does not contain any property information. This can be
    * checked via {@link Line#property}.
    *
+   * @example
+   * const propertyLine = new Line(" foo = bar ");
+   * propertyLine.key;
+   * //=> "foo"
+   *
+   * const emptyPropertyLine = new Line("foo");
+   * emptyPropertyLine.key;
+   * //=> "foo"
+   *
+   * const commentLine = new Line("# foo");
+   * commentLine.key;
+   * //=> undefined
+   *
+   * const emptyLine = new Line();
+   * emptyLine.key;
+   * //=> undefined
    * @return {?string} The key from the declared property or <code>undefined</code> if there is no property information.
    * @public
    */
@@ -119,6 +193,22 @@ class Line {
   /**
    * Returns whether this {@link Line} contains property information.
    *
+   * @example
+   * const propertyLine = new Line(" foo = bar ");
+   * propertyLine.property;
+   * //=> true
+   *
+   * const emptyPropertyLine = new Line("foo");
+   * emptyPropertyLine.property;
+   * //=> true
+   *
+   * const commentLine = new Line("# foo");
+   * commentLine.property;
+   * //=> false
+   *
+   * const emptyLine = new Line();
+   * emptyLine.property;
+   * //=> false
    * @return {boolean} <code>true</code> if contains property information; otherwise <code>false</code>.
    * @public
    */
@@ -129,6 +219,20 @@ class Line {
   /**
    * Returns the source of this {@link Line}.
    *
+   * @example
+   * const Line = require("properties-store/src/line");
+   *
+   * const propertyLine = new Line(" foo = bar ");
+   * propertyLine.source;
+   * //=> " foo = bar "
+   *
+   * const commentLine = new Line("# foo");
+   * commentLine.source;
+   * //=> "# foo"
+   *
+   * const emptyLine = new Line();
+   * emptyLine.source;
+   * //=> ""
    * @return {string} The source.
    * @public
    */
@@ -142,6 +246,22 @@ class Line {
    * <code>undefined</code> will be returned if this {@link Line} does not contain any property information. This can be
    * checked via {@link Line#property}.
    *
+   * @example
+   * const propertyLine = new Line(" foo = bar ");
+   * propertyLine.value;
+   * //=> "bar "
+   *
+   * const emptyPropertyLine = new Line("foo");
+   * emptyPropertyLine.value;
+   * //=> ""
+   *
+   * const commentLine = new Line("# foo");
+   * commentLine.value;
+   * //=> undefined
+   *
+   * const emptyLine = new Line();
+   * emptyLine.value;
+   * //=> undefined
    * @return {?string} The value from the declared property or <code>undefined</code> if there is no property
    * information.
    * @public
@@ -159,7 +279,27 @@ class Line {
    * Nothing will happen if this {@link Line} does not contain any property information. This can be checked via
    * {@link Line#property}.
    *
-   * @param {?string} [value=""] - the value to be set within the declared property (without leading whitespace- may be
+   * @example
+   * const propertyLine = new Line(" foo = bar ");
+   * propertyLine.value = "BAR ";
+   * propertyLine.source;
+   * //=> " foo = BAR "
+   *
+   * const emptyPropertyLine = new Line("foo");
+   * emptyPropertyLine.value = "bar";
+   * emptyPropertyLine.source;
+   * //=> "foo=bar"
+   *
+   * const commentLine = new Line("# foo");
+   * commentLine.value = "bar";
+   * commentLine.source;
+   * //=> "# foo"
+   *
+   * const emptyLine = new Line();
+   * emptyLine.value = "bar";
+   * emptyLine.source;
+   * //=> ""
+   * @param {string} [value=""] - the value to be set within the declared property (without leading whitespace - may be
    * <code>null</code>)
    * @return {void}
    * @public

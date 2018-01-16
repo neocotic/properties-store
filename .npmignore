@@ -1,5 +1,6 @@
 .nyc_output/
 coverage/
+docs/
 test/
 .*
 AUTHORS.md

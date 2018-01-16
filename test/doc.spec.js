@@ -493,56 +493,6 @@ describe('Doc', () => {
     });
   });
 
-  describe('#join', () => {
-    it('should join all lines using a comma separator', () => {
-      const expected = ',# foo,foo=bar,,foo=baz,foo=buzz,,fu=bar';
-      const lines = [
-        Line.createBlank(),
-        Line.createComment('foo'),
-        Line.createProperty('foo', 'bar'),
-        Line.createBlank(),
-        Line.createProperty('foo', 'baz'),
-        Line.createProperty('foo', 'buzz'),
-        Line.createBlank(),
-        Line.createProperty('fu', 'bar')
-      ];
-
-      for (const line of lines) {
-        doc.add(line);
-      }
-
-      expect(doc.join()).to.equal(expected);
-    });
-
-    context('when separator is specified', () => {
-      it('should join all lines using separator', () => {
-        const expected = '\n# foo\nfoo=bar\n\nfoo=baz\nfoo=buzz\n\nfu=bar';
-        const lines = [
-          Line.createBlank(),
-          Line.createComment('foo'),
-          Line.createProperty('foo', 'bar'),
-          Line.createBlank(),
-          Line.createProperty('foo', 'baz'),
-          Line.createProperty('foo', 'buzz'),
-          Line.createBlank(),
-          Line.createProperty('fu', 'bar')
-        ];
-
-        for (const line of lines) {
-          doc.add(line);
-        }
-
-        expect(doc.join('\n')).to.equal(expected);
-      });
-    });
-
-    context('when no lines exist', () => {
-      it('should return an empty string', () => {
-        expect(doc.join()).to.equal('');
-      });
-    });
-  });
-
   describe('#[Symbol.iterator]', () => {
     it('should return iterator for each line', () => {
       const lines = [
