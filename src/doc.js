@@ -296,6 +296,7 @@ module.exports = Doc;
  * @param {Line} line - the {@link Line}
  * @param {number} index - the line index
  * @param {Doc} doc - the {@link Doc}
+ * @return {void}
  */
 
 /**
@@ -305,4 +306,5 @@ module.exports = Doc;
  * @callback Doc~ParseCallback
  * @param {Line} line - the {@link Line}
  * @param {number} index - the line index
+ * @return {void}
  */

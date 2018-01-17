@@ -715,6 +715,7 @@ module.exports = PropertiesStore;
  * @param {string} value - the property value
  * @param {string} key - the property key
  * @param {PropertiesStore} properties - the {@link PropertiesStore}
+ * @return {void}
  */
 
 /**
