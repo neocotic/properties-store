@@ -35,8 +35,6 @@ const _readStream = Symbol('readStream');
 const _set = Symbol('set');
 const _writeStream = Symbol('writeStream');
 
-// TODO: Support XML persistence (restrict crossing source doc types)
-
 /**
  * A <code>PropertiesStore</code> represents a persistent set of properties which can be loaded from and/or saved to a
  * stream. Each property key and their corresponding value is a string which can be iterated over as

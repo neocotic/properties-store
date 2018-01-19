@@ -68,7 +68,6 @@ class Doc {
    * @public
    */
   static parse(source, callback, thisArg) {
-    // TODO: Improve parsing logic to closer match Java's properties specifications: https://en.wikipedia.org/wiki/.properties#Format
     if (source == null) {
       return;
     }
