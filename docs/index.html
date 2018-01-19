@@ -199,7 +199,7 @@
     </h3>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L82-L706'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L78-L712'>
       <span>src/properties-store.js</span>
       </a>
     
@@ -212,17 +212,11 @@ stream. Each property key and their corresponding value is a string which can be
 <p>It is designed to be compatible with Java's <code>.properties</code> file format, however, it also has the ability to
 maintain non-properties lines that are loaded from an input stream, which can be useful when wanting to make
 non-intrusive changes to the original source.</p>
-<p>The <code>preserveLines</code> option can be enabled so that all lines read by <a href="#propertiesstoreload">PropertiesStore#load</a> are
-maintained and also written by <a href="#propertiesstorestore">PropertiesStore#store</a>, but it's worth noting that doing so can slow
-certain operations while <a href="#propertiesstore">PropertiesStore</a> maintains synchronization with the property lines amongst the other
-preserved lines.</p>
+<p>The <code>preserve</code> option can be enabled so that all lines read by <a href="#propertiesstoreload">PropertiesStore#load</a> are maintained
+and also written by <a href="#propertiesstorestore">PropertiesStore#store</a>, but it's worth noting that doing so can slow certain operations
+while <a href="#propertiesstore">PropertiesStore</a> maintains synchronization with the property lines amongst the other preserved lines.</p>
 <p>Optionally, another <code>store</code> can be specified whose properties (and lines, if preserved) will be used as
 the base for the new <code>PropertiesStore</code> instance.</p>
-<p>It should be installed via npm:</p>
-<pre>
-$ npm install --save properties-store
-</pre>
-<p>Node.js version 8 or above is required.</p>
 
 
   <div class='pre p1 fill-light mt0'>new PropertiesStore(store: <a href="#propertiesstore">PropertiesStore</a>?, options: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>?)</div>
@@ -280,7 +274,7 @@ be used initially
             <tbody class='mt1'>
               
                 <tr>
-  <td class='break-word'><span class='code bold'>options.preserveLines</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></code>
+  <td class='break-word'><span class='code bold'>options.preserve</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></code>
   
     (default <code>false</code>)
   </td>
@@ -317,11 +311,16 @@ false
     <div class='py1 quiet mt1 prose-big'>Example</div>
     
       
-      <pre class='p1 overflow-auto round fill-light'><span class="hljs-keyword">const</span> PropertiesStore = <span class="hljs-built_in">require</span>(<span class="hljs-string">"properties-store"</span>);
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-keyword">const</span> PropertiesStore = <span class="hljs-built_in">require</span>(<span class="hljs-string">'properties-store'</span>);
 
 <span class="hljs-keyword">const</span> properties = <span class="hljs-keyword">new</span> PropertiesStore();
-properties.set(<span class="hljs-string">"foo"</span>, <span class="hljs-string">"bar"</span>);
-properties.set(<span class="hljs-string">"fu"</span>, <span class="hljs-string">"baz"</span>);
+properties.set(<span class="hljs-string">'foo'</span>, <span class="hljs-string">'bar'</span>);
+properties.set(<span class="hljs-string">'fu'</span>, <span class="hljs-string">'baz'</span>);
+
+properties.get(<span class="hljs-string">'foo'</span>);
+<span class="hljs-comment">//=&gt; "bar"</span>
+properties.get(<span class="hljs-string">'fu'</span>);
+<span class="hljs-comment">//=&gt; "baz"</span>
 
 <span class="hljs-keyword">const</span> copy = <span class="hljs-keyword">new</span> PropertiesStore(store);
 <span class="hljs-built_in">Array</span>.from(copy);
@@ -347,7 +346,7 @@ properties.set(<span class="hljs-string">"fu"</span>, <span class="hljs-string">
   <div class='clearfix'>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L125-L130'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L124-L129'>
       <span>src/properties-store.js</span>
       </a>
     
@@ -358,9 +357,11 @@ properties.set(<span class="hljs-string">"fu"</span>, <span class="hljs-string">
 <a href="#propertiesstore">PropertiesStore</a>.</p>
 <p>If property lines are found with the same key in <code>input</code>, the value of the latest property line with
 that key will be set as the value.</p>
-<p>The <code>preserveLines</code> option can be enabled so that all lines read by this method are maintained and also
+<p>The <code>preserve</code> option can be enabled so that all lines read by this method are maintained and also
 written by <a href="#propertiesstorestore">PropertiesStore#store</a>, but it's worth noting that doing so can slow certain operations while
 <a href="#propertiesstore">PropertiesStore</a> maintains synchronization with the property lines amongst the other preserved lines.</p>
+<p>By default, any Unicode escapes ("\uxxxx" notation) read from <code>input</code> will be converted to their
+corresponding Unicode characters. This behaviour can be prevented by disabling the <code>unescape</code> option.</p>
 
 
   <div class='pre p1 fill-light mt0'>load(input: <a href="https://nodejs.org/api/stream.html#stream_class_stream_readable">stream.Readable</a>, options: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>?): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="#propertiesstore">PropertiesStore</a>, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>></div>
@@ -419,15 +420,15 @@ written by <a href="#propertiesstorestore">PropertiesStore#store</a>, but it's w
 
               
                 <tr>
-  <td class='break-word'><span class='code bold'>options.preserveLines</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></code>
+  <td class='break-word'><span class='code bold'>options.preserve</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></code>
   
     (default <code>false</code>)
   </td>
   <td class='break-word'><span><code>
 true
 </code>
- to preserve all lines read, even those that do
-not represent properties; otherwise 
+ to preserve all lines read, even those that do not
+represent properties; otherwise 
 <code>
 false
 </code>
@@ -491,7 +492,7 @@ input
     <div class='py1 quiet mt1 prose-big'>Example</div>
     
       
-      <pre class='p1 overflow-auto round fill-light'><span class="hljs-keyword">const</span> properties = <span class="hljs-keyword">await</span> PropertiesStore.load(fs.createReadStream(<span class="hljs-string">"path/to/my.properties"</span>), {
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-keyword">const</span> properties = <span class="hljs-keyword">await</span> PropertiesStore.load(fs.createReadStream(<span class="hljs-string">'path/to/my.properties'</span>), {
   <span class="hljs-attr">encoding</span>: <span class="hljs-string">'utf8'</span>,
   <span class="hljs-attr">unescape</span>: <span class="hljs-literal">false</span>
 });
@@ -500,9 +501,9 @@ input
 <span class="hljs-built_in">Array</span>.from(properties.lines());
 <span class="hljs-comment">//&gt; ["foo = bar", "fu = baz"]</span>
 
-<span class="hljs-keyword">const</span> completeProperties = <span class="hljs-keyword">await</span> PropertiesStore.load(fs.createReadStream(<span class="hljs-string">"path/to/my.properties"</span>), {
+<span class="hljs-keyword">const</span> completeProperties = <span class="hljs-keyword">await</span> PropertiesStore.load(fs.createReadStream(<span class="hljs-string">'path/to/my.properties'</span>), {
   <span class="hljs-attr">encoding</span>: <span class="hljs-string">'utf8'</span>,
-  <span class="hljs-attr">preserveLines</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">preserve</span>: <span class="hljs-literal">true</span>,
   <span class="hljs-attr">unescape</span>: <span class="hljs-literal">false</span>
 });
 <span class="hljs-built_in">Array</span>.from(completeProperties);
@@ -544,7 +545,7 @@ input
   <div class='clearfix'>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L229-L245'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L228-L244'>
       <span>src/properties-store.js</span>
       </a>
     
@@ -587,8 +588,8 @@ input
     
       
       <pre class='p1 overflow-auto round fill-light'><span class="hljs-keyword">const</span> properties = <span class="hljs-keyword">new</span> PropertiesStore();
-properties.set(<span class="hljs-string">"foo"</span>, <span class="hljs-string">"bar"</span>);
-properties.set(<span class="hljs-string">"fu"</span>, <span class="hljs-string">"baz"</span>);
+properties.set(<span class="hljs-string">'foo'</span>, <span class="hljs-string">'bar'</span>);
+properties.set(<span class="hljs-string">'fu'</span>, <span class="hljs-string">'baz'</span>);
 
 properties.clear();
 properties.size;
@@ -620,7 +621,7 @@ properties.size;
   <div class='clearfix'>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L272-L292'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L271-L291'>
       <span>src/properties-store.js</span>
       </a>
     
@@ -695,14 +696,14 @@ false
     
       
       <pre class='p1 overflow-auto round fill-light'><span class="hljs-keyword">const</span> properties = <span class="hljs-keyword">new</span> PropertiesStore();
-properties.set(<span class="hljs-string">"foo"</span>, <span class="hljs-string">"bar"</span>);
+properties.set(<span class="hljs-string">'foo'</span>, <span class="hljs-string">'bar'</span>);
 
-properties.delete(<span class="hljs-string">"FOO"</span>);
-properties.has(<span class="hljs-string">"foo"</span>);
+properties.delete(<span class="hljs-string">'FOO'</span>);
+properties.has(<span class="hljs-string">'foo'</span>);
 <span class="hljs-comment">//=&gt; true</span>
 
-properties.delete(<span class="hljs-string">"foo"</span>);
-properties.has(<span class="hljs-string">"foo"</span>);
+properties.delete(<span class="hljs-string">'foo'</span>);
+properties.has(<span class="hljs-string">'foo'</span>);
 <span class="hljs-comment">//=&gt; false</span></pre>
     
   
@@ -731,7 +732,7 @@ properties.has(<span class="hljs-string">"foo"</span>);
   <div class='clearfix'>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L307-L309'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L306-L308'>
       <span>src/properties-store.js</span>
       </a>
     
@@ -777,8 +778,8 @@ Iterator
     
       
       <pre class='p1 overflow-auto round fill-light'><span class="hljs-keyword">const</span> properties = <span class="hljs-keyword">new</span> PropertiesStore();
-properties.set(<span class="hljs-string">"foo"</span>, <span class="hljs-string">"bar"</span>);
-properties.set(<span class="hljs-string">"fu"</span>, <span class="hljs-string">"baz"</span>);
+properties.set(<span class="hljs-string">'foo'</span>, <span class="hljs-string">'bar'</span>);
+properties.set(<span class="hljs-string">'fu'</span>, <span class="hljs-string">'baz'</span>);
 
 <span class="hljs-built_in">Array</span>.from(properties.entries());
 <span class="hljs-comment">//=&gt; [["foo", "bar"], ["fu", "baz"]]</span></pre>
@@ -809,7 +810,7 @@ properties.set(<span class="hljs-string">"fu"</span>, <span class="hljs-string">
   <div class='clearfix'>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L327-L331'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L326-L330'>
       <span>src/properties-store.js</span>
       </a>
     
@@ -881,8 +882,8 @@ callback
     
       
       <pre class='p1 overflow-auto round fill-light'><span class="hljs-keyword">const</span> properties = <span class="hljs-keyword">new</span> PropertiesStore();
-properties.set(<span class="hljs-string">"foo"</span>, <span class="hljs-string">"bar"</span>);
-properties.set(<span class="hljs-string">"fu"</span>, <span class="hljs-string">"baz"</span>);
+properties.set(<span class="hljs-string">'foo'</span>, <span class="hljs-string">'bar'</span>);
+properties.set(<span class="hljs-string">'fu'</span>, <span class="hljs-string">'baz'</span>);
 
 properties.forEach(<span class="hljs-function">(<span class="hljs-params">value, key</span>) =&gt;</span> <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`<span class="hljs-subst">${key}</span>=<span class="hljs-subst">${value}</span>`</span>));
 <span class="hljs-comment">//=&gt; "foo=bar"</span>
@@ -914,7 +915,7 @@ properties.forEach(<span class="hljs-function">(<span class="hljs-params">value,
   <div class='clearfix'>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L360-L367'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L359-L366'>
       <span>src/properties-store.js</span>
       </a>
     
@@ -1002,17 +1003,17 @@ defaultValue
     
       
       <pre class='p1 overflow-auto round fill-light'><span class="hljs-keyword">const</span> properties = <span class="hljs-keyword">new</span> PropertiesStore();
-properties.set(<span class="hljs-string">"foo"</span>, <span class="hljs-string">"bar"</span>);
+properties.set(<span class="hljs-string">'foo'</span>, <span class="hljs-string">'bar'</span>);
 
-properties.get(<span class="hljs-string">"foo"</span>);
+properties.get(<span class="hljs-string">'foo'</span>);
 <span class="hljs-comment">//=&gt; "bar"</span>
-properties.get(<span class="hljs-string">"FOO"</span>);
+properties.get(<span class="hljs-string">'FOO'</span>);
 <span class="hljs-comment">//=&gt; undefined</span>
-properties.get(<span class="hljs-string">"fu"</span>);
+properties.get(<span class="hljs-string">'fu'</span>);
 <span class="hljs-comment">//=&gt; undefined</span>
-properties.get(<span class="hljs-string">"fu"</span>, <span class="hljs-string">"baz"</span>);
+properties.get(<span class="hljs-string">'fu'</span>, <span class="hljs-string">'baz'</span>);
 <span class="hljs-comment">//=&gt; "baz"</span>
-properties.get(<span class="hljs-string">"fu"</span>, <span class="hljs-number">123</span>);
+properties.get(<span class="hljs-string">'fu'</span>, <span class="hljs-number">123</span>);
 <span class="hljs-comment">//=&gt; "123"</span></pre>
     
   
@@ -1041,7 +1042,7 @@ properties.get(<span class="hljs-string">"fu"</span>, <span class="hljs-number">
   <div class='clearfix'>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L388-L390'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L387-L389'>
       <span>src/properties-store.js</span>
       </a>
     
@@ -1113,13 +1114,13 @@ false
     
       
       <pre class='p1 overflow-auto round fill-light'><span class="hljs-keyword">const</span> properties = <span class="hljs-keyword">new</span> PropertiesStore();
-properties.set(<span class="hljs-string">"foo"</span>, <span class="hljs-string">"bar"</span>);
+properties.set(<span class="hljs-string">'foo'</span>, <span class="hljs-string">'bar'</span>);
 
-properties.has(<span class="hljs-string">"foo"</span>);
+properties.has(<span class="hljs-string">'foo'</span>);
 <span class="hljs-comment">//=&gt; true</span>
-properties.has(<span class="hljs-string">"FOO"</span>);
+properties.has(<span class="hljs-string">'FOO'</span>);
 <span class="hljs-comment">//=&gt; false</span>
-properties.has(<span class="hljs-string">"fu"</span>);
+properties.has(<span class="hljs-string">'fu'</span>);
 <span class="hljs-comment">//=&gt; false</span></pre>
     
   
@@ -1148,7 +1149,7 @@ properties.has(<span class="hljs-string">"fu"</span>);
   <div class='clearfix'>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L405-L407'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L404-L406'>
       <span>src/properties-store.js</span>
       </a>
     
@@ -1194,8 +1195,8 @@ Iterator
     
       
       <pre class='p1 overflow-auto round fill-light'><span class="hljs-keyword">const</span> properties = <span class="hljs-keyword">new</span> PropertiesStore();
-properties.set(<span class="hljs-string">"foo"</span>, <span class="hljs-string">"bar"</span>);
-properties.set(<span class="hljs-string">"fu"</span>, <span class="hljs-string">"baz"</span>);
+properties.set(<span class="hljs-string">'foo'</span>, <span class="hljs-string">'bar'</span>);
+properties.set(<span class="hljs-string">'fu'</span>, <span class="hljs-string">'baz'</span>);
 
 <span class="hljs-built_in">Array</span>.from(properties.keys());
 <span class="hljs-comment">//=&gt; ["foo", "fu"]</span></pre>
@@ -1226,7 +1227,7 @@ properties.set(<span class="hljs-string">"fu"</span>, <span class="hljs-string">
   <div class='clearfix'>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L430-L443'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L429-L442'>
       <span>src/properties-store.js</span>
       </a>
     
@@ -1274,16 +1275,16 @@ Iterator
     
       
       <pre class='p1 overflow-auto round fill-light'><span class="hljs-keyword">const</span> properties = <span class="hljs-keyword">new</span> PropertiesStore();
-<span class="hljs-keyword">await</span> properties.load(fs.createReadStream(<span class="hljs-string">"path/to/my.properties"</span>));
+<span class="hljs-keyword">await</span> properties.load(fs.createReadStream(<span class="hljs-string">'path/to/my.properties'</span>));
 
 <span class="hljs-built_in">Array</span>.from(properties.lines());
-<span class="hljs-comment">//=&gt; ["foo = bar","fu = baz"]</span>
+<span class="hljs-comment">//=&gt; ["foo = bar", "fu = baz"]</span>
 
-<span class="hljs-keyword">const</span> completeProperties = <span class="hljs-keyword">new</span> PropertiesStore({ <span class="hljs-attr">preserveLines</span>: <span class="hljs-literal">true</span> });
-<span class="hljs-keyword">await</span> completeProperties.load(fs.createReadStream(<span class="hljs-string">"path/to/my.properties"</span>));
+<span class="hljs-keyword">const</span> completeProperties = <span class="hljs-keyword">new</span> PropertiesStore({ <span class="hljs-attr">preserve</span>: <span class="hljs-literal">true</span> });
+<span class="hljs-keyword">await</span> completeProperties.load(fs.createReadStream(<span class="hljs-string">'path/to/my.properties'</span>));
 
 <span class="hljs-built_in">Array</span>.from(completeProperties.lines());
-<span class="hljs-comment">//=&gt; ["# My Properties","","foo = bar","fu = baz"]</span></pre>
+<span class="hljs-comment">//=&gt; ["# My Properties", "", "foo = bar", "fu = baz"]</span></pre>
     
   
 
@@ -1311,7 +1312,7 @@ Iterator
   <div class='clearfix'>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L489-L515'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L491-L517'>
       <span>src/properties-store.js</span>
       </a>
     
@@ -1325,6 +1326,8 @@ value of the latest property line with that key will be set as the value.</p>
 <p>If this <a href="#propertiesstore">PropertiesStore</a> is preserving all lines, they will all be loaded from <code>input</code> and
 maintained within this <a href="#propertiesstore">PropertiesStore</a>, regardless of whether or not they represent a property. Each line
 loaded will be added after any previously loaded lines, where applicable.</p>
+<p>By default, any Unicode escapes ("\uxxxx" notation) read from <code>input</code> will be converted to their
+corresponding Unicode characters. This behaviour can be prevented by disabling the <code>unescape</code> option.</p>
 
 
   <div class='pre p1 fill-light mt0'>load(input: <a href="https://nodejs.org/api/stream.html#stream_class_stream_readable">stream.Readable</a>, options: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>?): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>></div>
@@ -1439,7 +1442,7 @@ this
       
       <pre class='p1 overflow-auto round fill-light'><span class="hljs-keyword">const</span> properties = <span class="hljs-keyword">new</span> PropertiesStore()
 
-<span class="hljs-keyword">await</span> properties.load(fs.createReadStream(<span class="hljs-string">"path/to/my.properties"</span>), {
+<span class="hljs-keyword">await</span> properties.load(fs.createReadStream(<span class="hljs-string">'path/to/my.properties'</span>), {
   <span class="hljs-attr">encoding</span>: <span class="hljs-string">'utf8'</span>,
   <span class="hljs-attr">unescape</span>: <span class="hljs-literal">false</span>
 });
@@ -1448,9 +1451,9 @@ this
 <span class="hljs-built_in">Array</span>.from(properties.lines());
 <span class="hljs-comment">//&gt; ["foo = bar", "fu = baz"]</span>
 
-<span class="hljs-keyword">const</span> completeProperties = <span class="hljs-keyword">new</span> PropertiesStore({ <span class="hljs-attr">preserveLines</span>: <span class="hljs-literal">true</span> });
+<span class="hljs-keyword">const</span> completeProperties = <span class="hljs-keyword">new</span> PropertiesStore({ <span class="hljs-attr">preserve</span>: <span class="hljs-literal">true</span> });
 
-<span class="hljs-keyword">await</span> completeProperties.load(fs.createReadStream(<span class="hljs-string">"path/to/my.properties"</span>), {
+<span class="hljs-keyword">await</span> completeProperties.load(fs.createReadStream(<span class="hljs-string">'path/to/my.properties'</span>), {
   <span class="hljs-attr">encoding</span>: <span class="hljs-string">'utf8'</span>,
   <span class="hljs-attr">unescape</span>: <span class="hljs-literal">false</span>
 });
@@ -1485,7 +1488,7 @@ this
   <div class='clearfix'>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L559-L567'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L561-L569'>
       <span>src/properties-store.js</span>
       </a>
     
@@ -1571,20 +1574,20 @@ null
       <pre class='p1 overflow-auto round fill-light'><span class="hljs-keyword">const</span> properties = <span class="hljs-keyword">new</span> PropertiesStore();
 
 properties
-  .set(<span class="hljs-string">"foo"</span>, <span class="hljs-string">"bar"</span>)
-  .set(<span class="hljs-string">"fu"</span>, <span class="hljs-string">"baz"</span>);
+  .set(<span class="hljs-string">'foo'</span>, <span class="hljs-string">'bar'</span>)
+  .set(<span class="hljs-string">'fu'</span>, <span class="hljs-string">'baz'</span>);
 <span class="hljs-built_in">Array</span>.from(properties);
 <span class="hljs-comment">//=&gt; [["foo", "bar"], ["fu", "baz"]]</span>
 
-properties.set(<span class="hljs-string">"FOO"</span>, <span class="hljs-string">"BAR"</span>);
+properties.set(<span class="hljs-string">'FOO'</span>, <span class="hljs-string">'BAR'</span>);
 <span class="hljs-built_in">Array</span>.from(properties);
 <span class="hljs-comment">//=&gt; [["foo", "bar"], ["fu", "baz"], ["FOO", "BAR"]]</span>
 
-properties.set(<span class="hljs-string">"FOO"</span>, <span class="hljs-literal">null</span>);
+properties.set(<span class="hljs-string">'FOO'</span>, <span class="hljs-literal">null</span>);
 <span class="hljs-built_in">Array</span>.from(properties);
 <span class="hljs-comment">//=&gt; [["foo", "bar"], ["fu", "baz"]]</span>
 
-properties.set(<span class="hljs-string">"foo"</span>, <span class="hljs-string">"BAR"</span>);
+properties.set(<span class="hljs-string">'foo'</span>, <span class="hljs-string">'BAR'</span>);
 <span class="hljs-built_in">Array</span>.from(properties);
 <span class="hljs-comment">//=&gt; [["foo", "BAR"], ["fu", "baz"]]</span></pre>
     
@@ -1614,7 +1617,7 @@ properties.set(<span class="hljs-string">"foo"</span>, <span class="hljs-string"
   <div class='clearfix'>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L702-L704'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L708-L710'>
       <span>src/properties-store.js</span>
       </a>
     
@@ -1659,8 +1662,8 @@ properties.set(<span class="hljs-string">"foo"</span>, <span class="hljs-string"
 properties.size;
 <span class="hljs-comment">//=&gt; 0</span>
 
-properties.set(<span class="hljs-string">"foo"</span>, <span class="hljs-string">"bar"</span>);
-properties.set(<span class="hljs-string">"fu"</span>, <span class="hljs-string">"baz"</span>);
+properties.set(<span class="hljs-string">'foo'</span>, <span class="hljs-string">'bar'</span>);
+properties.set(<span class="hljs-string">'fu'</span>, <span class="hljs-string">'baz'</span>);
 
 properties.size;
 <span class="hljs-comment">//=&gt; 2</span></pre>
@@ -1691,7 +1694,7 @@ properties.size;
   <div class='clearfix'>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L605-L633'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L611-L639'>
       <span>src/properties-store.js</span>
       </a>
     
@@ -1701,6 +1704,9 @@ properties.size;
   <p>Writes the property information within this <a href="#propertiesstore">PropertiesStore</a> to the <code>output</code> stream provided.</p>
 <p>If this <a href="#propertiesstore">PropertiesStore</a> is preserving all lines, they will all be written directly to <code>output</code>.
 Otherwise, only lines for properties within this <a href="#propertiesstore">PropertiesStore</a> will be written to <code>output</code>.</p>
+<p>By default, any characters that are not part of the ASCII character set will be converted to Unicode escapes
+("\uxxxx" notation) before being written to <code>output</code>. This behaviour can be prevented by disabling the
+<code>escape</code> option.</p>
 
 
   <div class='pre p1 fill-light mt0'>store(output: <a href="https://nodejs.org/api/stream.html#stream_class_stream_writable">stream.Writable</a>, options: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>?): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>></div>
@@ -1814,21 +1820,21 @@ output
     
       
       <pre class='p1 overflow-auto round fill-light'><span class="hljs-keyword">const</span> properties = <span class="hljs-keyword">new</span> PropertiesStore();
-<span class="hljs-keyword">await</span> properties.load(fs.createReadStream(<span class="hljs-string">"path/to/my.properties"</span>));
-properties.set(<span class="hljs-string">"foo"</span>, <span class="hljs-string">"BAR"</span>);
-properties.set(<span class="hljs-string">"fu"</span>, <span class="hljs-literal">null</span>);
+<span class="hljs-keyword">await</span> properties.load(fs.createReadStream(<span class="hljs-string">'path/to/my.properties'</span>));
+properties.set(<span class="hljs-string">'foo'</span>, <span class="hljs-string">'BAR'</span>);
+properties.set(<span class="hljs-string">'fu'</span>, <span class="hljs-literal">null</span>);
 
-<span class="hljs-keyword">await</span> properties.store(fs.createWriteStream(<span class="hljs-string">"path/to/my.properties"</span>));
-fs.readFileSync(<span class="hljs-string">"path/to/my.properties"</span>, <span class="hljs-string">"latin1"</span>);
+<span class="hljs-keyword">await</span> properties.store(fs.createWriteStream(<span class="hljs-string">'path/to/my.properties'</span>));
+fs.readFileSync(<span class="hljs-string">'path/to/my.properties'</span>, <span class="hljs-string">'latin1'</span>);
 <span class="hljs-comment">//=&gt; "foo = BAR"</span>
 
-<span class="hljs-keyword">const</span> completeProperties = <span class="hljs-keyword">new</span> PropertiesStore({ <span class="hljs-attr">preserveLines</span>: <span class="hljs-literal">true</span> });
-<span class="hljs-keyword">await</span> completeProperties.load(fs.createReadStream(<span class="hljs-string">"path/to/my.properties"</span>));
-completeProperties.set(<span class="hljs-string">"foo"</span>, <span class="hljs-string">"BAR"</span>);
-completeProperties.set(<span class="hljs-string">"fu"</span>, <span class="hljs-literal">null</span>);
+<span class="hljs-keyword">const</span> completeProperties = <span class="hljs-keyword">new</span> PropertiesStore({ <span class="hljs-attr">preserve</span>: <span class="hljs-literal">true</span> });
+<span class="hljs-keyword">await</span> completeProperties.load(fs.createReadStream(<span class="hljs-string">'path/to/my.properties'</span>));
+completeProperties.set(<span class="hljs-string">'foo'</span>, <span class="hljs-string">'BAR'</span>);
+completeProperties.set(<span class="hljs-string">'fu'</span>, <span class="hljs-literal">null</span>);
 
-<span class="hljs-keyword">await</span> completeProperties.store(fs.createWriteStream(<span class="hljs-string">"path/to/my.properties"</span>));
-fs.readFileSync(<span class="hljs-string">"path/to/my.properties"</span>, <span class="hljs-string">"latin1"</span>);
+<span class="hljs-keyword">await</span> completeProperties.store(fs.createWriteStream(<span class="hljs-string">'path/to/my.properties'</span>));
+fs.readFileSync(<span class="hljs-string">'path/to/my.properties'</span>, <span class="hljs-string">'latin1'</span>);
 <span class="hljs-comment">//=&gt; "# My Properties</span>
 
 foo = BAR<span class="hljs-string">"</span></pre>
@@ -1859,7 +1865,7 @@ foo = BAR<span class="hljs-string">"</span></pre>
   <div class='clearfix'>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L648-L650'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L654-L656'>
       <span>src/properties-store.js</span>
       </a>
     
@@ -1905,8 +1911,8 @@ Iterator
     
       
       <pre class='p1 overflow-auto round fill-light'><span class="hljs-keyword">const</span> properties = <span class="hljs-keyword">new</span> PropertiesStore();
-properties.set(<span class="hljs-string">"foo"</span>, <span class="hljs-string">"bar"</span>);
-properties.set(<span class="hljs-string">"fu"</span>, <span class="hljs-string">"baz"</span>);
+properties.set(<span class="hljs-string">'foo'</span>, <span class="hljs-string">'bar'</span>);
+properties.set(<span class="hljs-string">'fu'</span>, <span class="hljs-string">'baz'</span>);
 
 <span class="hljs-built_in">Array</span>.from(properties.values());
 <span class="hljs-comment">//=&gt; ["bar", "baz"]</span></pre>
@@ -1945,7 +1951,7 @@ properties.set(<span class="hljs-string">"fu"</span>, <span class="hljs-string">
   <div class='clearfix'>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L708-L708'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L714-L714'>
       <span>src/properties-store.js</span>
       </a>
     
@@ -2039,7 +2045,7 @@ undefined
   <div class='clearfix'>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L708-L708'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L714-L714'>
       <span>src/properties-store.js</span>
       </a>
     
@@ -2108,7 +2114,7 @@ undefined
   <div class='clearfix'>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L708-L708'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L714-L714'>
       <span>src/properties-store.js</span>
       </a>
     
@@ -2191,7 +2197,7 @@ undefined
   <div class='clearfix'>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L708-L708'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L714-L714'>
       <span>src/properties-store.js</span>
       </a>
     
@@ -2274,7 +2280,7 @@ undefined
   <div class='clearfix'>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L708-L708'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L714-L714'>
       <span>src/properties-store.js</span>
       </a>
     
@@ -2361,7 +2367,7 @@ undefined
     </h3>
     
     
-      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/0272a5e755163c880c9c5a3fb13bc59fc3edfff5/src/properties-store.js#L708-L708'>
+      <a class='fr fill-darken0 round round pad1x quiet h5' href='https://github.com/NotNinja/properties-store/blob/21280405ac9a98b75fd8c2fc2908a5f7660c6bc3/src/properties-store.js#L714-L714'>
       <span>src/properties-store.js</span>
       </a>
     
