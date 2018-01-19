@@ -16,8 +16,47 @@ $ npm install
 $ npm test
 ```
 
+You must have at least [Node.js](https://nodejs.org) version 8 or newer installed.
+
 All pull requests should be made to the `develop` branch.
 
 Don't forget to add your details to the list of
 [AUTHORS.md](https://github.com/NotNinja/properties-store/blob/master/AUTHORS.md) if you want your contribution to be
 recognized by others.
+
+## Documentation
+
+The website is hosted on GitHub at the following address:
+
+https://notninja.github.io/properties-store
+
+The homepage is built from [README.md](https://github.com/NotNinja/properties-store/blob/master/README.md), however,
+the [documentation](https://notninja.github.io/properties-store/docs) is built from source as part of the release
+process by a maintainer. These steps are not required by contributors when opening pull requests etc. In fact, it's
+discouraged in favour of cleaner pull requests.
+
+The following command will re-generate the documentation:
+
+``` bash
+# generate documentation
+$ npm run doc
+```
+
+The following is required to run the website locally:
+
+* [Ruby](https://www.ruby-lang.org/en) 2+
+* [Bundler](http://bundler.io)
+
+Then you need to install the dependencies before finally serving the website:
+
+``` bash
+# install website dependencies
+$ bundle install
+# serve website
+$ bundle exec jekyll serve
+```
+
+You can find the port on which the website is being served within the output of the last command (e.g.
+`Server address: http://127.0.0.1:4000/`).
+
+Once merged into the `master` branch, the public website will automatically be updated.

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Alasdair Mercer, !ninja
+ * Copyright (C) 2018 Alasdair Mercer, !ninja
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,245 +22,370 @@
 
 'use strict';
 
-const expect = require('chai').expect;
+const { expect } = require('chai');
 
 const Line = require('../src/line');
 
 describe('Line', () => {
-  describe('.forProperty', () => {
-    it('should create a Line instance for the property key and value', () => {
-      const line = Line.forProperty('foo', 'bar');
+  describe('.createBlank', () => {
+    it('should create a Line instance with an empty source', () => {
+      const line = Line.createBlank();
 
-      expect(line.getKey()).to.equal('foo');
-      expect(line.getValue()).to.equal('bar');
+      expect(line.source).to.equal('');
+    });
+  });
+
+  describe('.createComment', () => {
+    it('should create a Line instance for specified comment', () => {
+      const line = Line.createComment('foo');
+
+      expect(line.source).to.equal('# foo');
     });
 
-    it('should trim the property key and value', () => {
-      const line = Line.forProperty(' \tfoo\t ', ' \tbar\t ');
+    it('should trim leading whitespace from comment', () => {
+      const line = Line.createComment(' \tfoo\t ');
 
-      expect(line.getKey()).to.equal('foo');
-      expect(line.getValue()).to.equal('bar');
+      expect(line.source).to.equal('# foo\t ');
     });
 
-    context('when value is omitted', () => {
-      it('should use an empty string as value', () => {
-        let line = Line.forProperty('foo');
+    context('when comment is blank', () => {
+      it('should use just comment prefix', () => {
+        const line = Line.createComment(' \t ');
 
-        expect(line.getKey()).to.equal('foo');
-        expect(line.getValue()).to.equal('');
+        expect(line.source).to.equal('#');
+      });
+    });
 
-        line = Line.forProperty('foo', null);
+    context('when comment is null', () => {
+      it('should use just comment prefix', () => {
+        const line = Line.createComment(null);
 
-        expect(line.getKey()).to.equal('foo');
-        expect(line.getValue()).to.equal('');
+        expect(line.source).to.equal('#');
+      });
+    });
+
+    context('when comment is omitted', () => {
+      it('should use just comment prefix', () => {
+        const line = Line.createComment();
+
+        expect(line.source).to.equal('#');
       });
     });
   });
 
-  it('should create line from source', () => {
+  describe('.createProperty', () => {
+    it('should create a Line instance for specified property key and value', () => {
+      const line = Line.createProperty('foo', 'bar');
+
+      expect(line.source).to.equal('foo=bar');
+      expect(line.key).to.equal('foo');
+      expect(line.value).to.equal('bar');
+    });
+
+    it('should trim property key and value', () => {
+      const line = Line.createProperty(' \tfoo\t ', ' \tbar\t ');
+
+      expect(line.source).to.equal('foo=bar\t ');
+      expect(line.key).to.equal('foo');
+      expect(line.value).to.equal('bar\t ');
+    });
+
+    context('when value is null', () => {
+      it('should use an empty string as property value', () => {
+        const line = Line.createProperty('foo', null);
+
+        expect(line.source).to.equal('foo=');
+        expect(line.key).to.equal('foo');
+        expect(line.value).to.equal('');
+      });
+    });
+
+    context('when value is omitted', () => {
+      it('should use an empty string as property value', () => {
+        const line = Line.createProperty('foo');
+
+        expect(line.source).to.equal('foo=');
+        expect(line.key).to.equal('foo');
+        expect(line.value).to.equal('');
+      });
+    });
+  });
+
+  it('should parse property information from source', () => {
     const line = new Line('foo=bar');
 
-    expect(line.getSource()).to.equal('foo=bar');
-    expect(line.getKey()).to.equal('foo');
-    expect(line.getValue()).to.equal('bar');
+    expect(line.source).to.equal('foo=bar');
+    expect(line.key).to.equal('foo');
+    expect(line.value).to.equal('bar');
   });
 
-  context('when source was omitted', () => {
-    it('should create empty line', () => {
+  context('when source is blank', () => {
+    it('should contain no property information', () => {
+      const line = new Line(' \t ');
+
+      expect(line.source).to.equal(' \t ');
+      expect(line.key).to.equal(undefined);
+      expect(line.value).to.equal(undefined);
+    });
+  });
+
+  context('when source is null', () => {
+    it('should contain no property information', () => {
+      const line = new Line(null);
+
+      expect(line.source).to.equal('');
+      expect(line.key).to.equal(undefined);
+      expect(line.value).to.equal(undefined);
+    });
+  });
+
+  context('when source is omitted', () => {
+    it('should contain no property information', () => {
       const line = new Line();
 
-      expect(line.getSource()).to.equal('');
+      expect(line.source).to.equal('');
+      expect(line.key).to.equal(undefined);
+      expect(line.value).to.equal(undefined);
     });
   });
 
-  describe('#getKey', () => {
-    it('should return the property key', () => {
-      expect(new Line('foo').getKey()).to.equal('foo');
-      expect(new Line('foo=').getKey()).to.equal('foo');
-      expect(new Line('foo:').getKey()).to.equal('foo');
-      expect(new Line('foo=bar').getKey()).to.equal('foo');
-      expect(new Line('foo:bar').getKey()).to.equal('foo');
-      expect(new Line('foo bar').getKey()).to.equal('foo');
-      expect(new Line('foo \t bar').getKey()).to.equal('foo');
+  describe('#key', () => {
+    context('(get)', () => {
+      it('should return property key', () => {
+        expect(new Line('foo')).to.have.property('key', 'foo');
+        expect(new Line('foo=')).to.have.property('key', 'foo');
+        expect(new Line('foo:')).to.have.property('key', 'foo');
+        expect(new Line('foo=bar')).to.have.property('key', 'foo');
+        expect(new Line('foo:bar')).to.have.property('key', 'foo');
+        expect(new Line('foo bar')).to.have.property('key', 'foo');
+        expect(new Line('foo \t bar')).to.have.property('key', 'foo');
+      });
+
+      it('should return trimmed property key', () => {
+        expect(new Line(' \tfoo\t ')).to.have.property('key', 'foo');
+        expect(new Line(' \tfoo\t = ')).to.have.property('key', 'foo');
+        expect(new Line(' \tfoo\t : ')).to.have.property('key', 'foo');
+        expect(new Line(' \tfoo\t = \tbar\t ')).to.have.property('key', 'foo');
+        expect(new Line(' \tfoo\t : \tbar\t ')).to.have.property('key', 'foo');
+        expect(new Line(' \tfoo \t bar\t ')).to.have.property('key', 'foo');
+      });
+
+      context('when line does not contain property information', () => {
+        it('should return undefined', () => {
+          expect(new Line()).to.have.property('key', undefined);
+          expect(new Line('# foo')).to.have.property('key', undefined);
+        });
+      });
     });
 
-    it('should return the trimmed property key', () => {
-      expect(new Line(' \tfoo\t ').getKey()).to.equal('foo');
-      expect(new Line(' \tfoo\t = ').getKey()).to.equal('foo');
-      expect(new Line(' \tfoo\t : ').getKey()).to.equal('foo');
-      expect(new Line(' \tfoo\t = \tbar\t ').getKey()).to.equal('foo');
-      expect(new Line(' \tfoo\t : \tbar\t ').getKey()).to.equal('foo');
-      expect(new Line(' \tfoo \t bar\t ').getKey()).to.equal('foo');
-    });
-
-    context('when source does not contain a property', () => {
+    context('(set)', () => {
       it('should throw an error', () => {
-        let line = new Line('# foo');
+        const line = new Line('foo=bar');
 
-        expect(line.getKey.bind(line)).to.throw(Error, /Cannot get key for non-property line/);
-
-        line = new Line('');
-
-        expect(line.getKey.bind(line)).to.throw(Error, /Cannot get key for non-property line/);
+        expect(() => {
+          line.key = 'fizz';
+        }).to.throw(TypeError);
       });
     });
   });
 
-  describe('#getSource', () => {
-    it('should return the source', () => {
-      expect(new Line('').getSource()).to.equal('');
-      expect(new Line(' \t ').getSource()).to.equal(' \t ');
-      expect(new Line(' # foo ').getSource()).to.equal(' # foo ');
-      expect(new Line(' ! foo ').getSource()).to.equal(' ! foo ');
-      expect(new Line('foo').getSource()).to.equal('foo');
-      expect(new Line(' foo bar ').getSource()).to.equal(' foo bar ');
-      expect(new Line('foo = bar ').getSource()).to.equal('foo = bar ');
-      expect(new Line(' foo:bar').getSource()).to.equal(' foo:bar');
-    });
-  });
+  describe('#property', () => {
+    context('(get)', () => {
+      context('when line contains property information', () => {
+        it('should return true', () => {
+          expect(new Line('foo')).to.have.property('property', true);
+          expect(new Line('foo=')).to.have.property('property', true);
+          expect(new Line('foo:')).to.have.property('property', true);
+          expect(new Line('foo=bar')).to.have.property('property', true);
+          expect(new Line('foo:bar')).to.have.property('property', true);
+          expect(new Line('foo bar')).to.have.property('property', true);
+          expect(new Line('foo \t bar')).to.have.property('property', true);
+          expect(new Line(' \tfoo\t ')).to.have.property('property', true);
+          expect(new Line(' \tfoo\t = ')).to.have.property('property', true);
+          expect(new Line(' \tfoo\t : ')).to.have.property('property', true);
+          expect(new Line(' \tfoo\t = \tbar\t ')).to.have.property('property', true);
+          expect(new Line(' \tfoo\t : \tbar\t ')).to.have.property('property', true);
+          expect(new Line(' \tfoo bar\t ')).to.have.property('property', true);
+          expect(new Line(' \tfoo \t bar\t ')).to.have.property('property', true);
+        });
+      });
 
-  describe('#getValue', () => {
-    it('should return the property value', () => {
-      expect(new Line('foo').getValue()).to.equal('');
-      expect(new Line('foo=').getValue()).to.equal('');
-      expect(new Line('foo:').getValue()).to.equal('');
-      expect(new Line('foo=bar').getValue()).to.equal('bar');
-      expect(new Line('foo:bar').getValue()).to.equal('bar');
-      expect(new Line('foo bar').getValue()).to.equal('bar');
-      expect(new Line('foo \t bar').getValue()).to.equal('bar');
+      context('when line does not contain property information', () => {
+        it('should return false', () => {
+          expect(new Line('')).to.have.property('property', false);
+          expect(new Line(' ')).to.have.property('property', false);
+          expect(new Line(' \t ')).to.have.property('property', false);
+          expect(new Line('#')).to.have.property('property', false);
+          expect(new Line('# foo')).to.have.property('property', false);
+          expect(new Line(' \t# foo\t ')).to.have.property('property', false);
+          expect(new Line('!')).to.have.property('property', false);
+          expect(new Line('! foo')).to.have.property('property', false);
+          expect(new Line(' \t! foo\t ')).to.have.property('property', false);
+        });
+      });
     });
 
-    it('should return the trimmed property value', () => {
-      expect(new Line(' \tfoo\t ').getValue()).to.equal('');
-      expect(new Line(' \tfoo\t = ').getValue()).to.equal('');
-      expect(new Line(' \tfoo\t : ').getValue()).to.equal('');
-      expect(new Line(' \tfoo\t = \tbar\t ').getValue()).to.equal('bar');
-      expect(new Line(' \tfoo\t : \tbar\t ').getValue()).to.equal('bar');
-      expect(new Line(' \tfoo \t bar\t ').getValue()).to.equal('bar');
-    });
-
-    context('when source does not contain a property', () => {
+    context('(set)', () => {
       it('should throw an error', () => {
-        let line = new Line('# foo');
+        const line = new Line('foo=bar');
 
-        expect(line.getValue.bind(line)).to.throw(Error, /Cannot get value for non-property line/);
-
-        line = new Line('');
-
-        expect(line.getValue.bind(line)).to.throw(Error, /Cannot get value for non-property line/);
+        expect(() => {
+          line.property = false;
+        }).to.throw(TypeError);
       });
     });
   });
 
-  describe('#isProperty', () => {
-    context('when source contains a property', () => {
-      it('should return true', () => {
-        expect(new Line('foo').isProperty()).to.be.true;
-        expect(new Line('foo=').isProperty()).to.be.true;
-        expect(new Line('foo:').isProperty()).to.be.true;
-        expect(new Line('foo=bar').isProperty()).to.be.true;
-        expect(new Line('foo:bar').isProperty()).to.be.true;
-        expect(new Line('foo bar').isProperty()).to.be.true;
-        expect(new Line('foo \t bar').isProperty()).to.be.true;
-        expect(new Line(' \tfoo\t ').isProperty()).to.be.true;
-        expect(new Line(' \tfoo\t = ').isProperty()).to.be.true;
-        expect(new Line(' \tfoo\t : ').isProperty()).to.be.true;
-        expect(new Line(' \tfoo\t = \tbar\t ').isProperty()).to.be.true;
-        expect(new Line(' \tfoo\t : \tbar\t ').isProperty()).to.be.true;
-        expect(new Line(' \tfoo bar\t ').isProperty()).to.be.true;
-        expect(new Line(' \tfoo \t bar\t ').isProperty()).to.be.true;
+  describe('#source', () => {
+    context('(get)', () => {
+      it('should return source', () => {
+        expect(new Line('')).to.have.property('source', '');
+        expect(new Line(' \t ')).to.have.property('source', ' \t ');
+        expect(new Line(' # foo ')).to.have.property('source', ' # foo ');
+        expect(new Line(' ! foo ')).to.have.property('source', ' ! foo ');
+        expect(new Line('foo')).to.have.property('source', 'foo');
+        expect(new Line(' foo bar ')).to.have.property('source', ' foo bar ');
+        expect(new Line('foo = bar ')).to.have.property('source', 'foo = bar ');
+        expect(new Line(' foo:bar')).to.have.property('source', ' foo:bar');
       });
     });
 
-    context('when source does not contain a property', () => {
-      it('should return false', () => {
-        expect(new Line('').isProperty()).to.be.false;
-        expect(new Line(' ').isProperty()).to.be.false;
-        expect(new Line(' \t ').isProperty()).to.be.false;
-        expect(new Line('#').isProperty()).to.be.false;
-        expect(new Line('# foo').isProperty()).to.be.false;
-        expect(new Line(' \t# foo\t ').isProperty()).to.be.false;
-        expect(new Line('!').isProperty()).to.be.false;
-        expect(new Line('! foo').isProperty()).to.be.false;
-        expect(new Line(' \t! foo\t ').isProperty()).to.be.false;
+    context('(set)', () => {
+      it('should throw an error', () => {
+        const line = new Line('foo=bar');
+
+        expect(() => {
+          line.source = '# foo';
+        }).to.throw(TypeError);
       });
     });
   });
 
-  describe('#setValue', () => {
-    it('should set the property value', () => {
-      let line = new Line('foo=bar');
+  describe('#value', () => {
+    context('(get)', () => {
+      it('should return property value', () => {
+        expect(new Line('foo')).to.have.property('value', '');
+        expect(new Line('foo=')).to.have.property('value', '');
+        expect(new Line('foo:')).to.have.property('value', '');
+        expect(new Line('foo=bar')).to.have.property('value', 'bar');
+        expect(new Line('foo:bar')).to.have.property('value', 'bar');
+        expect(new Line('foo bar')).to.have.property('value', 'bar');
+        expect(new Line('foo \t bar')).to.have.property('value', 'bar');
+      });
 
-      line.setValue('baz');
+      it('should return trimmed property value', () => {
+        expect(new Line(' \tfoo\t ')).to.have.property('value', '');
+        expect(new Line(' \tfoo\t = ')).to.have.property('value', '');
+        expect(new Line(' \tfoo\t : ')).to.have.property('value', '');
+        expect(new Line(' \tfoo\t = \tbar\t ')).to.have.property('value', 'bar\t ');
+        expect(new Line(' \tfoo\t : \tbar\t ')).to.have.property('value', 'bar\t ');
+        expect(new Line(' \tfoo \t bar\t ')).to.have.property('value', 'bar\t ');
+      });
 
-      expect(line.getValue()).to.equal('baz');
-      expect(line.getSource()).to.equal('foo=baz');
-
-      line = new Line('foo');
-
-      line.setValue('bar');
-
-      expect(line.getValue()).to.equal('bar');
-      expect(line.getSource()).to.equal('foo=bar');
+      context('when line does not contain property information', () => {
+        it('should return undefined', () => {
+          expect(new Line()).to.have.property('value', undefined);
+          expect(new Line('# foo')).to.have.property('value', undefined);
+        });
+      });
     });
 
-    it('should retain structure of original source', () => {
-      let line = new Line(' \t foo \t = \t bar \t ');
-
-      line.setValue('baz');
-
-      expect(line.getValue()).to.equal('baz');
-      expect(line.getSource()).to.equal(' \t foo \t = \t baz');
-
-      line = new Line(' \t foo \t : \t bar \t ');
-
-      line.setValue('baz');
-
-      expect(line.getValue()).to.equal('baz');
-      expect(line.getSource()).to.equal(' \t foo \t : \t baz');
-
-      line = new Line(' \t foo \t bar \t ');
-
-      line.setValue('baz');
-
-      expect(line.getValue()).to.equal('baz');
-      expect(line.getSource()).to.equal(' \t foo \t baz');
-
-      line = new Line(' \t foo \t ');
-
-      line.setValue('bar');
-
-      expect(line.getValue()).to.equal('bar');
-      expect(line.getSource()).to.equal(' \t foo \t bar');
-    });
-
-    context('when value is omitted', () => {
-      it('should use an empty string as value', () => {
+    context('(set)', () => {
+      it('should set property value', () => {
         let line = new Line('foo=bar');
+        line.value = 'baz';
 
-        line.setValue();
+        expect(line.source).to.equal('foo=baz');
+        expect(line.key).to.equal('foo');
+        expect(line.value).to.equal('baz');
 
-        expect(line.getValue()).to.equal('');
-        expect(line.getSource()).to.equal('foo=');
+        line = new Line('foo');
+        line.value = 'bar';
 
-        line = new Line('foo=bar');
-
-        line.setValue(null);
-
-        expect(line.getValue()).to.equal('');
-        expect(line.getSource()).to.equal('foo=');
+        expect(line.source).to.equal('foo=bar');
+        expect(line.key).to.equal('foo');
+        expect(line.value).to.equal('bar');
       });
-    });
 
-    context('when source does not contain a property', () => {
-      it('should throw an error', () => {
-        let line = new Line('# foo');
+      it('should retain structure of source', () => {
+        let line = new Line(' \t foo \t = \t bar \t ');
+        line.value = 'baz';
 
-        expect(line.setValue.bind(line, 'bar')).to.throw(Error, /Cannot set value for non-property line/);
+        expect(line.source).to.equal(' \t foo \t = \t baz');
+        expect(line.key).to.equal('foo');
+        expect(line.value).to.equal('baz');
 
-        line = new Line('');
+        line = new Line(' \t foo \t : \t bar \t ');
+        line.value = 'baz';
 
-        expect(line.setValue.bind(line, 'bar')).to.throw(Error, /Cannot set value for non-property line/);
+        expect(line.source).to.equal(' \t foo \t : \t baz');
+        expect(line.key).to.equal('foo');
+        expect(line.value).to.equal('baz');
+
+        line = new Line(' \t foo \t bar \t ');
+        line.value = 'baz';
+
+        expect(line.source).to.equal(' \t foo \t baz');
+        expect(line.key).to.equal('foo');
+        expect(line.value).to.equal('baz');
+
+        line = new Line(' \t foo \t ');
+        line.value = 'bar';
+
+        expect(line.source).to.equal(' \t foo \t bar');
+        expect(line.key).to.equal('foo');
+        expect(line.value).to.equal('bar');
+      });
+
+      context('when value is same', () => {
+        it('should remain unchanged', () => {
+          const line = new Line('foo= \tbar\t ');
+          line.value = 'bar\t ';
+
+          expect(line.source).to.equal('foo= \tbar\t ');
+          expect(line.key).to.equal('foo');
+          expect(line.value).to.equal('bar\t ');
+        });
+      });
+
+      context('when value is blank', () => {
+        it('should set empty property value', () => {
+          const line = new Line('foo=bar');
+          line.value = ' \t ';
+
+          expect(line.source).to.equal('foo=');
+          expect(line.key).to.equal('foo');
+          expect(line.value).to.equal('');
+        });
+      });
+
+      context('when value is null', () => {
+        it('should set empty property value', () => {
+          const line = new Line('foo=bar');
+          line.value = null;
+
+          expect(line.source).to.equal('foo=');
+          expect(line.key).to.equal('foo');
+          expect(line.value).to.equal('');
+        });
+      });
+
+      context('when line does not contain property information', () => {
+        it('should do nothing', () => {
+          let line = new Line();
+          line.value = 'fizz';
+
+          expect(line.source).to.equal('');
+          expect(line.key).to.equal(undefined);
+          expect(line.value).to.equal(undefined);
+
+          line = new Line('# foo');
+          line.value = 'fizz';
+
+          expect(line.source).to.equal('# foo');
+          expect(line.key).to.equal(undefined);
+          expect(line.value).to.equal(undefined);
+        });
       });
     });
   });

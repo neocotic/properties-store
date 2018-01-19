@@ -1,32 +1,18 @@
-                                                       888    d8b
-                                                       888    Y8P
-                                                       888
-    88888b.  888d888 .d88b.  88888b.   .d88b.  888d888 888888 888  .d88b.  .d8888b
-    888 "88b 888P"  d88""88b 888 "88b d8P  Y8b 888P"   888    888 d8P  Y8b 88K
-    888  888 888    888  888 888  888 88888888 888     888    888 88888888 "Y8888b.
-    888 d88P 888    Y88..88P 888 d88P Y8b.     888     Y88b.  888 Y8b.          X88
-    88888P"  888     "Y88P"  88888P"   "Y8888  888      "Y888 888  "Y8888   88888P'
-    888                      888
-    888                      888
-    888                      888
-                             888
-                             888
-                    .d8888b  888888 .d88b.  888d888 .d88b.
-                    88K      888   d88""88b 888P"  d8P  Y8b
-                    "Y8888b. 888   888  888 888    88888888
-                         X88 Y88b. Y88..88P 888    Y8b.
-                     88888P'  "Y888 "Y88P"  888     "Y8888
-
-[properties-store](https://github.com/NotNinja/properties-store) is a Node.js library for working with `.properties`
-file stores with the goal of maintaining the original source of the file as much as possible, which can be really useful
-when merging `.properties` files and wanting to minimizing diffs.
+# properties-store
 
 [![Build Status](https://img.shields.io/travis/NotNinja/properties-store/develop.svg?style=flat-square)](https://travis-ci.org/NotNinja/properties-store)
+[![Documentation](https://img.shields.io/badge/docs-online-brightgreen.svg?style=flat-square)](https://notninja.github.io/properties-store/docs/)
 [![Coverage](https://img.shields.io/codecov/c/github/NotNinja/properties-store/develop.svg?style=flat-square)](https://codecov.io/gh/NotNinja/properties-store)
 [![Dependency Status](https://img.shields.io/david/NotNinja/properties-store.svg?style=flat-square)](https://david-dm.org/NotNinja/properties-store)
 [![Dev Dependency Status](https://img.shields.io/david/dev/NotNinja/properties-store.svg?style=flat-square)](https://david-dm.org/NotNinja/properties-store?type=dev)
 [![License](https://img.shields.io/npm/l/properties-store.svg?style=flat-square)](https://github.com/NotNinja/properties-store/blob/master/LICENSE.md)
 [![Release](https://img.shields.io/npm/v/properties-store.svg?style=flat-square)](https://www.npmjs.com/package/properties-store)
+
+[properties-store](https://notninja.github.io/properties-store) is a Node.js library for working with `.properties` file
+stores while also supporting the ability (via options) to maintain the original source of the file as much as possible,
+which can be really useful when merging `.properties` files and wanting to minimizing diffs.
+
+It does not currently support the full syntax for Java `.properties` files (e.g. multiline properties) but this is planned for a future release.
 
 * [Install](#install)
 * [API](#api)
@@ -42,11 +28,34 @@ Install using `npm`:
 $ npm install --save properties-store
 ```
 
-You'll need to have at least [Node.js](https://nodejs.org) 4 or newer.
+You'll need to have at least [Node.js](https://nodejs.org) 8 or newer.
 
 ## API
 
-TODO: Document API
+    new PropertiesStore([store][, options])
+
+The complete API documentation, along with lots of examples, can be found
+[here](https://notninja.github.io/properties-store/docs/).
+
+``` javascript
+const fs = require('fs');
+const PropertiesStore = require('properties-store');
+
+const properties = new PropertiesStore();
+
+(async() {
+  await properties.load(fs.createReadStream('path/to/my.properties'));
+
+  properties.set('new-prop', 'Hello, World!');
+  properties.get('new-prop');
+  //=> "Hello, World!"
+
+  properties.get('missing-prop', 'Some default value');
+  //=> "Some default value"
+
+  await properties.store(fs.createWriteStream('path/to/my.properties'));
+})();
+```
 
 ## Bugs
 
@@ -67,4 +76,4 @@ A list of contributors can be found in
 See [LICENSE.md](https://github.com/NotNinja/properties-store/raw/master/LICENSE.md) for more information on our MIT
 license.
 
-[![Copyright !ninja](https://cdn.rawgit.com/NotNinja/branding/master/assets/copyright/base/not-ninja-copyright-186x25.png)](https://not.ninja)
+[![Copyright !ninja](https://cdn.rawgit.com/NotNinja/branding/master/assets/copyright/base/not-ninja-copyright-372x50.png)](https://not.ninja)
