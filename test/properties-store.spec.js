@@ -157,7 +157,7 @@ describe('PropertiesStore', () => {
       });
     });
 
-    context('when preserveLines option is disabled', () => {
+    context('when preserve option is disabled', () => {
       it('should read only property lines', async() => {
         const input = new MockReadable(Buffer.from([
           '',
@@ -170,7 +170,7 @@ describe('PropertiesStore', () => {
           [ 'foo', 'bar' ]
         ];
 
-        const store = await PropertiesStore.load(input, { preserveLines: false });
+        const store = await PropertiesStore.load(input, { preserve: false });
 
         expect(Array.from(store)).to.deep.equal(expectedProperties);
 
@@ -180,7 +180,7 @@ describe('PropertiesStore', () => {
       });
     });
 
-    context('when preserveLines option is enabled', () => {
+    context('when preserve option is enabled', () => {
       it('should read all non-property lines', async() => {
         const input = new MockReadable(Buffer.from([
           '',
@@ -193,7 +193,7 @@ describe('PropertiesStore', () => {
         ].join(EOL);
         const expectedProperties = [];
 
-        const store = await PropertiesStore.load(input, { preserveLines: true });
+        const store = await PropertiesStore.load(input, { preserve: true });
 
         expect(Array.from(store)).to.deep.equal(expectedProperties);
 
@@ -248,10 +248,10 @@ describe('PropertiesStore', () => {
         [ 'foo', 'bar' ],
         [ 'fu', 'baz' ]
       ];
-      const other = new PropertiesStore({ preserveLines: true });
+      const other = new PropertiesStore({ preserve: true });
       await other.load(input);
 
-      const store = new PropertiesStore(other, { preserveLines: true });
+      const store = new PropertiesStore(other, { preserve: true });
 
       other.clear();
 
@@ -262,8 +262,8 @@ describe('PropertiesStore', () => {
       expect(output.buffer.toString()).to.equal(expectedOutput);
     });
 
-    context('when preserveLines option is disabled', () => {
-      context('and preserveLines option is disabled on store', () => {
+    context('when preserve option is disabled', () => {
+      context('and preserve option is disabled on store', () => {
         it('should contain properties but not lines from store initially', async() => {
           const input = new MockReadable(Buffer.from([
             '',
@@ -281,10 +281,10 @@ describe('PropertiesStore', () => {
             [ 'foo', 'bar' ],
             [ 'fu', 'baz' ]
           ];
-          const other = new PropertiesStore({ preserveLines: false });
+          const other = new PropertiesStore({ preserve: false });
           await other.load(input);
 
-          const store = new PropertiesStore(other, { preserveLines: false });
+          const store = new PropertiesStore(other, { preserve: false });
 
           expect(Array.from(store)).to.deep.equal(expectedProperties);
 
@@ -294,7 +294,7 @@ describe('PropertiesStore', () => {
         });
       });
 
-      context('and preserveLines option is enabled on store', () => {
+      context('and preserve option is enabled on store', () => {
         it('should contain properties but not lines from store initially', async() => {
           const input = new MockReadable(Buffer.from([
             '',
@@ -312,10 +312,10 @@ describe('PropertiesStore', () => {
             [ 'foo', 'bar' ],
             [ 'fu', 'baz' ]
           ];
-          const other = new PropertiesStore({ preserveLines: true });
+          const other = new PropertiesStore({ preserve: true });
           await other.load(input);
 
-          const store = new PropertiesStore(other, { preserveLines: false });
+          const store = new PropertiesStore(other, { preserve: false });
 
           expect(Array.from(store)).to.deep.equal(expectedProperties);
 
@@ -326,8 +326,8 @@ describe('PropertiesStore', () => {
       });
     });
 
-    context('when preserveLines option is enabled', () => {
-      context('and preserveLines option is disabled on store', () => {
+    context('when preserve option is enabled', () => {
+      context('and preserve option is disabled on store', () => {
         it('should contain properties but not lines from store initially', async() => {
           const input = new MockReadable(Buffer.from([
             '',
@@ -345,10 +345,10 @@ describe('PropertiesStore', () => {
             [ 'foo', 'bar' ],
             [ 'fu', 'baz' ]
           ];
-          const other = new PropertiesStore({ preserveLines: false });
+          const other = new PropertiesStore({ preserve: false });
           await other.load(input);
 
-          const store = new PropertiesStore(other, { preserveLines: true });
+          const store = new PropertiesStore(other, { preserve: true });
 
           expect(Array.from(store)).to.deep.equal(expectedProperties);
 
@@ -358,7 +358,7 @@ describe('PropertiesStore', () => {
         });
       });
 
-      context('and preserveLines option is enabled on store', () => {
+      context('and preserve option is enabled on store', () => {
         it('should contain properties and lines from store initially', async() => {
           const input = new MockReadable(Buffer.from([
             '',
@@ -379,10 +379,10 @@ describe('PropertiesStore', () => {
             [ 'foo', 'bar' ],
             [ 'fu', 'baz' ]
           ];
-          const other = new PropertiesStore({ preserveLines: true });
+          const other = new PropertiesStore({ preserve: true });
           await other.load(input);
 
-          const store = new PropertiesStore(other, { preserveLines: true });
+          const store = new PropertiesStore(other, { preserve: true });
 
           expect(Array.from(store)).to.deep.equal(expectedProperties);
 
@@ -394,12 +394,12 @@ describe('PropertiesStore', () => {
     });
   });
 
-  context('when preserveLines option is enabled', () => {
+  context('when preserve option is enabled', () => {
     it('should contain no properties or lines initially', async() => {
       const output = new MockWritable();
       const expectedOutput = '';
       const expectedProperties = [];
-      const store = new PropertiesStore({ preserveLines: true });
+      const store = new PropertiesStore({ preserve: true });
 
       expect(Array.from(store)).to.deep.equal(expectedProperties);
 
@@ -502,7 +502,7 @@ describe('PropertiesStore', () => {
       });
     });
 
-    context('when preserveLines option is enabled', () => {
+    context('when preserve option is enabled', () => {
       it('should remove all lines', async() => {
         const input = new MockReadable(Buffer.from([
           '',
@@ -516,7 +516,7 @@ describe('PropertiesStore', () => {
         ].join('\n')));
         const output = new MockWritable();
         const expected = '';
-        const store = new PropertiesStore({ preserveLines: true });
+        const store = new PropertiesStore({ preserve: true });
         await store.load(input, {
           encoding: 'utf8',
           unescape: false
@@ -698,7 +698,7 @@ describe('PropertiesStore', () => {
       });
     });
 
-    context('when preserveLines option is enabled', () => {
+    context('when preserve option is enabled', () => {
       it('should remove all property lines for key', async() => {
         const input = new MockReadable(Buffer.from([
           '',
@@ -718,7 +718,7 @@ describe('PropertiesStore', () => {
           '',
           'fu=bar'
         ].join(EOL);
-        const store = new PropertiesStore({ preserveLines: true });
+        const store = new PropertiesStore({ preserve: true });
         await store.load(input, {
           encoding: 'utf8',
           unescape: false
@@ -1173,7 +1173,7 @@ describe('PropertiesStore', () => {
       });
     });
 
-    context('when preserveLines option is enabled', () => {
+    context('when preserve option is enabled', () => {
       it('should return iterator for each line', async() => {
         const input = new MockReadable(Buffer.from([
           '',
@@ -1191,7 +1191,7 @@ describe('PropertiesStore', () => {
           'fu=baz',
           'fizz=buzz'
         ];
-        const store = new PropertiesStore({ preserveLines: true });
+        const store = new PropertiesStore({ preserve: true });
         await store.load(input);
 
         const iterator = store.lines();
@@ -1217,7 +1217,7 @@ describe('PropertiesStore', () => {
             '',
             '# foo'
           ];
-          const store = new PropertiesStore({ preserveLines: true });
+          const store = new PropertiesStore({ preserve: true });
           await store.load(input);
 
           const iterator = store.lines();
@@ -1407,7 +1407,7 @@ describe('PropertiesStore', () => {
         ]);
       });
 
-      context('and preserveLines option is enabled', () => {
+      context('and preserve option is enabled', () => {
         it('should read all non-property lines', async() => {
           const input = new MockReadable(Buffer.from([
             '',
@@ -1419,7 +1419,7 @@ describe('PropertiesStore', () => {
             '# foo'
           ].join(EOL);
           const expectedProperties = [];
-          const store = new PropertiesStore({ preserveLines: true });
+          const store = new PropertiesStore({ preserve: true });
 
           await store.load(input);
 
@@ -1460,7 +1460,7 @@ describe('PropertiesStore', () => {
             [ 'foo', 'buzz' ],
             [ 'fu', 'baz' ]
           ];
-          const store = new PropertiesStore({ preserveLines: true });
+          const store = new PropertiesStore({ preserve: true });
 
           await store.load(input1);
           await store.load(input2);
@@ -1595,7 +1595,7 @@ describe('PropertiesStore', () => {
         expect(Array.from(store)).to.deep.equal(expected);
       });
 
-      context('and preserveLines option is enabled', () => {
+      context('and preserve option is enabled', () => {
         it('should replace Unicode escapes with corresponding Unicode characters in all lines', async() => {
           const input = new MockReadable(Buffer.from([
             '',
@@ -1611,7 +1611,7 @@ describe('PropertiesStore', () => {
           const expectedProperties = [
             [ 'foo¥bar', 'fu¥baz' ]
           ];
-          const store = new PropertiesStore({ preserveLines: true });
+          const store = new PropertiesStore({ preserve: true });
 
           await store.load(input, { unescape: true });
 
@@ -1627,7 +1627,7 @@ describe('PropertiesStore', () => {
       });
     });
 
-    context('when preserveLines option is disabled', () => {
+    context('when preserve option is disabled', () => {
       it('should read only property lines', async() => {
         const input = new MockReadable(Buffer.from([
           '',
@@ -1639,7 +1639,7 @@ describe('PropertiesStore', () => {
         const expectedProperties = [
           [ 'foo', 'bar' ]
         ];
-        const store = new PropertiesStore({ preserveLines: false });
+        const store = new PropertiesStore({ preserve: false });
 
         await store.load(input);
 
@@ -1651,7 +1651,7 @@ describe('PropertiesStore', () => {
       });
     });
 
-    context('when preserveLines option is enabled', () => {
+    context('when preserve option is enabled', () => {
       it('should read all lines', async() => {
         const input = new MockReadable(Buffer.from([
           '',
@@ -1667,7 +1667,7 @@ describe('PropertiesStore', () => {
         const expectedProperties = [
           [ 'foo', 'bar' ]
         ];
-        const store = new PropertiesStore({ preserveLines: true });
+        const store = new PropertiesStore({ preserve: true });
 
         await store.load(input);
 
@@ -1742,7 +1742,7 @@ describe('PropertiesStore', () => {
         });
       });
 
-      context('and preserveLines option is enabled', () => {
+      context('and preserve option is enabled', () => {
         it('should add property line for key and value', async() => {
           const output = new MockWritable();
           const expected = 'foo=bar';
@@ -1890,7 +1890,7 @@ describe('PropertiesStore', () => {
           ]);
         });
 
-        context('and preserveLines option is enabled', () => {
+        context('and preserve option is enabled', () => {
           it('should remove all property lines for key', async() => {
             const input = new MockReadable(Buffer.from([
               '',
@@ -1910,7 +1910,7 @@ describe('PropertiesStore', () => {
               '',
               'fu=bar'
             ].join(EOL);
-            const store = new PropertiesStore({ preserveLines: true });
+            const store = new PropertiesStore({ preserve: true });
             await store.load(input, {
               encoding: 'utf8',
               unescape: false
@@ -1928,7 +1928,7 @@ describe('PropertiesStore', () => {
         });
       });
 
-      context('and preserveLines option is enabled', () => {
+      context('and preserve option is enabled', () => {
         it('should change value for last property line for key', async() => {
           const input = new MockReadable(Buffer.from([
             '',
@@ -1951,7 +1951,7 @@ describe('PropertiesStore', () => {
             '',
             'fu=bar'
           ].join(EOL);
-          const store = new PropertiesStore({ preserveLines: true });
+          const store = new PropertiesStore({ preserve: true });
           await store.load(input, {
             encoding: 'utf8',
             unescape: false
@@ -2077,7 +2077,7 @@ describe('PropertiesStore', () => {
         });
       });
 
-      context('and preserveLines option is enabled', () => {
+      context('and preserve option is enabled', () => {
         it('should add property line for key and value', async() => {
           const input = new MockReadable(Buffer.from([
             '',
@@ -2096,7 +2096,7 @@ describe('PropertiesStore', () => {
             'FOO=buzz',
             'fu=quux'
           ].join(EOL);
-          const store = new PropertiesStore({ preserveLines: true });
+          const store = new PropertiesStore({ preserve: true });
           await store.load(input, {
             encoding: 'utf8',
             unescape: false
@@ -2347,7 +2347,7 @@ describe('PropertiesStore', () => {
         expect(output.buffer.toString()).to.equal(expected);
       });
 
-      context('and preserveLines option is enabled', () => {
+      context('and preserve option is enabled', () => {
         it('should replace non-ASCII characters with Unicode escapes in all lines', async() => {
           const input = new MockReadable(Buffer.from([
             '',
@@ -2360,7 +2360,7 @@ describe('PropertiesStore', () => {
             '# foo\\u00a5bar',
             'foo\\u00a5bar=fu\\u00a5baz'
           ].join(EOL);
-          const store = new PropertiesStore({ preserveLines: true });
+          const store = new PropertiesStore({ preserve: true });
           await store.load(input, { unescape: false });
 
           await store.store(output, { escape: true });
@@ -2370,7 +2370,7 @@ describe('PropertiesStore', () => {
       });
     });
 
-    context('when preserveLines option is disabled', () => {
+    context('when preserve option is disabled', () => {
       it('should write only property lines', async() => {
         const input = new MockReadable(Buffer.from([
           '',
@@ -2384,7 +2384,7 @@ describe('PropertiesStore', () => {
           'foo=bar',
           'fu=baz'
         ].join(EOL);
-        const store = new PropertiesStore({ preserveLines: false });
+        const store = new PropertiesStore({ preserve: false });
         await store.load(input);
 
         await store.store(output);
@@ -2393,7 +2393,7 @@ describe('PropertiesStore', () => {
       });
     });
 
-    context('when preserveLines option is enabled', () => {
+    context('when preserve option is enabled', () => {
       it('should write all lines', async() => {
         const input = new MockReadable(Buffer.from([
           '',
@@ -2410,7 +2410,7 @@ describe('PropertiesStore', () => {
           '',
           'fu=baz'
         ].join(EOL);
-        const store = new PropertiesStore({ preserveLines: true });
+        const store = new PropertiesStore({ preserve: true });
         await store.load(input);
 
         await store.store(output);

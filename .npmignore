@@ -1,9 +1,15 @@
 .nyc_output/
 coverage/
+codecov.yml
+
+_site/
+_config.yml
+Gemfile
+Gemfile.lock
+
 docs/
 test/
 .*
 AUTHORS.md
 CHANGES.md
-codecov.yml
 CONTRIBUTING.md

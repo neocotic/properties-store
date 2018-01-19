@@ -41,9 +41,9 @@ const R_LINE = /^(\s*[^\s=:#!]+)(\s*[=:]?\s*|\s+)(.*)$/;
  * is be extracted and made available via {@link Line#key} and {@link Line#value}.
  *
  * @example
- * const Line = require("properties-store/src/line");
+ * const Line = require('properties-store/src/line');
  *
- * const propertyLine = new Line("foo = bar");
+ * const propertyLine = new Line('foo = bar');
  * propertyLine.source;
  * //=> "foo = bar"
  * propertyLine.property;
@@ -53,7 +53,7 @@ const R_LINE = /^(\s*[^\s=:#!]+)(\s*[=:]?\s*|\s+)(.*)$/;
  * propertyLine.value;
  * //=> "bar"
  *
- * const commentLine = new Line("# foo");
+ * const commentLine = new Line('# foo');
  * commentLine.source;
  * //=> "# foo"
  * commentLine.property;
@@ -89,7 +89,7 @@ class Line {
    * Creates a {@link Line} with the specified <code>comment</code>.
    *
    * @example
-   * const commentLine = Line.createComment("foo");
+   * const commentLine = Line.createComment('foo');
    * commentLine.source;
    * //=> "# foo"
    * commentLine.property;
@@ -117,7 +117,7 @@ class Line {
    * Creates a {@link Line} declaring a property with the specified <code>key</code> and <code>value</code>.
    *
    * @example
-   * const propertyLine = Line.createProperty("foo", "bar");
+   * const propertyLine = Line.createProperty('foo', 'bar');
    * propertyLine.source;
    * //=> "foo=bar"
    * propertyLine.property;
@@ -127,7 +127,7 @@ class Line {
    * propertyLine.value;
    * //=> "bar"
    *
-   * const emptyPropertyLine = Line.createProperty("foo");
+   * const emptyPropertyLine = Line.createProperty('foo');
    * emptyPropertyLine.source;
    * //=> "foo="
    * emptyPropertyLine.property;
@@ -168,15 +168,15 @@ class Line {
    * checked via {@link Line#property}.
    *
    * @example
-   * const propertyLine = new Line(" foo = bar ");
+   * const propertyLine = new Line(' foo = bar ');
    * propertyLine.key;
    * //=> "foo"
    *
-   * const emptyPropertyLine = new Line("foo");
+   * const emptyPropertyLine = new Line('foo');
    * emptyPropertyLine.key;
    * //=> "foo"
    *
-   * const commentLine = new Line("# foo");
+   * const commentLine = new Line('# foo');
    * commentLine.key;
    * //=> undefined
    *
@@ -194,15 +194,15 @@ class Line {
    * Returns whether this {@link Line} contains property information.
    *
    * @example
-   * const propertyLine = new Line(" foo = bar ");
+   * const propertyLine = new Line(' foo = bar ');
    * propertyLine.property;
    * //=> true
    *
-   * const emptyPropertyLine = new Line("foo");
+   * const emptyPropertyLine = new Line('foo');
    * emptyPropertyLine.property;
    * //=> true
    *
-   * const commentLine = new Line("# foo");
+   * const commentLine = new Line('# foo');
    * commentLine.property;
    * //=> false
    *
@@ -220,13 +220,11 @@ class Line {
    * Returns the source of this {@link Line}.
    *
    * @example
-   * const Line = require("properties-store/src/line");
-   *
-   * const propertyLine = new Line(" foo = bar ");
+   * const propertyLine = new Line(' foo = bar ');
    * propertyLine.source;
    * //=> " foo = bar "
    *
-   * const commentLine = new Line("# foo");
+   * const commentLine = new Line('# foo');
    * commentLine.source;
    * //=> "# foo"
    *
@@ -247,15 +245,15 @@ class Line {
    * checked via {@link Line#property}.
    *
    * @example
-   * const propertyLine = new Line(" foo = bar ");
+   * const propertyLine = new Line(' foo = bar ');
    * propertyLine.value;
    * //=> "bar "
    *
-   * const emptyPropertyLine = new Line("foo");
+   * const emptyPropertyLine = new Line('foo');
    * emptyPropertyLine.value;
    * //=> ""
    *
-   * const commentLine = new Line("# foo");
+   * const commentLine = new Line('# foo');
    * commentLine.value;
    * //=> undefined
    *
@@ -280,23 +278,23 @@ class Line {
    * {@link Line#property}.
    *
    * @example
-   * const propertyLine = new Line(" foo = bar ");
-   * propertyLine.value = "BAR ";
+   * const propertyLine = new Line(' foo = bar ');
+   * propertyLine.value = 'BAR ';
    * propertyLine.source;
    * //=> " foo = BAR "
    *
-   * const emptyPropertyLine = new Line("foo");
-   * emptyPropertyLine.value = "bar";
+   * const emptyPropertyLine = new Line('foo');
+   * emptyPropertyLine.value = 'bar';
    * emptyPropertyLine.source;
    * //=> "foo=bar"
    *
-   * const commentLine = new Line("# foo");
-   * commentLine.value = "bar";
+   * const commentLine = new Line('# foo');
+   * commentLine.value = 'bar';
    * commentLine.source;
    * //=> "# foo"
    *
    * const emptyLine = new Line();
-   * emptyLine.value = "bar";
+   * emptyLine.value = 'bar';
    * emptyLine.source;
    * //=> ""
    * @param {string} [value=""] - the value to be set within the declared property (without leading whitespace - may be

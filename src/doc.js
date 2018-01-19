@@ -34,14 +34,14 @@ const _lines = Symbol('lines');
  * {@link PropertiesStore} synchronize itself with the <code>Doc</code>.
  *
  * @example
- * const Doc = require("properties-store/src/doc");
- * const Line = require("properties-store/src/line");
+ * const Doc = require('properties-store/src/doc');
+ * const Line = require('properties-store/src/line');
  *
  * const doc = new Doc();
- * doc.add(Line.createComment("foo"));
+ * doc.add(Line.createComment('foo'));
  * doc.add(Line.createBlank());
- * doc.add(Line.createProperty("foo", "bar"));
- * doc.add(Line.createProperty("fu", "baz"));
+ * doc.add(Line.createProperty('foo', 'bar'));
+ * doc.add(Line.createProperty('fu', 'baz'));
  *
  * Array.from(doc);
  * //=> [Line(source = "# foo"), Line(source = ""), Line(source = "foo=bar"), Line(source = "fu=baz")]
@@ -56,7 +56,7 @@ class Doc {
    * Nothing happens if <code>source</code> is <code>null</code>.
    *
    * @example
-   * Doc.parse("# foo\n\nfoo = bar\nfu = baz", (line) => console.log(line));
+   * Doc.parse('# foo\n\nfoo = bar\nfu = baz', (line) => console.log(line));
    * //=> Line(source = "# foo")
    * //=> Line(source = "")
    * //=> Line(source = "foo = bar")
@@ -90,7 +90,7 @@ class Doc {
    * @example
    * const doc = new Doc();
    *
-   * doc.add(Line.createProperty("foo", "bar"));
+   * doc.add(Line.createProperty('foo', 'bar'));
    * doc.add(null);
    *
    * Array.from(doc);
@@ -112,10 +112,10 @@ class Doc {
    *
    * @example
    * const doc = new Doc();
-   * doc.add(Line.createComment("foo"));
+   * doc.add(Line.createComment('foo'));
    * doc.add(Line.createBlank());
-   * doc.add(Line.createProperty("foo", "bar"));
-   * doc.add(Line.createProperty("fu", "baz"));
+   * doc.add(Line.createProperty('foo', 'bar'));
+   * doc.add(Line.createProperty('fu', 'baz'));
    *
    * doc.clear();
    * doc.size;
@@ -134,21 +134,21 @@ class Doc {
    *
    * @example
    * const doc = new Doc();
-   * doc.add(Line.createProperty("foo", "rab"));
-   * doc.add(Line.createProperty("foo", "bar"));
-   * doc.add(Line.createProperty("fu", "baz"));
+   * doc.add(Line.createProperty('foo', 'rab'));
+   * doc.add(Line.createProperty('foo', 'bar'));
+   * doc.add(Line.createProperty('fu', 'baz'));
    *
-   * doc.delete("foo");
+   * doc.delete('foo');
    * //=> true
    * Array.from(doc);
    * //=> [Line(source = "fu=baz")]
    *
-   * doc.delete("FU");
+   * doc.delete('FU');
    * //=> false
    * Array.from(doc);
    * //=> [Line(source = "fu=baz")]
    *
-   * doc.delete("fizz");
+   * doc.delete('fizz');
    * //=> false
    * Array.from(doc);
    * //=> [Line(source = "fu=baz")]
@@ -177,10 +177,10 @@ class Doc {
    *
    * @example
    * const doc = new Doc();
-   * doc.add(Line.createComment("foo"));
+   * doc.add(Line.createComment('foo'));
    * doc.add(Line.createBlank());
-   * doc.add(Line.createProperty("foo", "bar"));
-   * doc.add(Line.createProperty("fu", "baz"));
+   * doc.add(Line.createProperty('foo', 'bar'));
+   * doc.add(Line.createProperty('fu', 'baz'));
    *
    * doc.forEach((line) => console.log(line));
    * //=> Line(source = "# foo")
@@ -205,14 +205,14 @@ class Doc {
    *
    * @example
    * const doc = new Doc();
-   * doc.add(Line.createProperty("foo", "rab"));
-   * doc.add(Line.createProperty("foo", "bar"));
+   * doc.add(Line.createProperty('foo', 'rab'));
+   * doc.add(Line.createProperty('foo', 'bar'));
    *
-   * doc.get("foo");
+   * doc.get('foo');
    * //=> Line(source = "foo=bar")
-   * doc.get("FOO");
+   * doc.get('FOO');
    * //=> undefined
-   * doc.get("fu");
+   * doc.get('fu');
    * //=> undefined
    * doc.get(null);
    * //=> undefined
@@ -237,13 +237,13 @@ class Doc {
    *
    * @example
    * const doc = new Doc();
-   * doc.add(Line.createProperty("foo", "bar"));
+   * doc.add(Line.createProperty('foo', 'bar'));
    *
-   * doc.has("foo");
+   * doc.has('foo');
    * //=> true
-   * doc.has("FOO");
+   * doc.has('FOO');
    * //=> false
-   * doc.has("fu");
+   * doc.has('fu');
    * //=> false
    * doc.has(null);
    * //=> false
@@ -270,10 +270,10 @@ class Doc {
    * doc.size;
    * //=> 0
    *
-   * doc.add(Line.createComment("foo"));
+   * doc.add(Line.createComment('foo'));
    * doc.add(Line.createBlank());
-   * doc.add(Line.createProperty("foo", "bar"));
-   * doc.add(Line.createProperty("fu", "baz"));
+   * doc.add(Line.createProperty('foo', 'bar'));
+   * doc.add(Line.createProperty('fu', 'baz'));
    *
    * doc.size;
    * //=> 4

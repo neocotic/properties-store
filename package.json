@@ -38,7 +38,7 @@
   "main": "src/properties-store.js",
   "scripts": {
     "coverage": "nyc report && codecov",
-    "documentation": "documentation build \"src/**/*.js\" -f html -o docs -a public -g --sort-order alpha",
+    "doc": "documentation build \"src/**/*.js\" -f html -o docs -a public -g --sort-order alpha",
     "pretest": "eslint \"src/**/*.js\" \"test/**/*.js\"",
     "test": "nyc mocha -R list \"test/**/*.spec.js\"",
     "posttest": "nyc check-coverage"

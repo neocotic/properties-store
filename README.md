@@ -1,10 +1,7 @@
-    _____                     _   _         _____ _
-    |  _  |___ ___ ___ ___ ___| |_|_|___ ___|   __| |_ ___ ___ ___
-    |   __|  _| . | . | -_|  _|  _| | -_|_ -|__   |  _| . |  _| -_|
-    |__|  |_| |___|  _|___|_| |_| |_|___|___|_____|_| |___|_| |___|
-                  |_|
+# properties-store
 
 [![Build Status](https://img.shields.io/travis/NotNinja/properties-store/develop.svg?style=flat-square)](https://travis-ci.org/NotNinja/properties-store)
+[![Documentation](https://img.shields.io/badge/docs-online-brightgreen.svg?style=flat-square)](https://notninja.github.io/properties-store/docs/)
 [![Coverage](https://img.shields.io/codecov/c/github/NotNinja/properties-store/develop.svg?style=flat-square)](https://codecov.io/gh/NotNinja/properties-store)
 [![Dependency Status](https://img.shields.io/david/NotNinja/properties-store.svg?style=flat-square)](https://david-dm.org/NotNinja/properties-store)
 [![Dev Dependency Status](https://img.shields.io/david/dev/NotNinja/properties-store.svg?style=flat-square)](https://david-dm.org/NotNinja/properties-store?type=dev)
@@ -35,9 +32,30 @@ You'll need to have at least [Node.js](https://nodejs.org) 8 or newer.
 
 ## API
 
-The API documentation can be found below:
+    new PropertiesStore([store][, options])
 
-https://notninja.github.io/properties-store
+The complete API documentation, along with lots of examples, can be found
+[here](https://notninja.github.io/properties-store/docs/).
+
+``` javascript
+const fs = require('fs');
+const PropertiesStore = require('properties-store');
+
+const properties = new PropertiesStore();
+
+(async() {
+  await properties.load(fs.createReadStream('path/to/my.properties'));
+
+  properties.set('new-prop', 'Hello, World!');
+  properties.get('new-prop');
+  //=> "Hello, World!"
+
+  properties.get('missing-prop', 'Some default value');
+  //=> "Some default value"
+
+  await properties.store(fs.createWriteStream('path/to/my.properties'));
+})();
+```
 
 ## Bugs
 

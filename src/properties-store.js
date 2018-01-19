@@ -46,28 +46,24 @@ const _writeStream = Symbol('writeStream');
  * maintain non-properties lines that are loaded from an input stream, which can be useful when wanting to make
  * non-intrusive changes to the original source.
  *
- * The <code>preserveLines</code> option can be enabled so that all lines read by {@link PropertiesStore#load} are
- * maintained and also written by {@link PropertiesStore#store}, but it's worth noting that doing so can slow
- * certain operations while {@link PropertiesStore} maintains synchronization with the property lines amongst the other
- * preserved lines.
+ * The <code>preserve</code> option can be enabled so that all lines read by {@link PropertiesStore#load} are maintained
+ * and also written by {@link PropertiesStore#store}, but it's worth noting that doing so can slow certain operations
+ * while {@link PropertiesStore} maintains synchronization with the property lines amongst the other preserved lines.
  *
  * Optionally, another <code>store</code> can be specified whose properties (and lines, if preserved) will be used as
  * the base for the new <code>PropertiesStore</code> instance.
  *
- * It should be installed via npm:
- *
- * <pre>
- * $ npm install --save properties-store
- * </pre>
- *
- * Node.js version 8 or above is required.
- *
  * @example
- * const PropertiesStore = require("properties-store");
+ * const PropertiesStore = require('properties-store');
  *
  * const properties = new PropertiesStore();
- * properties.set("foo", "bar");
- * properties.set("fu", "baz");
+ * properties.set('foo', 'bar');
+ * properties.set('fu', 'baz');
+ *
+ * properties.get('foo');
+ * //=> "bar"
+ * properties.get('fu');
+ * //=> "baz"
  *
  * const copy = new PropertiesStore(store);
  * Array.from(copy);
@@ -75,7 +71,7 @@ const _writeStream = Symbol('writeStream');
  * @param {PropertiesStore} [store] - a {@link PropertiesStore} whose properties and lines, where applicable, are to
  * be used initially
  * @param {Object} [options] - the options to be used
- * @param {boolean} [options.preserveLines=false] - <code>true</code> to preserve all lines read by
+ * @param {boolean} [options.preserve=false] - <code>true</code> to preserve all lines read by
  * {@link PropertiesStore#load}, even those that do not represent properties; otherwise <code>false</code>
  * @public
  */
@@ -88,12 +84,15 @@ class PropertiesStore extends events.EventEmitter {
    * If property lines are found with the same key in <code>input</code>, the value of the latest property line with
    * that key will be set as the value.
    *
-   * The <code>preserveLines</code> option can be enabled so that all lines read by this method are maintained and also
+   * The <code>preserve</code> option can be enabled so that all lines read by this method are maintained and also
    * written by {@link PropertiesStore#store}, but it's worth noting that doing so can slow certain operations while
    * {@link PropertiesStore} maintains synchronization with the property lines amongst the other preserved lines.
    *
+   * By default, any Unicode escapes ("\uxxxx" notation) read from <code>input</code> will be converted to their
+   * corresponding Unicode characters. This behaviour can be prevented by disabling the <code>unescape</code> option.
+   *
    * @example
-   * const properties = await PropertiesStore.load(fs.createReadStream("path/to/my.properties"), {
+   * const properties = await PropertiesStore.load(fs.createReadStream('path/to/my.properties'), {
    *   encoding: 'utf8',
    *   unescape: false
    * });
@@ -102,9 +101,9 @@ class PropertiesStore extends events.EventEmitter {
    * Array.from(properties.lines());
    * //> ["foo = bar", "fu = baz"]
    *
-   * const completeProperties = await PropertiesStore.load(fs.createReadStream("path/to/my.properties"), {
+   * const completeProperties = await PropertiesStore.load(fs.createReadStream('path/to/my.properties'), {
    *   encoding: 'utf8',
-   *   preserveLines: true,
+   *   preserve: true,
    *   unescape: false
    * });
    * Array.from(completeProperties);
@@ -114,8 +113,8 @@ class PropertiesStore extends events.EventEmitter {
    * @param {stream.Readable} input - the input stream from which the properties are to be read
    * @param {Object} [options] - the options to be used
    * @param {string} [options.encoding="latin1"] - the character encoding to be used to read the input
-   * @param {boolean} [options.preserveLines=false] - <code>true</code> to preserve all lines read, even those that do
-   * not represent properties; otherwise <code>false</code>
+   * @param {boolean} [options.preserve=false] - <code>true</code> to preserve all lines read, even those that do not
+   * represent properties; otherwise <code>false</code>
    * @param {boolean} [options.unescape=true] - <code>true</code> to convert all Unicode escapes ("\uxxxx" notation) to
    * their corresponding Unicode characters; otherwise <code>false</code>
    * @return {Promise.<PropertiesStore, Error>} A <code>Promise</code> that is resolved with the new
@@ -180,11 +179,11 @@ class PropertiesStore extends events.EventEmitter {
       store = null;
     }
 
-    options = Object.assign({ preserveLines: false }, options);
+    options = Object.assign({ preserve: false }, options);
 
     this[_properties] = new Map();
 
-    if (options.preserveLines) {
+    if (options.preserve) {
       this[_doc] = new Doc();
     }
 
@@ -215,8 +214,8 @@ class PropertiesStore extends events.EventEmitter {
    *
    * @example
    * const properties = new PropertiesStore();
-   * properties.set("foo", "bar");
-   * properties.set("fu", "baz");
+   * properties.set('foo', 'bar');
+   * properties.set('fu', 'baz');
    *
    * properties.clear();
    * properties.size;
@@ -254,14 +253,14 @@ class PropertiesStore extends events.EventEmitter {
    *
    * @example
    * const properties = new PropertiesStore();
-   * properties.set("foo", "bar");
+   * properties.set('foo', 'bar');
    *
-   * properties.delete("FOO");
-   * properties.has("foo");
+   * properties.delete('FOO');
+   * properties.has('foo');
    * //=> true
    *
-   * properties.delete("foo");
-   * properties.has("foo");
+   * properties.delete('foo');
+   * properties.has('foo');
    * //=> false
    * @param {?string} key - the key of the property to be removed (may be <code>null</code>)
    * @return {boolean} <code>true</code> if a property with <code>key</code> was successfully removed; otherwise
@@ -296,8 +295,8 @@ class PropertiesStore extends events.EventEmitter {
    *
    * @example
    * const properties = new PropertiesStore();
-   * properties.set("foo", "bar");
-   * properties.set("fu", "baz");
+   * properties.set('foo', 'bar');
+   * properties.set('fu', 'baz');
    *
    * Array.from(properties.entries());
    * //=> [["foo", "bar"], ["fu", "baz"]]
@@ -313,8 +312,8 @@ class PropertiesStore extends events.EventEmitter {
    *
    * @example
    * const properties = new PropertiesStore();
-   * properties.set("foo", "bar");
-   * properties.set("fu", "baz");
+   * properties.set('foo', 'bar');
+   * properties.set('fu', 'baz');
    *
    * properties.forEach((value, key) => console.log(`${key}=${value}`));
    * //=> "foo=bar"
@@ -339,17 +338,17 @@ class PropertiesStore extends events.EventEmitter {
    *
    * @example
    * const properties = new PropertiesStore();
-   * properties.set("foo", "bar");
+   * properties.set('foo', 'bar');
    *
-   * properties.get("foo");
+   * properties.get('foo');
    * //=> "bar"
-   * properties.get("FOO");
+   * properties.get('FOO');
    * //=> undefined
-   * properties.get("fu");
+   * properties.get('fu');
    * //=> undefined
-   * properties.get("fu", "baz");
+   * properties.get('fu', 'baz');
    * //=> "baz"
-   * properties.get("fu", 123);
+   * properties.get('fu', 123);
    * //=> "123"
    * @param {?string} key - the key of the property whose value is to be returned (may be <code>null</code>)
    * @param {*} [defaultValue] - the default value to be returned if no property with <code>key</code> exists (will be
@@ -373,13 +372,13 @@ class PropertiesStore extends events.EventEmitter {
    *
    * @example
    * const properties = new PropertiesStore();
-   * properties.set("foo", "bar");
+   * properties.set('foo', 'bar');
    *
-   * properties.has("foo");
+   * properties.has('foo');
    * //=> true
-   * properties.has("FOO");
+   * properties.has('FOO');
    * //=> false
-   * properties.has("fu");
+   * properties.has('fu');
    * //=> false
    * @param {?string} key - the key of the property to be checked (may be <code>null</code>)
    * @return {boolean} <code>true</code> if a property with <code>key</code> exists; otherwise <code>false</code>.
@@ -394,8 +393,8 @@ class PropertiesStore extends events.EventEmitter {
    *
    * @example
    * const properties = new PropertiesStore();
-   * properties.set("foo", "bar");
-   * properties.set("fu", "baz");
+   * properties.set('foo', 'bar');
+   * properties.set('fu', 'baz');
    *
    * Array.from(properties.keys());
    * //=> ["foo", "fu"]
@@ -414,16 +413,16 @@ class PropertiesStore extends events.EventEmitter {
    *
    * @example
    * const properties = new PropertiesStore();
-   * await properties.load(fs.createReadStream("path/to/my.properties"));
+   * await properties.load(fs.createReadStream('path/to/my.properties'));
    *
    * Array.from(properties.lines());
-   * //=> ["foo = bar","fu = baz"]
+   * //=> ["foo = bar", "fu = baz"]
    *
-   * const completeProperties = new PropertiesStore({ preserveLines: true });
-   * await completeProperties.load(fs.createReadStream("path/to/my.properties"));
+   * const completeProperties = new PropertiesStore({ preserve: true });
+   * await completeProperties.load(fs.createReadStream('path/to/my.properties'));
    *
    * Array.from(completeProperties.lines());
-   * //=> ["# My Properties","","foo = bar","fu = baz"]
+   * //=> ["# My Properties", "", "foo = bar", "fu = baz"]
    * @return {Iterator.<string>} An <code>Iterator</code> for each line.
    * @public
    */
@@ -453,10 +452,13 @@ class PropertiesStore extends events.EventEmitter {
    * maintained within this {@link PropertiesStore}, regardless of whether or not they represent a property. Each line
    * loaded will be added after any previously loaded lines, where applicable.
    *
+   * By default, any Unicode escapes ("\uxxxx" notation) read from <code>input</code> will be converted to their
+   * corresponding Unicode characters. This behaviour can be prevented by disabling the <code>unescape</code> option.
+   *
    * @example
    * const properties = new PropertiesStore()
    *
-   * await properties.load(fs.createReadStream("path/to/my.properties"), {
+   * await properties.load(fs.createReadStream('path/to/my.properties'), {
    *   encoding: 'utf8',
    *   unescape: false
    * });
@@ -465,9 +467,9 @@ class PropertiesStore extends events.EventEmitter {
    * Array.from(properties.lines());
    * //> ["foo = bar", "fu = baz"]
    *
-   * const completeProperties = new PropertiesStore({ preserveLines: true });
+   * const completeProperties = new PropertiesStore({ preserve: true });
    *
-   * await completeProperties.load(fs.createReadStream("path/to/my.properties"), {
+   * await completeProperties.load(fs.createReadStream('path/to/my.properties'), {
    *   encoding: 'utf8',
    *   unescape: false
    * });
@@ -532,20 +534,20 @@ class PropertiesStore extends events.EventEmitter {
    * const properties = new PropertiesStore();
    *
    * properties
-   *   .set("foo", "bar")
-   *   .set("fu", "baz");
+   *   .set('foo', 'bar')
+   *   .set('fu', 'baz');
    * Array.from(properties);
    * //=> [["foo", "bar"], ["fu", "baz"]]
    *
-   * properties.set("FOO", "BAR");
+   * properties.set('FOO', 'BAR');
    * Array.from(properties);
    * //=> [["foo", "bar"], ["fu", "baz"], ["FOO", "BAR"]]
    *
-   * properties.set("FOO", null);
+   * properties.set('FOO', null);
    * Array.from(properties);
    * //=> [["foo", "bar"], ["fu", "baz"]]
    *
-   * properties.set("foo", "BAR");
+   * properties.set('foo', 'BAR');
    * Array.from(properties);
    * //=> [["foo", "BAR"], ["fu", "baz"]]
    * @param {?string} key - the key of the property whose value is to be set (may be <code>null</code>)
@@ -572,23 +574,27 @@ class PropertiesStore extends events.EventEmitter {
    * If this {@link PropertiesStore} is preserving all lines, they will all be written directly to <code>output</code>.
    * Otherwise, only lines for properties within this {@link PropertiesStore} will be written to <code>output</code>.
    *
+   * By default, any characters that are not part of the ASCII character set will be converted to Unicode escapes
+   * ("\uxxxx" notation) before being written to <code>output</code>. This behaviour can be prevented by disabling the
+   * <code>escape</code> option.
+   *
    * @example
    * const properties = new PropertiesStore();
-   * await properties.load(fs.createReadStream("path/to/my.properties"));
-   * properties.set("foo", "BAR");
-   * properties.set("fu", null);
+   * await properties.load(fs.createReadStream('path/to/my.properties'));
+   * properties.set('foo', 'BAR');
+   * properties.set('fu', null);
    *
-   * await properties.store(fs.createWriteStream("path/to/my.properties"));
-   * fs.readFileSync("path/to/my.properties", "latin1");
+   * await properties.store(fs.createWriteStream('path/to/my.properties'));
+   * fs.readFileSync('path/to/my.properties', 'latin1');
    * //=> "foo = BAR"
    *
-   * const completeProperties = new PropertiesStore({ preserveLines: true });
-   * await completeProperties.load(fs.createReadStream("path/to/my.properties"));
-   * completeProperties.set("foo", "BAR");
-   * completeProperties.set("fu", null);
+   * const completeProperties = new PropertiesStore({ preserve: true });
+   * await completeProperties.load(fs.createReadStream('path/to/my.properties'));
+   * completeProperties.set('foo', 'BAR');
+   * completeProperties.set('fu', null);
    *
-   * await completeProperties.store(fs.createWriteStream("path/to/my.properties"));
-   * fs.readFileSync("path/to/my.properties", "latin1");
+   * await completeProperties.store(fs.createWriteStream('path/to/my.properties'));
+   * fs.readFileSync('path/to/my.properties', 'latin1');
    * //=> "# My Properties
    *
    * foo = BAR"
@@ -637,8 +643,8 @@ class PropertiesStore extends events.EventEmitter {
    *
    * @example
    * const properties = new PropertiesStore();
-   * properties.set("foo", "bar");
-   * properties.set("fu", "baz");
+   * properties.set('foo', 'bar');
+   * properties.set('fu', 'baz');
    *
    * Array.from(properties.values());
    * //=> ["bar", "baz"]
@@ -691,8 +697,8 @@ class PropertiesStore extends events.EventEmitter {
    * properties.size;
    * //=> 0
    *
-   * properties.set("foo", "bar");
-   * properties.set("fu", "baz");
+   * properties.set('foo', 'bar');
+   * properties.set('fu', 'baz');
    *
    * properties.size;
    * //=> 2
