@@ -26,10 +26,10 @@ const events = require('events');
 const native2ascii = require('node-native2ascii');
 const os = require('os');
 
-const Doc = require('./doc');
-const Line = require('./line');
+const Document = require('./document');
+const Element = require('./element');
 
-const _doc = Symbol('doc');
+const _document = Symbol('document');
 const _properties = Symbol('properties');
 const _readStream = Symbol('readStream');
 const _set = Symbol('set');
@@ -41,14 +41,15 @@ const _writeStream = Symbol('writeStream');
  * <code>PropertiesStore</code> itself is iterable.
  *
  * It is designed to be compatible with Java's <code>.properties</code> file format, however, it also has the ability to
- * maintain non-properties lines that are loaded from an input stream, which can be useful when wanting to make
+ * maintain non-properties elements that are loaded from an input stream, which can be useful when wanting to make
  * non-intrusive changes to the original source.
  *
- * The <code>preserve</code> option can be enabled so that all lines read by {@link PropertiesStore#load} are maintained
- * and also written by {@link PropertiesStore#store}, but it's worth noting that doing so can slow certain operations
- * while {@link PropertiesStore} maintains synchronization with the property lines amongst the other preserved lines.
+ * The <code>preserve</code> option can be enabled so that all elements read by {@link PropertiesStore#load} are
+ * maintained and also written by {@link PropertiesStore#store}, but it's worth noting that doing so can slow certain
+ * operations while {@link PropertiesStore} maintains synchronization with the property elements amongst the other
+ * preserved elements.
  *
- * Optionally, another <code>store</code> can be specified whose properties (and lines, if preserved) will be used as
+ * Optionally, another <code>store</code> can be specified whose properties (and elements, if preserved) will be used as
  * the base for the new <code>PropertiesStore</code> instance.
  *
  * @example
@@ -66,10 +67,10 @@ const _writeStream = Symbol('writeStream');
  * const copy = new PropertiesStore(store);
  * Array.from(copy);
  * //=> [["foo", "bar"], ["fu", "baz"]]
- * @param {PropertiesStore} [store] - a {@link PropertiesStore} whose properties and lines, where applicable, are to
+ * @param {PropertiesStore} [store] - a {@link PropertiesStore} whose properties and elements, where applicable, are to
  * be used initially
  * @param {Object} [options] - the options to be used
- * @param {boolean} [options.preserve=false] - <code>true</code> to preserve all lines read by
+ * @param {boolean} [options.preserve=false] - <code>true</code> to preserve all elements read by
  * {@link PropertiesStore#load}, even those that do not represent properties; otherwise <code>false</code>
  * @public
  */
@@ -79,12 +80,12 @@ class PropertiesStore extends events.EventEmitter {
    * Reads the property information from the <code>input</code> stream provided and loads it into a new
    * {@link PropertiesStore}.
    *
-   * If property lines are found with the same key in <code>input</code>, the value of the latest property line with
-   * that key will be set as the value.
+   * If property elements are found with the same key in <code>input</code>, the value of the latest property element
+   * with that key will be set as the value.
    *
-   * The <code>preserve</code> option can be enabled so that all lines read by this method are maintained and also
+   * The <code>preserve</code> option can be enabled so that all elements read by this method are maintained and also
    * written by {@link PropertiesStore#store}, but it's worth noting that doing so can slow certain operations while
-   * {@link PropertiesStore} maintains synchronization with the property lines amongst the other preserved lines.
+   * {@link PropertiesStore} maintains synchronization with the property elements amongst the other preserved elements.
    *
    * By default, any Unicode escapes ("\uxxxx" notation) read from <code>input</code> will be converted to their
    * corresponding Unicode characters. This behaviour can be prevented by disabling the <code>unescape</code> option.
@@ -96,7 +97,7 @@ class PropertiesStore extends events.EventEmitter {
    * });
    * Array.from(properties);
    * //=> [["foo", "bar"], ["fu", "baz"]]
-   * Array.from(properties.lines());
+   * Array.from(properties.elements());
    * //> ["foo = bar", "fu = baz"]
    *
    * const completeProperties = await PropertiesStore.load(fs.createReadStream('path/to/my.properties'), {
@@ -106,12 +107,12 @@ class PropertiesStore extends events.EventEmitter {
    * });
    * Array.from(completeProperties);
    * //=> [["foo", "bar"], ["fu", "baz"]]
-   * Array.from(completeProperties.lines());
+   * Array.from(completeProperties.elements());
    * //> ["# My Properties", "", "foo = bar", "fu = baz"]
    * @param {stream.Readable} input - the input stream from which the properties are to be read
    * @param {Object} [options] - the options to be used
    * @param {string} [options.encoding="latin1"] - the character encoding to be used to read the input
-   * @param {boolean} [options.preserve=false] - <code>true</code> to preserve all lines read, even those that do not
+   * @param {boolean} [options.preserve=false] - <code>true</code> to preserve all elements read, even those that do not
    * represent properties; otherwise <code>false</code>
    * @param {boolean} [options.unescape=true] - <code>true</code> to convert all Unicode escapes ("\uxxxx" notation) to
    * their corresponding Unicode characters; otherwise <code>false</code>
@@ -182,7 +183,7 @@ class PropertiesStore extends events.EventEmitter {
     this[_properties] = new Map();
 
     if (options.preserve) {
-      this[_doc] = new Doc();
+      this[_document] = new Document();
     }
 
     if (store != null) {
@@ -190,15 +191,15 @@ class PropertiesStore extends events.EventEmitter {
         this[_properties].set(key, value);
       }
 
-      if (this[_doc]) {
-        if (store[_doc]) {
-          for (const line of store[_doc]) {
-            // Lines are mutable so recreate from source to avoid unexpected synchronization issues
-            this[_doc].add(new Line(line.source));
+      if (this[_document]) {
+        if (store[_document]) {
+          for (const element of store[_document]) {
+            // Elements are mutable so recreate from source to avoid unexpected synchronization issues
+            this[_document].add(new Element(element.source));
           }
         } else {
           for (const [ key, value ] of store) {
-            this[_doc].add(Line.createProperty(key, value));
+            this[_document].add(Element.createProperty(key, value));
           }
         }
       }
@@ -208,7 +209,7 @@ class PropertiesStore extends events.EventEmitter {
   /**
    * Removes all properties from this {@link PropertiesStore}.
    *
-   * If this {@link PropertiesStore} is preserving all lines, they will all be removed.
+   * If this {@link PropertiesStore} is preserving all elements, they will all be removed.
    *
    * @example
    * const properties = new PropertiesStore();
@@ -234,8 +235,8 @@ class PropertiesStore extends events.EventEmitter {
 
     this[_properties].clear();
 
-    if (this[_doc]) {
-      this[_doc].clear();
+    if (this[_document]) {
+      this[_document].clear();
     }
 
     this.emit('clear', { properties: this });
@@ -246,8 +247,8 @@ class PropertiesStore extends events.EventEmitter {
    *
    * <code>key</code> is case sensitive.
    *
-   * If this {@link PropertiesStore} is preserving all lines, each line representing the property with <code>key</code>
-   * will be removed.
+   * If this {@link PropertiesStore} is preserving all elements, each element representing the property with
+   * <code>key</code> will be removed.
    *
    * @example
    * const properties = new PropertiesStore();
@@ -272,8 +273,8 @@ class PropertiesStore extends events.EventEmitter {
 
       this[_properties].delete(key);
 
-      if (this[_doc]) {
-        this[_doc].delete(key);
+      if (this[_document]) {
+        this[_document].delete(key);
       }
 
       this.emit('delete', {
@@ -286,6 +287,42 @@ class PropertiesStore extends events.EventEmitter {
     }
 
     return false;
+  }
+
+  /**
+   * Returns an iterator containing the elements in this {@link PropertiesStore}.
+   *
+   * If this {@link PropertiesStore} is preserving all elements, they will all be included, regardless of whether or not
+   * they represent a property.
+   *
+   * @example
+   * const properties = new PropertiesStore();
+   * await properties.load(fs.createReadStream('path/to/my.properties'));
+   *
+   * Array.from(properties.elements());
+   * //=> ["foo = bar", "fu = baz"]
+   *
+   * const completeProperties = new PropertiesStore({ preserve: true });
+   * await completeProperties.load(fs.createReadStream('path/to/my.properties'));
+   *
+   * Array.from(completeProperties.elements());
+   * //=> ["# My Properties", "", "foo = bar", "fu = baz"]
+   * @return {Iterator.<string>} An <code>Iterator</code> for each element.
+   * @public
+   */
+  *elements() {
+    let document = this[_document];
+    if (!document) {
+      document = new Document();
+
+      for (const [ key, value ] of this[_properties]) {
+        document.add(Element.createProperty(key, value));
+      }
+    }
+
+    for (const element of document) {
+      yield element.source;
+    }
   }
 
   /**
@@ -404,51 +441,15 @@ class PropertiesStore extends events.EventEmitter {
   }
 
   /**
-   * Returns an iterator containing the source lines in this {@link PropertiesStore}.
-   *
-   * If this {@link PropertiesStore} is preserving all lines, they will all be included, regardless of whether or not
-   * they represent a property.
-   *
-   * @example
-   * const properties = new PropertiesStore();
-   * await properties.load(fs.createReadStream('path/to/my.properties'));
-   *
-   * Array.from(properties.lines());
-   * //=> ["foo = bar", "fu = baz"]
-   *
-   * const completeProperties = new PropertiesStore({ preserve: true });
-   * await completeProperties.load(fs.createReadStream('path/to/my.properties'));
-   *
-   * Array.from(completeProperties.lines());
-   * //=> ["# My Properties", "", "foo = bar", "fu = baz"]
-   * @return {Iterator.<string>} An <code>Iterator</code> for each line.
-   * @public
-   */
-  *lines() {
-    let doc = this[_doc];
-    if (!doc) {
-      doc = new Doc();
-
-      for (const [ key, value ] of this[_properties]) {
-        doc.add(Line.createProperty(key, value));
-      }
-    }
-
-    for (const line of doc) {
-      yield line.source;
-    }
-  }
-
-  /**
    * Reads the property information from the <code>input</code> stream provided and loads it into this
    * {@link PropertiesStore}.
    *
-   * If property lines are found with the same key in either this {@link PropertiesStore} or <code>input</code>, the
-   * value of the latest property line with that key will be set as the value.
+   * If property elements are found with the same key in either this {@link PropertiesStore} or <code>input</code>, the
+   * value of the latest property element with that key will be set as the value.
    *
-   * If this {@link PropertiesStore} is preserving all lines, they will all be loaded from <code>input</code> and
-   * maintained within this {@link PropertiesStore}, regardless of whether or not they represent a property. Each line
-   * loaded will be added after any previously loaded lines, where applicable.
+   * If this {@link PropertiesStore} is preserving all elements, they will all be loaded from <code>input</code> and
+   * maintained within this {@link PropertiesStore}, regardless of whether or not they represent a property. Each
+   * element loaded will be added after any previously loaded elements, where applicable.
    *
    * By default, any Unicode escapes ("\uxxxx" notation) read from <code>input</code> will be converted to their
    * corresponding Unicode characters. This behaviour can be prevented by disabling the <code>unescape</code> option.
@@ -462,7 +463,7 @@ class PropertiesStore extends events.EventEmitter {
    * });
    * Array.from(properties);
    * //=> [["foo", "bar"], ["fu", "baz"]]
-   * Array.from(properties.lines());
+   * Array.from(properties.elements());
    * //> ["foo = bar", "fu = baz"]
    *
    * const completeProperties = new PropertiesStore({ preserve: true });
@@ -473,7 +474,7 @@ class PropertiesStore extends events.EventEmitter {
    * });
    * Array.from(completeProperties);
    * //=> [["foo", "bar"], ["fu", "baz"]]
-   * Array.from(completeProperties.lines());
+   * Array.from(completeProperties.elements());
    * //> ["# My Properties", "", "foo = bar", "fu = baz"]
    * @param {stream.Readable} input - the input stream from which the properties are to be read
    * @param {Object} [options] - the options to be used
@@ -497,13 +498,13 @@ class PropertiesStore extends events.EventEmitter {
       str = native2ascii(str, { reverse: true });
     }
 
-    Doc.parse(str, (line) => {
-      if (this[_doc]) {
-        this[_doc].add(line);
+    Document.parse(str, (element) => {
+      if (this[_document]) {
+        this[_document].add(element);
       }
 
-      if (line.property) {
-        this[_set](line.key, line.value);
+      if (element.property) {
+        this[_set](element.key, element.value);
       }
     });
 
@@ -523,10 +524,10 @@ class PropertiesStore extends events.EventEmitter {
    * Nothing happens if <code>key</code> is <code>null</code>. If <code>value</code> is <code>null</code>,
    * {@link PropertiesStore#delete} will be called to removed the property.
    *
-   * If this {@link PropertiesStore} is preserving all lines, the last line representing the property with
-   * <code>key</code> will be updated with <code>value</code>, if one exists, otherwise a new line will be added for the
-   * property. If <code>value</code> is <code>null</code>, each line representing the property with <code>key</code>
-   * will be removed.
+   * If this {@link PropertiesStore} is preserving all elements, the last element representing the property with
+   * <code>key</code> will be updated with <code>value</code>, if one exists, otherwise a new element will be added for
+   * the property. If <code>value</code> is <code>null</code>, each element representing the property with
+   * <code>key</code> will be removed.
    *
    * @example
    * const properties = new PropertiesStore();
@@ -569,8 +570,9 @@ class PropertiesStore extends events.EventEmitter {
   /**
    * Writes the property information within this {@link PropertiesStore} to the <code>output</code> stream provided.
    *
-   * If this {@link PropertiesStore} is preserving all lines, they will all be written directly to <code>output</code>.
-   * Otherwise, only lines for properties within this {@link PropertiesStore} will be written to <code>output</code>.
+   * If this {@link PropertiesStore} is preserving all elements, they will all be written directly to
+   * <code>output</code>. Otherwise, only elements for properties within this {@link PropertiesStore} will be written to
+   * <code>output</code>.
    *
    * By default, any characters that are not part of the ASCII character set will be converted to Unicode escapes
    * ("\uxxxx" notation) before being written to <code>output</code>. This behaviour can be prevented by disabling the
@@ -612,14 +614,14 @@ class PropertiesStore extends events.EventEmitter {
       escape: true
     }, options);
 
-    let firstLine = true;
+    let firstElement = true;
     let str = '';
-    for (const line of this.lines()) {
-      if (firstLine) {
-        firstLine = false;
-        str = line;
+    for (const element of this.elements()) {
+      if (firstElement) {
+        firstElement = false;
+        str = element;
       } else {
-        str += `${os.EOL}${line}`;
+        str += `${os.EOL}${element}`;
       }
     }
 
@@ -665,13 +667,13 @@ class PropertiesStore extends events.EventEmitter {
     const newValue = String(value);
     const oldValue = this[_properties].get(key);
 
-    if (updateDoc && this[_doc]) {
-      const line = this[_doc].get(key);
+    if (updateDoc && this[_document]) {
+      const element = this[_document].get(key);
 
-      if (line) {
-        line.value = newValue;
+      if (element) {
+        element.value = newValue;
       } else {
-        this[_doc].add(Line.createProperty(key, newValue));
+        this[_document].add(Element.createProperty(key, newValue));
       }
     }
 
