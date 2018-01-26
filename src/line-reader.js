@@ -267,7 +267,6 @@ class LineReader {
           continue;
         }
 
-        /* istanbul ignore if */
         if (this[_inputOffset] >= this[_inputLimit]) {
           this[_inputBuffer] = this[_inputStream].read(8192);
           this[_inputLimit] = this[_inputBuffer] == null ? 0 : this[_inputBuffer].length;

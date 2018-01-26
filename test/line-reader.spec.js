@@ -138,6 +138,48 @@ describe('LineReader', () => {
       }
     });
 
+    it('should be able to read large lines', async() => {
+      const key = 'a';
+      const value = 'b'.repeat(8192 - (key.length + 2));
+      const input = new MockReadable(Buffer.from(`${key}=${value}\n`, 'latin1'));
+      const expected = [
+        [ key, value ]
+      ];
+      const reader = new LineReader(input, { encoding: 'latin1' });
+
+      await reader.read(store);
+
+      expect(Array.from(store)).to.deep.equal(expected);
+    });
+
+    it('should be able to read large multi-lines', async() => {
+      const key = 'a';
+      const value = 'b'.repeat(8192 - (key.length + 3));
+      const input = new MockReadable(Buffer.from(`${key}=${value}\\\nfoo`, 'latin1'));
+      const expected = [
+        [ key, `${value}foo` ]
+      ];
+      const reader = new LineReader(input, { encoding: 'latin1' });
+
+      await reader.read(store);
+
+      expect(Array.from(store)).to.deep.equal(expected);
+    });
+
+    it('should be able to read large multi-lines ending with a backslash', async() => {
+      const key = 'a';
+      const value = 'b'.repeat(8192 - (key.length + 3));
+      const input = new MockReadable(Buffer.from(`${key}=${value}\\\n`, 'latin1'));
+      const expected = [
+        [ key, value ]
+      ];
+      const reader = new LineReader(input, { encoding: 'latin1' });
+
+      await reader.read(store);
+
+      expect(Array.from(store)).to.deep.equal(expected);
+    });
+
     it('should be able to read very large lines', async() => {
       const key = 'a'.repeat(8192);
       const value = 'b'.repeat(8192);
