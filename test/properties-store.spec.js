@@ -37,19 +37,13 @@ describe('PropertiesStore', () => {
         '# foo',
         'foo=bar'
       ].join('\n')));
-      const output = new MockWritable();
-      const expectedOutput = `foo=bar${EOL}`;
-      const expectedProperties = [
+      const expected = [
         [ 'foo', 'bar' ]
       ];
 
       const store = await PropertiesStore.load(input);
 
-      expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-      await store.store(output);
-
-      expect(output.buffer.toString()).to.equal(expectedOutput);
+      expect(Array.from(store)).to.deep.equal(expected);
     });
 
     context('when encoding option is not specified', () => {
@@ -103,35 +97,22 @@ describe('PropertiesStore', () => {
       expect(Array.from(store)).to.deep.equal(properties);
     });
 
-    it('should not reflect any changes to store afterwards', async() => {
-      const input = new MockReadable(Buffer.from([
-        '',
-        '# foo',
-        'foo=bar',
-        '',
-        'fu=baz'
-      ].join('\n')));
-      const output = new MockWritable();
-      const expectedOutput = [
-        'foo=bar',
-        'fu=baz'
-      ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
-      const expectedProperties = [
+    it('should not reflect any changes to store afterwards', () => {
+      const properties = [
         [ 'foo', 'bar' ],
         [ 'fu', 'baz' ]
       ];
       const other = new PropertiesStore();
-      await other.load(input);
+
+      for (const [ key, value ] of properties) {
+        other.set(key, value);
+      }
 
       const store = new PropertiesStore(other);
 
       other.clear();
 
-      expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-      await store.store(output);
-
-      expect(output.buffer.toString()).to.equal(expectedOutput);
+      expect(Array.from(store)).to.deep.equal(properties);
     });
   });
 
@@ -799,20 +780,14 @@ describe('PropertiesStore', () => {
         '# foo',
         'foo=bar'
       ].join('\n')));
-      const output = new MockWritable();
-      const expectedOutput = `foo=bar${EOL}`;
-      const expectedProperties = [
+      const expected = [
         [ 'foo', 'bar' ]
       ];
       const store = new PropertiesStore();
 
       await store.load(input);
 
-      expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-      await store.store(output);
-
-      expect(output.buffer.toString()).to.equal(expectedOutput);
+      expect(Array.from(store)).to.deep.equal(expected);
     });
 
     it('should emit "load" event and a "change" event for each changed property', async() => {
@@ -892,12 +867,7 @@ describe('PropertiesStore', () => {
         '',
         'fu=baz'
       ].join('\n')));
-      const output = new MockWritable();
-      const expectedOutput = [
-        'foo=buzz',
-        'fu=baz'
-      ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
-      const expectedProperties = [
+      const expected = [
         [ 'foo', 'buzz' ],
         [ 'fu', 'baz' ]
       ];
@@ -906,31 +876,21 @@ describe('PropertiesStore', () => {
 
       await store.load(input);
 
-      expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-      await store.store(output);
-
-      expect(output.buffer.toString()).to.equal(expectedOutput);
+      expect(Array.from(store)).to.deep.equal(expected);
     });
 
-    context('when input contains no property elements', () => {
-      it('should read no elements or properties', async() => {
+    context('when input contains no property lines', () => {
+      it('should read no properties', async() => {
         const input = new MockReadable(Buffer.from([
           '',
           '# foo'
         ].join('\n')));
-        const output = new MockWritable();
-        const expectedOutput = '';
-        const expectedProperties = [];
+        const expected = [];
         const store = new PropertiesStore();
 
         await store.load(input);
 
-        expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-        await store.store(output);
-
-        expect(output.buffer.toString()).to.equal(expectedOutput);
+        expect(Array.from(store)).to.deep.equal(expected);
       });
 
       it('should emit "load" event but not any "change" events', async() => {
@@ -963,43 +923,31 @@ describe('PropertiesStore', () => {
     });
 
     context('when input is empty', () => {
-      it('should read no elements or properties', async() => {
+      it('should read no properties', async() => {
         const input = new MockReadable();
-        const output = new MockWritable();
-        const expectedOutput = '';
-        const expectedProperties = [];
+        const expected = [];
         const store = new PropertiesStore();
 
         await store.load(input);
 
-        expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-        await store.store(output);
-
-        expect(output.buffer.toString()).to.equal(expectedOutput);
+        expect(Array.from(store)).to.deep.equal(expected);
       });
     });
 
     context('when input is TTY', () => {
-      it('should read no elements or properties', async() => {
+      it('should read no properties', async() => {
         const input = new MockReadable(Buffer.from([
           '',
           '# foo',
           'foo=bar'
         ].join('\n')));
         input.isTTY = true;
-        const output = new MockWritable();
-        const expectedOutput = '';
-        const expectedProperties = [];
+        const expected = [];
         const store = new PropertiesStore();
 
         await store.load(input);
 
-        expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-        await store.store(output);
-
-        expect(output.buffer.toString()).to.equal(expectedOutput);
+        expect(Array.from(store)).to.deep.equal(expected);
       });
     });
 
@@ -1007,9 +955,7 @@ describe('PropertiesStore', () => {
       it('should throw an error', async() => {
         const expectedError = new Error('foo');
         const input = new MockReadable(null, expectedError);
-        const output = new MockWritable();
-        const expectedOutput = '';
-        const expectedProperties = [];
+        const expected = [];
         const store = new PropertiesStore();
 
         try {
@@ -1020,11 +966,7 @@ describe('PropertiesStore', () => {
           expect(e).to.equal(expectedError);
         }
 
-        expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-        await store.store(output);
-
-        expect(output.buffer.toString()).to.equal(expectedOutput);
+        expect(Array.from(store)).to.deep.equal(expected);
       });
     });
 
@@ -1407,7 +1349,7 @@ describe('PropertiesStore', () => {
   });
 
   describe('#store', () => {
-    it('should write property elements to output', async() => {
+    it('should write property lines to output', async() => {
       const output = new MockWritable();
       const expected = [
         'foo=bar',
@@ -1449,7 +1391,7 @@ describe('PropertiesStore', () => {
       ]);
     });
 
-    context('when no properties or elements exist', () => {
+    context('when no properties exist', () => {
       it('should write empty buffer to output', async() => {
         const output = new MockWritable();
         const expected = '';
