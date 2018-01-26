@@ -24,44 +24,6 @@
 
 // TODO: Complete
 
-/**
- * TODO: Document
- *
- * @protected
- * @abstract
- */
-class ElementType {
-
-  /**
-   * TODO: Document
-   *
-   * @return {string}
-   * @public
-   */
-  static get COMMENT() {
-    return 'comment';
-  }
-
-  /**
-   * TODO: Document
-   *
-   * @return {string}
-   * @public
-   */
-  static get EMPTY() {
-    return 'empty';
-  }
-
-  /**
-   * TODO: Document
-   *
-   * @return {string}
-   * @public
-   */
-  static get PROPERTY() {
-    return 'property';
-  }
-
-}
-
-module.exports = Object.freeze(ElementType);
+describe('LineWriter', () => {
+  // TODO: complete
+});

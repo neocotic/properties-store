@@ -23,16 +23,11 @@
 'use strict';
 
 const events = require('events');
-const native2ascii = require('node-native2ascii');
-const os = require('os');
 
-const Document = require('./document');
-const Element = require('./element');
+const LineReader = require('./line-reader');
+const LineWriter = require('./line-writer');
 
-const _document = Symbol('document');
 const _properties = Symbol('properties');
-const _readStream = Symbol('readStream');
-const _set = Symbol('set');
 const _writeStream = Symbol('writeStream');
 
 /**
@@ -127,35 +122,6 @@ class PropertiesStore extends events.EventEmitter {
     return store;
   }
 
-  static [_readStream](stream, encoding) {
-    return new Promise((resolve, reject) => {
-      // Just in case stream is STDIN when run in TTY context
-      if (stream.isTTY) {
-        resolve(Buffer.alloc(0));
-      } else {
-        const data = [];
-        let length = 0;
-
-        stream.on('error', (error) => {
-          reject(error);
-        });
-
-        stream.on('readable', () => {
-          let chunk;
-
-          while ((chunk = stream.read()) != null) {
-            data.push(chunk);
-            length += chunk.length;
-          }
-        });
-
-        stream.on('end', () => {
-          resolve(Buffer.concat(data, length).toString(encoding));
-        });
-      }
-    });
-  }
-
   static [_writeStream](stream, output, encoding) {
     return new Promise((resolve, reject) => {
       stream.on('error', (error) => {
@@ -178,30 +144,13 @@ class PropertiesStore extends events.EventEmitter {
       store = null;
     }
 
-    options = Object.assign({ preserve: false }, options);
+    options = Object.assign({}, options);
 
     this[_properties] = new Map();
-
-    if (options.preserve) {
-      this[_document] = new Document();
-    }
 
     if (store != null) {
       for (const [ key, value ] of store) {
         this[_properties].set(key, value);
-      }
-
-      if (this[_document]) {
-        if (store[_document]) {
-          for (const element of store[_document]) {
-            // Elements are mutable so recreate from source to avoid unexpected synchronization issues
-            this[_document].add(new Element(element.source));
-          }
-        } else {
-          for (const [ key, value ] of store) {
-            this[_document].add(Element.createProperty(key, value));
-          }
-        }
       }
     }
   }
@@ -234,10 +183,6 @@ class PropertiesStore extends events.EventEmitter {
     }
 
     this[_properties].clear();
-
-    if (this[_document]) {
-      this[_document].clear();
-    }
 
     this.emit('clear', { properties: this });
   }
@@ -273,10 +218,6 @@ class PropertiesStore extends events.EventEmitter {
 
       this[_properties].delete(key);
 
-      if (this[_document]) {
-        this[_document].delete(key);
-      }
-
       this.emit('delete', {
         key,
         properties: this,
@@ -287,42 +228,6 @@ class PropertiesStore extends events.EventEmitter {
     }
 
     return false;
-  }
-
-  /**
-   * Returns an iterator containing the elements in this {@link PropertiesStore}.
-   *
-   * If this {@link PropertiesStore} is preserving all elements, they will all be included, regardless of whether or not
-   * they represent a property.
-   *
-   * @example
-   * const properties = new PropertiesStore();
-   * await properties.load(fs.createReadStream('path/to/my.properties'));
-   *
-   * Array.from(properties.elements());
-   * //=> ["foo = bar", "fu = baz"]
-   *
-   * const completeProperties = new PropertiesStore({ preserve: true });
-   * await completeProperties.load(fs.createReadStream('path/to/my.properties'));
-   *
-   * Array.from(completeProperties.elements());
-   * //=> ["# My Properties", "", "foo = bar", "fu = baz"]
-   * @return {Iterator.<string>} An <code>Iterator</code> for each element.
-   * @public
-   */
-  *elements() {
-    let document = this[_document];
-    if (!document) {
-      document = new Document();
-
-      for (const [ key, value ] of this[_properties]) {
-        document.add(Element.createProperty(key, value));
-      }
-    }
-
-    for (const element of document) {
-      yield element.source;
-    }
   }
 
   /**
@@ -479,8 +384,6 @@ class PropertiesStore extends events.EventEmitter {
    * @param {stream.Readable} input - the input stream from which the properties are to be read
    * @param {Object} [options] - the options to be used
    * @param {string} [options.encoding="latin1"] - the character encoding to be used to read the input
-   * @param {boolean} [options.unescape=true] - <code>true</code> to convert all Unicode escapes ("\uxxxx" notation) to
-   * their corresponding Unicode characters; otherwise <code>false</code>
    * @return {Promise.<void, Error>} A <code>Promise</code> that is resolved once <code>input</code> has be read into
    * this {@link PropertiesStore}.
    * @emits PropertiesStore#change
@@ -488,25 +391,10 @@ class PropertiesStore extends events.EventEmitter {
    * @public
    */
   async load(input, options) {
-    options = Object.assign({
-      encoding: 'latin1',
-      unescape: true
-    }, options);
+    options = Object.assign({ encoding: 'latin1' }, options);
 
-    let str = await PropertiesStore[_readStream](input, options.encoding);
-    if (options.unescape) {
-      str = native2ascii(str, { reverse: true });
-    }
-
-    Document.parse(str, (element) => {
-      if (this[_document]) {
-        this[_document].add(element);
-      }
-
-      if (element.property) {
-        this[_set](element.key, element.value);
-      }
-    });
+    const reader = new LineReader(input, options.encoding);
+    await reader.read(this);
 
     this.emit('load', {
       input,
@@ -558,10 +446,26 @@ class PropertiesStore extends events.EventEmitter {
    * @public
    */
   set(key, value) {
+    if (key == null) {
+      return this;
+    }
+
     if (value == null) {
       this.delete(key);
     } else {
-      this[_set](key, value, true);
+      const newValue = String(value);
+      const oldValue = this[_properties].get(key);
+
+      if (newValue !== oldValue) {
+        this[_properties].set(key, newValue);
+
+        this.emit('change', {
+          key,
+          newValue,
+          oldValue,
+          properties: this
+        });
+      }
     }
 
     return this;
@@ -601,35 +505,16 @@ class PropertiesStore extends events.EventEmitter {
    * @param {stream.Writable} output - the output stream to which the properties are to be written
    * @param {Object} [options] - the options to be used
    * @param {string} [options.encoding="latin1"] - the character encoding to be used to write the output
-   * @param {boolean} [options.escape=true] - <code>true</code> to convert all non-ASCII characters to Unicode escapes
-   * ("\uxxxx" notation); otherwise <code>false</code>
    * @return {Promise.<void, Error>} A <code>Promise</code> that is resolved once this {@link PropertiesStore} has been
    * written to <code>output</code>.
    * @emits PropertiesStore#store
    * @public
    */
   async store(output, options) {
-    options = Object.assign({
-      encoding: 'latin1',
-      escape: true
-    }, options);
+    options = Object.assign({ encoding: 'latin1' }, options);
 
-    let firstElement = true;
-    let str = '';
-    for (const element of this.elements()) {
-      if (firstElement) {
-        firstElement = false;
-        str = element;
-      } else {
-        str += `${os.EOL}${element}`;
-      }
-    }
-
-    if (options.escape) {
-      str = native2ascii(str);
-    }
-
-    await PropertiesStore[_writeStream](output, str, options.encoding);
+    const writer = new LineWriter(output, options.encoding);
+    await writer.write(this);
 
     this.emit('store', {
       options,
@@ -657,36 +542,6 @@ class PropertiesStore extends events.EventEmitter {
 
   [Symbol.iterator]() {
     return this[_properties].entries();
-  }
-
-  [_set](key, value, updateDoc) {
-    if (key == null) {
-      return;
-    }
-
-    const newValue = String(value);
-    const oldValue = this[_properties].get(key);
-
-    if (updateDoc && this[_document]) {
-      const element = this[_document].get(key);
-
-      if (element) {
-        element.value = newValue;
-      } else {
-        this[_document].add(Element.createProperty(key, newValue));
-      }
-    }
-
-    if (newValue !== oldValue) {
-      this[_properties].set(key, newValue);
-
-      this.emit('change', {
-        key,
-        newValue,
-        oldValue,
-        properties: this
-      });
-    }
   }
 
   /**

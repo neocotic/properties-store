@@ -24,54 +24,6 @@
 
 // TODO: Complete
 
-const _source = Symbol('source');
-const _type = Symbol('type');
-
-/**
- * TODO: Document
- *
- * @param {string} type -
- * @param {string} [source=""] -
- * @protected
- */
-class Element {
-
-  constructor(type, source) {
-    this[_type] = type;
-    this[_source] = source != null ? source : '';
-  }
-
-  /**
-   * TODO: Document
-   *
-   * @return {string}
-   * @public
-   */
-  get source() {
-    return this[_source];
-  }
-
-  /**
-   * TODO: Document
-   *
-   * @param {string} [source=""] -
-   * @return {void}
-   * @protected
-   */
-  set source(source) {
-    this[_source] = source != null ? source : '';
-  }
-
-  /**
-   * TODO: Document
-   *
-   * @return {string}
-   * @public
-   */
-  get type() {
-    return this[_type];
-  }
-
-}
-
-module.exports = Element;
+describe('LineReader', () => {
+  // TODO: complete
+});
