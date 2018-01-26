@@ -24,63 +24,10 @@
 
 const { EOL } = require('os');
 const { expect } = require('chai');
-const { Readable, Writable } = require('stream');
 const sinon = require('sinon');
 
+const { MockReadable, MockWritable } = require('./mock-stream');
 const PropertiesStore = require('../src/properties-store');
-
-class MockReadable extends Readable {
-
-  constructor(buffer, error, options) {
-    super(options);
-
-    this.buffer = buffer || Buffer.alloc(0);
-    this.error = error;
-    this._bufferRead = false;
-  }
-
-  _read() {
-    if (this.error) {
-      this.emit('error', this.error);
-    }
-
-    if (this.buffer.length === 0) {
-      this._bufferRead = true;
-    }
-
-    if (this._bufferRead) {
-      this.push(null);
-    } else {
-      this.push(this.buffer);
-
-      this._bufferRead = true;
-    }
-  }
-
-}
-
-class MockWritable extends Writable {
-
-  constructor(buffer, error, options) {
-    super(options);
-
-    this.buffer = buffer || Buffer.alloc(0);
-    this.error = error;
-    this._length = 0;
-  }
-
-  _write(chunk, encoding, callback) {
-    if (this.error) {
-      return callback(this.error);
-    }
-
-    this._length += chunk.length;
-    this.buffer = Buffer.concat([ this.buffer, Buffer.from(chunk, encoding) ], this._length);
-
-    return callback();
-  }
-
-}
 
 describe('PropertiesStore', () => {
   describe('.load', () => {
@@ -90,19 +37,13 @@ describe('PropertiesStore', () => {
         '# foo',
         'foo=bar'
       ].join('\n')));
-      const output = new MockWritable();
-      const expectedOutput = 'foo=bar';
-      const expectedProperties = [
+      const expected = [
         [ 'foo', 'bar' ]
       ];
 
       const store = await PropertiesStore.load(input);
 
-      expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-      await store.store(output);
-
-      expect(output.buffer.toString()).to.equal(expectedOutput);
+      expect(Array.from(store)).to.deep.equal(expected);
     });
 
     context('when encoding option is not specified', () => {
@@ -128,78 +69,6 @@ describe('PropertiesStore', () => {
         const store = await PropertiesStore.load(input, { encoding: 'utf8' });
 
         expect(Array.from(store)).to.deep.equal(expected);
-      });
-    });
-
-    context('when unescape option is disabled', () => {
-      it('should read Unicode escapes as-is', async() => {
-        const input = new MockReadable(Buffer.from('foo\\u00a5bar=fu\\u00a5baz'));
-        const expected = [
-          [ 'foo\\u00a5bar', 'fu\\u00a5baz' ]
-        ];
-
-        const store = await PropertiesStore.load(input, { unescape: false });
-
-        expect(Array.from(store)).to.deep.equal(expected);
-      });
-    });
-
-    context('when unescape option is enabled', () => {
-      it('should replace Unicode escapes with corresponding Unicode characters in property lines', async() => {
-        const input = new MockReadable(Buffer.from('foo\\u00a5bar=fu\\u00a5baz'));
-        const expected = [
-          [ 'foo¥bar', 'fu¥baz' ]
-        ];
-
-        const store = await PropertiesStore.load(input, { unescape: true });
-
-        expect(Array.from(store)).to.deep.equal(expected);
-      });
-    });
-
-    context('when preserve option is disabled', () => {
-      it('should read only property lines', async() => {
-        const input = new MockReadable(Buffer.from([
-          '',
-          '# foo',
-          'foo=bar'
-        ].join('\n')));
-        const output = new MockWritable();
-        const expectedOutput = 'foo=bar';
-        const expectedProperties = [
-          [ 'foo', 'bar' ]
-        ];
-
-        const store = await PropertiesStore.load(input, { preserve: false });
-
-        expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-        await store.store(output);
-
-        expect(output.buffer.toString()).to.equal(expectedOutput);
-      });
-    });
-
-    context('when preserve option is enabled', () => {
-      it('should read all non-property lines', async() => {
-        const input = new MockReadable(Buffer.from([
-          '',
-          '# foo'
-        ].join('\n')));
-        const output = new MockWritable();
-        const expectedOutput = [
-          '',
-          '# foo'
-        ].join(EOL);
-        const expectedProperties = [];
-
-        const store = await PropertiesStore.load(input, { preserve: true });
-
-        expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-        await store.store(output);
-
-        expect(output.buffer.toString()).to.equal(expectedOutput);
       });
     });
   });
@@ -228,184 +97,22 @@ describe('PropertiesStore', () => {
       expect(Array.from(store)).to.deep.equal(properties);
     });
 
-    it('should not reflect any changes to store afterwards', async() => {
-      const input = new MockReadable(Buffer.from([
-        '',
-        '# foo',
-        'foo=bar',
-        '',
-        'fu=baz'
-      ].join('\n')));
-      const output = new MockWritable();
-      const expectedOutput = [
-        '',
-        '# foo',
-        'foo=bar',
-        '',
-        'fu=baz'
-      ].join(EOL);
-      const expectedProperties = [
+    it('should not reflect any changes to store afterwards', () => {
+      const properties = [
         [ 'foo', 'bar' ],
         [ 'fu', 'baz' ]
       ];
-      const other = new PropertiesStore({ preserve: true });
-      await other.load(input);
+      const other = new PropertiesStore();
 
-      const store = new PropertiesStore(other, { preserve: true });
+      for (const [ key, value ] of properties) {
+        other.set(key, value);
+      }
+
+      const store = new PropertiesStore(other);
 
       other.clear();
 
-      expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-      await store.store(output);
-
-      expect(output.buffer.toString()).to.equal(expectedOutput);
-    });
-
-    context('when preserve option is disabled', () => {
-      context('and preserve option is disabled on store', () => {
-        it('should contain properties but not lines from store initially', async() => {
-          const input = new MockReadable(Buffer.from([
-            '',
-            '# foo',
-            'foo=bar',
-            '',
-            'fu=baz'
-          ].join('\n')));
-          const output = new MockWritable();
-          const expectedOutput = [
-            'foo=bar',
-            'fu=baz'
-          ].join(EOL);
-          const expectedProperties = [
-            [ 'foo', 'bar' ],
-            [ 'fu', 'baz' ]
-          ];
-          const other = new PropertiesStore({ preserve: false });
-          await other.load(input);
-
-          const store = new PropertiesStore(other, { preserve: false });
-
-          expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-          await store.store(output);
-
-          expect(output.buffer.toString()).to.equal(expectedOutput);
-        });
-      });
-
-      context('and preserve option is enabled on store', () => {
-        it('should contain properties but not lines from store initially', async() => {
-          const input = new MockReadable(Buffer.from([
-            '',
-            '# foo',
-            'foo=bar',
-            '',
-            'fu=baz'
-          ].join('\n')));
-          const output = new MockWritable();
-          const expectedOutput = [
-            'foo=bar',
-            'fu=baz'
-          ].join(EOL);
-          const expectedProperties = [
-            [ 'foo', 'bar' ],
-            [ 'fu', 'baz' ]
-          ];
-          const other = new PropertiesStore({ preserve: true });
-          await other.load(input);
-
-          const store = new PropertiesStore(other, { preserve: false });
-
-          expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-          await store.store(output);
-
-          expect(output.buffer.toString()).to.equal(expectedOutput);
-        });
-      });
-    });
-
-    context('when preserve option is enabled', () => {
-      context('and preserve option is disabled on store', () => {
-        it('should contain properties but not lines from store initially', async() => {
-          const input = new MockReadable(Buffer.from([
-            '',
-            '# foo',
-            'foo=bar',
-            '',
-            'fu=baz'
-          ].join('\n')));
-          const output = new MockWritable();
-          const expectedOutput = [
-            'foo=bar',
-            'fu=baz'
-          ].join(EOL);
-          const expectedProperties = [
-            [ 'foo', 'bar' ],
-            [ 'fu', 'baz' ]
-          ];
-          const other = new PropertiesStore({ preserve: false });
-          await other.load(input);
-
-          const store = new PropertiesStore(other, { preserve: true });
-
-          expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-          await store.store(output);
-
-          expect(output.buffer.toString()).to.equal(expectedOutput);
-        });
-      });
-
-      context('and preserve option is enabled on store', () => {
-        it('should contain properties and lines from store initially', async() => {
-          const input = new MockReadable(Buffer.from([
-            '',
-            '# foo',
-            'foo=bar',
-            '',
-            'fu=baz'
-          ].join('\n')));
-          const output = new MockWritable();
-          const expectedOutput = [
-            '',
-            '# foo',
-            'foo=bar',
-            '',
-            'fu=baz'
-          ].join(EOL);
-          const expectedProperties = [
-            [ 'foo', 'bar' ],
-            [ 'fu', 'baz' ]
-          ];
-          const other = new PropertiesStore({ preserve: true });
-          await other.load(input);
-
-          const store = new PropertiesStore(other, { preserve: true });
-
-          expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-          await store.store(output);
-
-          expect(output.buffer.toString()).to.equal(expectedOutput);
-        });
-      });
-    });
-  });
-
-  context('when preserve option is enabled', () => {
-    it('should contain no properties or lines initially', async() => {
-      const output = new MockWritable();
-      const expectedOutput = '';
-      const expectedProperties = [];
-      const store = new PropertiesStore({ preserve: true });
-
-      expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-      await store.store(output);
-
-      expect(output.buffer.toString()).to.equal(expectedOutput);
+      expect(Array.from(store)).to.deep.equal(properties);
     });
   });
 
@@ -499,37 +206,6 @@ describe('PropertiesStore', () => {
         expect(clearCalls[0].args).to.deep.equal([
           { properties: store }
         ]);
-      });
-    });
-
-    context('when preserve option is enabled', () => {
-      it('should remove all lines', async() => {
-        const input = new MockReadable(Buffer.from([
-          '',
-          '# foo',
-          'foo=bar',
-          '',
-          'foo=baz',
-          'foo=buzz',
-          '',
-          'fu=bar'
-        ].join('\n')));
-        const output = new MockWritable();
-        const expected = '';
-        const store = new PropertiesStore({ preserve: true });
-        await store.load(input, {
-          encoding: 'utf8',
-          unescape: false
-        });
-
-        store.clear();
-
-        await store.store(output, {
-          encoding: 'utf8',
-          escape: false
-        });
-
-        expect(output.buffer.toString()).to.equal(expected);
       });
     });
   });
@@ -695,43 +371,6 @@ describe('PropertiesStore', () => {
         expect(store.delete(null)).to.equal(false);
 
         expect(deleteCallback.callCount).to.equal(0);
-      });
-    });
-
-    context('when preserve option is enabled', () => {
-      it('should remove all property lines for key', async() => {
-        const input = new MockReadable(Buffer.from([
-          '',
-          '# foo',
-          'foo=bar',
-          '',
-          'foo=baz',
-          'foo=buzz',
-          '',
-          'fu=bar'
-        ].join('\n')));
-        const output = new MockWritable();
-        const expected = [
-          '',
-          '# foo',
-          '',
-          '',
-          'fu=bar'
-        ].join(EOL);
-        const store = new PropertiesStore({ preserve: true });
-        await store.load(input, {
-          encoding: 'utf8',
-          unescape: false
-        });
-
-        expect(store.delete('foo')).to.equal(true);
-
-        await store.store(output, {
-          encoding: 'utf8',
-          escape: false
-        });
-
-        expect(output.buffer.toString()).to.equal(expected);
       });
     });
   });
@@ -1134,104 +773,6 @@ describe('PropertiesStore', () => {
     });
   });
 
-  describe('#lines', () => {
-    it('should return iterator for each property line', () => {
-      const properties = [
-        [ 'foo', 'bar' ],
-        [ 'fu', 'baz' ],
-        [ 'fizz', 'buzz' ]
-      ];
-      const expected = [
-        'foo=bar',
-        'fu=baz',
-        'fizz=buzz'
-      ];
-      const store = new PropertiesStore();
-
-      for (const [ key, value ] of properties) {
-        store.set(key, value);
-      }
-
-      const iterator = store.lines();
-
-      expect(iterator.next().value).to.equal(expected[0]);
-      expect(iterator.next().value).to.equal(expected[1]);
-      expect(iterator.next().value).to.equal(expected[2]);
-      expect(iterator.next().value).to.equal(undefined);
-
-      expect(Array.from(store.lines())).to.deep.equal(expected);
-    });
-
-    context('when no properties exist', () => {
-      it('should return an empty iterator', () => {
-        const store = new PropertiesStore();
-        const iterator = store.lines();
-
-        expect(iterator.next().value).to.equal(undefined);
-
-        expect(Array.from(store.lines())).to.deep.equal([]);
-      });
-    });
-
-    context('when preserve option is enabled', () => {
-      it('should return iterator for each line', async() => {
-        const input = new MockReadable(Buffer.from([
-          '',
-          '# foo',
-          'foo=bar',
-          '',
-          'fu=baz',
-          'fizz=buzz'
-        ].join('\n')));
-        const expected = [
-          '',
-          '# foo',
-          'foo=bar',
-          '',
-          'fu=baz',
-          'fizz=buzz'
-        ];
-        const store = new PropertiesStore({ preserve: true });
-        await store.load(input);
-
-        const iterator = store.lines();
-
-        expect(iterator.next().value).to.equal(expected[0]);
-        expect(iterator.next().value).to.equal(expected[1]);
-        expect(iterator.next().value).to.equal(expected[2]);
-        expect(iterator.next().value).to.equal(expected[3]);
-        expect(iterator.next().value).to.equal(expected[4]);
-        expect(iterator.next().value).to.equal(expected[5]);
-        expect(iterator.next().value).to.equal(undefined);
-
-        expect(Array.from(store.lines())).to.deep.equal(expected);
-      });
-
-      context('when no properties exist', () => {
-        it('should return iterator for each non-property line', async() => {
-          const input = new MockReadable(Buffer.from([
-            '',
-            '# foo'
-          ].join('\n')));
-          const expected = [
-            '',
-            '# foo'
-          ];
-          const store = new PropertiesStore({ preserve: true });
-          await store.load(input);
-
-          const iterator = store.lines();
-
-          expect(iterator.next().value).to.equal(expected[0]);
-          expect(iterator.next().value).to.equal(expected[1]);
-          expect(iterator.next().value).to.equal(undefined);
-
-          expect(Array.from(store.lines())).to.deep.equal(expected);
-        });
-      });
-    });
-  });
-
   describe('#load', () => {
     it('should read properties from input', async() => {
       const input = new MockReadable(Buffer.from([
@@ -1239,20 +780,14 @@ describe('PropertiesStore', () => {
         '# foo',
         'foo=bar'
       ].join('\n')));
-      const output = new MockWritable();
-      const expectedOutput = 'foo=bar';
-      const expectedProperties = [
+      const expected = [
         [ 'foo', 'bar' ]
       ];
       const store = new PropertiesStore();
 
       await store.load(input);
 
-      expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-      await store.store(output);
-
-      expect(output.buffer.toString()).to.equal(expectedOutput);
+      expect(Array.from(store)).to.deep.equal(expected);
     });
 
     it('should emit "load" event and a "change" event for each changed property', async() => {
@@ -1318,10 +853,7 @@ describe('PropertiesStore', () => {
       expect(loadCalls[0].args).to.deep.equal([
         {
           input,
-          options: {
-            encoding: 'latin1',
-            unescape: true
-          },
+          options: { encoding: 'latin1' },
           properties: store
         }
       ]);
@@ -1335,12 +867,7 @@ describe('PropertiesStore', () => {
         '',
         'fu=baz'
       ].join('\n')));
-      const output = new MockWritable();
-      const expectedOutput = [
-        'foo=buzz',
-        'fu=baz'
-      ].join(EOL);
-      const expectedProperties = [
+      const expected = [
         [ 'foo', 'buzz' ],
         [ 'fu', 'baz' ]
       ];
@@ -1349,31 +876,21 @@ describe('PropertiesStore', () => {
 
       await store.load(input);
 
-      expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-      await store.store(output);
-
-      expect(output.buffer.toString()).to.equal(expectedOutput);
+      expect(Array.from(store)).to.deep.equal(expected);
     });
 
     context('when input contains no property lines', () => {
-      it('should read no lines or properties', async() => {
+      it('should read no properties', async() => {
         const input = new MockReadable(Buffer.from([
           '',
           '# foo'
         ].join('\n')));
-        const output = new MockWritable();
-        const expectedOutput = '';
-        const expectedProperties = [];
+        const expected = [];
         const store = new PropertiesStore();
 
         await store.load(input);
 
-        expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-        await store.store(output);
-
-        expect(output.buffer.toString()).to.equal(expectedOutput);
+        expect(Array.from(store)).to.deep.equal(expected);
       });
 
       it('should emit "load" event but not any "change" events', async() => {
@@ -1398,120 +915,39 @@ describe('PropertiesStore', () => {
         expect(loadCalls[0].args).to.deep.equal([
           {
             input,
-            options: {
-              encoding: 'latin1',
-              unescape: true
-            },
+            options: { encoding: 'latin1' },
             properties: store
           }
         ]);
       });
-
-      context('and preserve option is enabled', () => {
-        it('should read all non-property lines', async() => {
-          const input = new MockReadable(Buffer.from([
-            '',
-            '# foo'
-          ].join('\n')));
-          const output = new MockWritable();
-          const expectedOutput = [
-            '',
-            '# foo'
-          ].join(EOL);
-          const expectedProperties = [];
-          const store = new PropertiesStore({ preserve: true });
-
-          await store.load(input);
-
-          expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-          await store.store(output);
-
-          expect(output.buffer.toString()).to.equal(expectedOutput);
-        });
-
-        it('should extend existing properties and lines', async() => {
-          const input1 = new MockReadable(Buffer.from([
-            '',
-            '# foo',
-            'foo=bar',
-            ''
-          ].join('\n')));
-          const input2 = new MockReadable(Buffer.from([
-            'foo=buzz',
-            '',
-            'fu=baz',
-            '# fu',
-            ''
-          ].join('\n')));
-          const output = new MockWritable();
-          const expectedOutput = [
-            '',
-            '# foo',
-            'foo=bar',
-            '',
-            'foo=buzz',
-            '',
-            'fu=baz',
-            '# fu',
-            ''
-          ].join(EOL);
-          const expectedProperties = [
-            [ 'foo', 'buzz' ],
-            [ 'fu', 'baz' ]
-          ];
-          const store = new PropertiesStore({ preserve: true });
-
-          await store.load(input1);
-          await store.load(input2);
-
-          expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-          await store.store(output);
-
-          expect(output.buffer.toString()).to.equal(expectedOutput);
-        });
-      });
     });
 
     context('when input is empty', () => {
-      it('should read no lines or properties', async() => {
+      it('should read no properties', async() => {
         const input = new MockReadable();
-        const output = new MockWritable();
-        const expectedOutput = '';
-        const expectedProperties = [];
+        const expected = [];
         const store = new PropertiesStore();
 
         await store.load(input);
 
-        expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-        await store.store(output);
-
-        expect(output.buffer.toString()).to.equal(expectedOutput);
+        expect(Array.from(store)).to.deep.equal(expected);
       });
     });
 
     context('when input is TTY', () => {
-      it('should read no lines or properties', async() => {
+      it('should read no properties', async() => {
         const input = new MockReadable(Buffer.from([
           '',
           '# foo',
           'foo=bar'
         ].join('\n')));
         input.isTTY = true;
-        const output = new MockWritable();
-        const expectedOutput = '';
-        const expectedProperties = [];
+        const expected = [];
         const store = new PropertiesStore();
 
         await store.load(input);
 
-        expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-        await store.store(output);
-
-        expect(output.buffer.toString()).to.equal(expectedOutput);
+        expect(Array.from(store)).to.deep.equal(expected);
       });
     });
 
@@ -1519,8 +955,6 @@ describe('PropertiesStore', () => {
       it('should throw an error', async() => {
         const expectedError = new Error('foo');
         const input = new MockReadable(null, expectedError);
-        const output = new MockWritable();
-        const expectedOutput = '';
         const expectedProperties = [];
         const store = new PropertiesStore();
 
@@ -1533,10 +967,6 @@ describe('PropertiesStore', () => {
         }
 
         expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-        await store.store(output);
-
-        expect(output.buffer.toString()).to.equal(expectedOutput);
       });
     });
 
@@ -1565,117 +995,6 @@ describe('PropertiesStore', () => {
         await store.load(input, { encoding: 'utf8' });
 
         expect(Array.from(store)).to.deep.equal(expected);
-      });
-    });
-
-    context('when unescape option is disabled', () => {
-      it('should read Unicode escapes as-is', async() => {
-        const input = new MockReadable(Buffer.from('foo\\u00a5bar=fu\\u00a5baz'));
-        const expected = [
-          [ 'foo\\u00a5bar', 'fu\\u00a5baz' ]
-        ];
-        const store = new PropertiesStore();
-
-        await store.load(input, { unescape: false });
-
-        expect(Array.from(store)).to.deep.equal(expected);
-      });
-    });
-
-    context('when unescape option is enabled', () => {
-      it('should replace Unicode escapes with corresponding Unicode characters in property lines', async() => {
-        const input = new MockReadable(Buffer.from('foo\\u00a5bar=fu\\u00a5baz'));
-        const expected = [
-          [ 'foo¥bar', 'fu¥baz' ]
-        ];
-        const store = new PropertiesStore();
-
-        await store.load(input, { unescape: true });
-
-        expect(Array.from(store)).to.deep.equal(expected);
-      });
-
-      context('and preserve option is enabled', () => {
-        it('should replace Unicode escapes with corresponding Unicode characters in all lines', async() => {
-          const input = new MockReadable(Buffer.from([
-            '',
-            '# foo\\u00a5bar',
-            'foo\\u00a5bar=fu\\u00a5baz'
-          ].join('\n')));
-          const output = new MockWritable();
-          const expectedOutput = [
-            '',
-            '# foo¥bar',
-            'foo¥bar=fu¥baz'
-          ].join(EOL);
-          const expectedProperties = [
-            [ 'foo¥bar', 'fu¥baz' ]
-          ];
-          const store = new PropertiesStore({ preserve: true });
-
-          await store.load(input, { unescape: true });
-
-          expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-          await store.store(output, {
-            encoding: 'utf8',
-            escape: false
-          });
-
-          expect(output.buffer.toString()).to.equal(expectedOutput);
-        });
-      });
-    });
-
-    context('when preserve option is disabled', () => {
-      it('should read only property lines', async() => {
-        const input = new MockReadable(Buffer.from([
-          '',
-          '# foo',
-          'foo=bar'
-        ].join('\n')));
-        const output = new MockWritable();
-        const expectedOutput = 'foo=bar';
-        const expectedProperties = [
-          [ 'foo', 'bar' ]
-        ];
-        const store = new PropertiesStore({ preserve: false });
-
-        await store.load(input);
-
-        expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-        await store.store(output);
-
-        expect(output.buffer.toString()).to.equal(expectedOutput);
-      });
-    });
-
-    context('when preserve option is enabled', () => {
-      it('should read all lines', async() => {
-        const input = new MockReadable(Buffer.from([
-          '',
-          '# foo',
-          'foo=bar'
-        ].join('\n')));
-        const output = new MockWritable();
-        const expectedOutput = [
-          '',
-          '# foo',
-          'foo=bar'
-        ].join(EOL);
-        const expectedProperties = [
-          [ 'foo', 'bar' ]
-        ];
-        const store = new PropertiesStore({ preserve: true });
-
-        await store.load(input);
-
-        expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-        await store.store(output);
-
-        expect(output.buffer.toString()).to.equal(expectedOutput);
       });
     });
   });
@@ -1739,23 +1058,6 @@ describe('PropertiesStore', () => {
 
           expect(changeCallback.callCount).to.equal(0);
           expect(deleteCallback.callCount).to.equal(0);
-        });
-      });
-
-      context('and preserve option is enabled', () => {
-        it('should add property line for key and value', async() => {
-          const output = new MockWritable();
-          const expected = 'foo=bar';
-          const store = new PropertiesStore();
-
-          expect(store.set('foo', 'bar')).to.equal(store);
-
-          await store.store(output, {
-            encoding: 'utf8',
-            escape: false
-          });
-
-          expect(output.buffer.toString()).to.equal(expected);
         });
       });
     });
@@ -1889,83 +1191,6 @@ describe('PropertiesStore', () => {
             }
           ]);
         });
-
-        context('and preserve option is enabled', () => {
-          it('should remove all property lines for key', async() => {
-            const input = new MockReadable(Buffer.from([
-              '',
-              '# foo',
-              'foo=bar',
-              '',
-              'foo=baz',
-              'foo=buzz',
-              '',
-              'fu=bar'
-            ].join('\n')));
-            const output = new MockWritable();
-            const expected = [
-              '',
-              '# foo',
-              '',
-              '',
-              'fu=bar'
-            ].join(EOL);
-            const store = new PropertiesStore({ preserve: true });
-            await store.load(input, {
-              encoding: 'utf8',
-              unescape: false
-            });
-
-            expect(store.set('foo', null)).to.equal(store);
-
-            await store.store(output, {
-              encoding: 'utf8',
-              escape: false
-            });
-
-            expect(output.buffer.toString()).to.equal(expected);
-          });
-        });
-      });
-
-      context('and preserve option is enabled', () => {
-        it('should change value for last property line for key', async() => {
-          const input = new MockReadable(Buffer.from([
-            '',
-            '# foo',
-            'foo=bar',
-            '',
-            'foo=baz',
-            'foo=buzz',
-            '',
-            'fu=bar'
-          ].join('\n')));
-          const output = new MockWritable();
-          const expected = [
-            '',
-            '# foo',
-            'foo=bar',
-            '',
-            'foo=baz',
-            'foo=quux',
-            '',
-            'fu=bar'
-          ].join(EOL);
-          const store = new PropertiesStore({ preserve: true });
-          await store.load(input, {
-            encoding: 'utf8',
-            unescape: false
-          });
-
-          expect(store.set('foo', 'quux')).to.equal(store);
-
-          await store.store(output, {
-            encoding: 'utf8',
-            escape: false
-          });
-
-          expect(output.buffer.toString()).to.equal(expected);
-        });
       });
     });
 
@@ -2076,43 +1301,6 @@ describe('PropertiesStore', () => {
           expect(deleteCallback.callCount).to.equal(0);
         });
       });
-
-      context('and preserve option is enabled', () => {
-        it('should add property line for key and value', async() => {
-          const input = new MockReadable(Buffer.from([
-            '',
-            '# foo',
-            'foo=bar',
-            '',
-            'FU=baz'
-          ].join('\n')));
-          const output = new MockWritable();
-          const expected = [
-            '',
-            '# foo',
-            'foo=bar',
-            '',
-            'FU=baz',
-            'FOO=buzz',
-            'fu=quux'
-          ].join(EOL);
-          const store = new PropertiesStore({ preserve: true });
-          await store.load(input, {
-            encoding: 'utf8',
-            unescape: false
-          });
-
-          expect(store.set('FOO', 'buzz')).to.equal(store);
-          expect(store.set('fu', 'quux')).to.equal(store);
-
-          await store.store(output, {
-            encoding: 'utf8',
-            escape: false
-          });
-
-          expect(output.buffer.toString()).to.equal(expected);
-        });
-      });
     });
 
     context('when key is null', () => {
@@ -2166,7 +1354,7 @@ describe('PropertiesStore', () => {
       const expected = [
         'foo=bar',
         'fu=baz'
-      ].join(EOL);
+      ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
       const store = new PropertiesStore();
       store.set('foo', 'bar');
       store.set('fu', 'baz');
@@ -2195,7 +1383,7 @@ describe('PropertiesStore', () => {
         {
           options: {
             encoding: 'latin1',
-            escape: true
+            escapeUnicode: true
           },
           output,
           properties: store
@@ -2203,7 +1391,7 @@ describe('PropertiesStore', () => {
       ]);
     });
 
-    context('when no properties or lines exist', () => {
+    context('when no properties exist', () => {
       it('should write empty buffer to output', async() => {
         const output = new MockWritable();
         const expected = '';
@@ -2231,7 +1419,7 @@ describe('PropertiesStore', () => {
           {
             options: {
               encoding: 'latin1',
-              escape: true
+              escapeUnicode: true
             },
             output,
             properties: store
@@ -2264,7 +1452,7 @@ describe('PropertiesStore', () => {
     context('when encoding option is not specified', () => {
       it('should write output using latin1 encoding', async() => {
         const output = new MockWritable();
-        const expected = 'foo\\u00a5bar=fu\\u00a5baz';
+        const expected = `foo\\u00a5bar=fu\\u00a5baz${EOL}`;
 
         const store = new PropertiesStore();
         store.set('foo¥bar', 'fu¥baz');
@@ -2273,26 +1461,12 @@ describe('PropertiesStore', () => {
 
         expect(output.buffer.toString()).to.equal(expected);
       });
-
-      context('when escape option is disabled', () => {
-        it('should write characters as-is to output using latin1 encoding', async() => {
-          const output = new MockWritable();
-          const expected = 'foo¥bar=fu¥baz';
-
-          const store = new PropertiesStore();
-          store.set('foo¥bar', 'fu¥baz');
-
-          await store.store(output, { escape: false });
-
-          expect(output.buffer.toString('latin1')).to.equal(expected);
-        });
-      });
     });
 
     context('when encoding option is specified', () => {
       it('should write output using encoding', async() => {
         const output = new MockWritable();
-        const expected = 'foo\\u00a5bar=fu\\u00a5baz';
+        const expected = `foo\\u00a5bar=fu\\u00a5baz${EOL}`;
 
         const store = new PropertiesStore();
         store.set('foo¥bar', 'fu¥baz');
@@ -2301,119 +1475,37 @@ describe('PropertiesStore', () => {
 
         expect(output.buffer.toString()).to.equal(expected);
       });
-
-      context('when escape option is disabled', () => {
-        it('should write characters as-is to output using encoding', async() => {
-          const output = new MockWritable();
-          const expected = 'foo¥bar=fu¥baz';
-
-          const store = new PropertiesStore();
-          store.set('foo¥bar', 'fu¥baz');
-
-          await store.store(output, {
-            encoding: 'utf8',
-            escape: false
-          });
-
-          expect(output.buffer.toString()).to.equal(expected);
-        });
-      });
     });
 
-    context('when escape option is disabled', () => {
-      it('should write all characters as-is', async() => {
+    context('when escapeUnicode option is disabled', () => {
+      it('should write non-ASCII characters to output as-is', async() => {
         const output = new MockWritable();
-        const expected = 'foo¥bar=fu¥baz';
+        const expected = `foo¥bar=fu¥baz${EOL}`;
 
         const store = new PropertiesStore();
         store.set('foo¥bar', 'fu¥baz');
 
-        await store.store(output, { escape: false });
-
-        expect(output.buffer.toString('latin1')).to.deep.equal(expected);
-      });
-    });
-
-    context('when escape option is enabled', () => {
-      it('should replace non-ASCII characters with Unicode escapes in property lines', async() => {
-        const output = new MockWritable();
-        const expected = 'foo\\u00a5bar=fu\\u00a5baz';
-
-        const store = new PropertiesStore();
-        store.set('foo¥bar', 'fu¥baz');
-
-        await store.store(output, { escape: true });
-
-        expect(output.buffer.toString()).to.equal(expected);
-      });
-
-      context('and preserve option is enabled', () => {
-        it('should replace non-ASCII characters with Unicode escapes in all lines', async() => {
-          const input = new MockReadable(Buffer.from([
-            '',
-            '# foo¥bar',
-            'foo¥bar=fu¥baz'
-          ].join('\n'), 'latin1'));
-          const output = new MockWritable();
-          const expected = [
-            '',
-            '# foo\\u00a5bar',
-            'foo\\u00a5bar=fu\\u00a5baz'
-          ].join(EOL);
-          const store = new PropertiesStore({ preserve: true });
-          await store.load(input, { unescape: false });
-
-          await store.store(output, { escape: true });
-
-          expect(output.buffer.toString()).to.equal(expected);
+        await store.store(output, {
+          encoding: 'utf8',
+          escapeUnicode: false
         });
-      });
-    });
-
-    context('when preserve option is disabled', () => {
-      it('should write only property lines', async() => {
-        const input = new MockReadable(Buffer.from([
-          '',
-          '# foo',
-          'foo=bar',
-          '',
-          'fu=baz'
-        ].join('\n')));
-        const output = new MockWritable();
-        const expected = [
-          'foo=bar',
-          'fu=baz'
-        ].join(EOL);
-        const store = new PropertiesStore({ preserve: false });
-        await store.load(input);
-
-        await store.store(output);
 
         expect(output.buffer.toString()).to.equal(expected);
       });
     });
 
-    context('when preserve option is enabled', () => {
-      it('should write all lines', async() => {
-        const input = new MockReadable(Buffer.from([
-          '',
-          '# foo',
-          'foo=bar',
-          '',
-          'fu=baz'
-        ].join('\n')));
+    context('when escapeUnicode option is enabled', () => {
+      it('should escape non-ASCII characters before being written to output', async() => {
         const output = new MockWritable();
-        const expected = [
-          '',
-          '# foo',
-          'foo=bar',
-          '',
-          'fu=baz'
-        ].join(EOL);
-        const store = new PropertiesStore({ preserve: true });
-        await store.load(input);
+        const expected = `foo\\u00a5bar=fu\\u00a5baz${EOL}`;
 
-        await store.store(output);
+        const store = new PropertiesStore();
+        store.set('foo¥bar', 'fu¥baz');
+
+        await store.store(output, {
+          encoding: 'utf8',
+          escapeUnicode: true
+        });
 
         expect(output.buffer.toString()).to.equal(expected);
       });
