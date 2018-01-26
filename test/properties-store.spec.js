@@ -24,63 +24,10 @@
 
 const { EOL } = require('os');
 const { expect } = require('chai');
-const { Readable, Writable } = require('stream');
 const sinon = require('sinon');
 
+const { MockReadable, MockWritable } = require('./mock-stream');
 const PropertiesStore = require('../src/properties-store');
-
-class MockReadable extends Readable {
-
-  constructor(buffer, error, options) {
-    super(options);
-
-    this.buffer = buffer || Buffer.alloc(0);
-    this.error = error;
-    this._bufferRead = false;
-  }
-
-  _read() {
-    if (this.error) {
-      this.emit('error', this.error);
-    }
-
-    if (this.buffer.length === 0) {
-      this._bufferRead = true;
-    }
-
-    if (this._bufferRead) {
-      this.push(null);
-    } else {
-      this.push(this.buffer);
-
-      this._bufferRead = true;
-    }
-  }
-
-}
-
-class MockWritable extends Writable {
-
-  constructor(buffer, error, options) {
-    super(options);
-
-    this.buffer = buffer || Buffer.alloc(0);
-    this.error = error;
-    this._length = 0;
-  }
-
-  _write(chunk, encoding, callback) {
-    if (this.error) {
-      return callback(this.error);
-    }
-
-    this._length += chunk.length;
-    this.buffer = Buffer.concat([ this.buffer, Buffer.from(chunk, encoding) ], this._length);
-
-    return callback();
-  }
-
-}
 
 describe('PropertiesStore', () => {
   describe('.load', () => {
