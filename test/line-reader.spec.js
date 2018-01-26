@@ -22,7 +22,7 @@
 
 'use strict';
 
-const { expect } = require('chai');
+const assert = require('assert');
 
 const LineReader = require('../src/line-reader');
 const { MockReadable } = require('./mock-stream');
@@ -54,7 +54,7 @@ describe('LineReader', () => {
 
       await reader.read(store);
 
-      expect(Array.from(store)).to.deep.equal(expected);
+      assert.deepEqual(Array.from(store), expected);
     });
 
     it('should read multi-line property values from input', async() => {
@@ -72,7 +72,7 @@ describe('LineReader', () => {
 
       await reader.read(store);
 
-      expect(Array.from(store)).to.deep.equal(expected);
+      assert.deepEqual(Array.from(store), expected);
     });
 
     it('should convert property information once read from input', async() => {
@@ -134,7 +134,7 @@ describe('LineReader', () => {
 
         await reader.read(store);
 
-        expect(Array.from(store)).to.deep.equal(expected);
+        assert.deepEqual(Array.from(store), expected);
       }
     });
 
@@ -149,7 +149,7 @@ describe('LineReader', () => {
 
       await reader.read(store);
 
-      expect(Array.from(store)).to.deep.equal(expected);
+      assert.deepEqual(Array.from(store), expected);
     });
 
     it('should be able to read large multi-lines', async() => {
@@ -163,7 +163,7 @@ describe('LineReader', () => {
 
       await reader.read(store);
 
-      expect(Array.from(store)).to.deep.equal(expected);
+      assert.deepEqual(Array.from(store), expected);
     });
 
     it('should be able to read large multi-lines ending with a backslash', async() => {
@@ -177,7 +177,7 @@ describe('LineReader', () => {
 
       await reader.read(store);
 
-      expect(Array.from(store)).to.deep.equal(expected);
+      assert.deepEqual(Array.from(store), expected);
     });
 
     it('should be able to read very large lines', async() => {
@@ -191,7 +191,7 @@ describe('LineReader', () => {
 
       await reader.read(store);
 
-      expect(Array.from(store)).to.deep.equal(expected);
+      assert.deepEqual(Array.from(store), expected);
     });
 
     it('should read input using encoding option', async() => {
@@ -206,7 +206,7 @@ describe('LineReader', () => {
 
         await reader.read(store);
 
-        expect(Array.from(store)).to.deep.equal(expected);
+        assert.deepEqual(Array.from(store), expected);
       }
     });
 
@@ -221,7 +221,7 @@ describe('LineReader', () => {
 
         await reader.read(input);
 
-        expect(Array.from(store)).to.deep.equal(expected);
+        assert.deepEqual(Array.from(store), expected);
       });
     });
 
@@ -232,7 +232,7 @@ describe('LineReader', () => {
 
         await reader.read(input);
 
-        expect(store.size).to.equal(0);
+        assert.equal(store.size, 0);
       });
     });
 
@@ -244,7 +244,7 @@ describe('LineReader', () => {
 
         await reader.read(input);
 
-        expect(store.size).to.equal(0);
+        assert.equal(store.size, 0);
       });
     });
 
@@ -257,12 +257,12 @@ describe('LineReader', () => {
         try {
           await reader.read(store);
           // Should have thrown
-          expect.fail();
+          assert.fail();
         } catch (e) {
-          expect(e).to.equal(expectedError);
+          assert.strictEqual(e, expectedError);
         }
 
-        expect(store.size).to.equal(0);
+        assert.equal(store.size, 0);
       });
     });
   });

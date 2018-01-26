@@ -22,8 +22,8 @@
 
 'use strict';
 
+const assert = require('assert');
 const { EOL } = require('os');
-const { expect } = require('chai');
 
 const LineWriter = require('../src/line-writer');
 const { MockWritable } = require('./mock-stream');
@@ -51,7 +51,7 @@ describe('LineWriter', () => {
 
       await writer.write(store);
 
-      expect(output.buffer.toString('latin1')).to.equal(expected);
+      assert.equal(output.buffer.toString('latin1'), expected);
     });
 
     it('should convert property key/value pairs before being written to output', async() => {
@@ -104,7 +104,7 @@ describe('LineWriter', () => {
 
         await writer.write(store);
 
-        expect(output.buffer.toString('latin1')).to.equal(`${expected}${EOL}`);
+        assert.equal(output.buffer.toString('latin1'), `${expected}${EOL}`);
       }
     });
 
@@ -121,9 +121,9 @@ describe('LineWriter', () => {
       await latin1Writer.write(store);
       await utf8Writer.write(store);
 
-      expect(latin1Output.buffer.toString('latin1')).to.equal(expected);
-      expect(utf8Output.buffer.toString('utf8')).to.equal(expected);
-      expect(latin1Output.buffer).to.not.deep.equal(utf8Output.buffer);
+      assert.equal(latin1Output.buffer.toString('latin1'), expected);
+      assert.equal(utf8Output.buffer.toString('utf8'), expected);
+      assert.notDeepEqual(latin1Output.buffer, utf8Output.buffer);
     });
 
     context('when no properties exist', () => {
@@ -134,7 +134,7 @@ describe('LineWriter', () => {
 
         await writer.write(store);
 
-        expect(output.buffer.toString()).to.equal(expected);
+        assert.equal(output.buffer.toString('latin1'), expected);
       });
     });
 
@@ -152,12 +152,12 @@ describe('LineWriter', () => {
         try {
           await writer.write(store);
           // Should have thrown
-          expect.fail();
+          assert.fail();
         } catch (e) {
-          expect(e).to.equal(expectedError);
+          assert.strictEqual(e, expectedError);
         }
 
-        expect(output.buffer.toString()).to.equal(expectedOutput);
+        assert.equal(output.buffer.toString('latin1'), expectedOutput);
       });
     });
 
@@ -175,7 +175,7 @@ describe('LineWriter', () => {
 
         await writer.write(store);
 
-        expect(output.buffer.toString('utf8')).to.equal(expected);
+        assert.equal(output.buffer.toString('utf8'), expected);
       });
     });
 
@@ -193,7 +193,7 @@ describe('LineWriter', () => {
 
         await writer.write(store);
 
-        expect(output.buffer.toString('ascii')).to.equal(expected);
+        assert.equal(output.buffer.toString('ascii'), expected);
       });
     });
   });
