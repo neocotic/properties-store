@@ -119,7 +119,7 @@ class LineReader {
   }
 
   [_read](properties) {
-    let b;
+    let code;
     let hasSeparator;
     let keyLength;
     let limit;
@@ -127,25 +127,25 @@ class LineReader {
     let valueStart;
 
     while ((limit = this[_readLine]()) >= 0) {
-      b = 0;
+      code = 0;
       hasSeparator = false;
       keyLength = 0;
       precedingBackslash = false;
       valueStart = limit;
 
       while (keyLength < limit) {
-        b = this[_lineBuffer][keyLength];
+        code = this[_lineBuffer][keyLength];
 
-        if ((b === ASCII.EQUAL_SIGN || b === ASCII.COLON) && !precedingBackslash) {
+        if ((code === ASCII.EQUAL_SIGN || code === ASCII.COLON) && !precedingBackslash) {
           hasSeparator = true;
           valueStart = keyLength + 1;
           break;
-        } else if ((b === ASCII.SP || b === ASCII.HT || b === ASCII.FF) && !precedingBackslash) {
+        } else if ((code === ASCII.SP || code === ASCII.HT || code === ASCII.FF) && !precedingBackslash) {
           valueStart = keyLength + 1;
           break;
         }
 
-        if (b === ASCII.BACKSLASH) {
+        if (code === ASCII.BACKSLASH) {
           precedingBackslash = !precedingBackslash;
         } else {
           precedingBackslash = false;
@@ -155,10 +155,10 @@ class LineReader {
       }
 
       while (valueStart < limit) {
-        b = this[_lineBuffer][valueStart];
+        code = this[_lineBuffer][valueStart];
 
-        if (b !== ASCII.SP && b !== ASCII.HT && b !== ASCII.FF) {
-          if (!hasSeparator && (b === ASCII.EQUAL_SIGN || b === ASCII.COLON)) {
+        if (code !== ASCII.SP && code !== ASCII.HT && code !== ASCII.FF) {
+          if (!hasSeparator && (code === ASCII.EQUAL_SIGN || code === ASCII.COLON)) {
             hasSeparator = true;
           } else {
             break;
@@ -177,7 +177,7 @@ class LineReader {
 
   [_readLine]() {
     let appendedLineBegin = false;
-    let b = 0;
+    let code = 0;
     let isCommentLine = false;
     let isNewLine = true;
     let length = 0;
@@ -204,21 +204,21 @@ class LineReader {
         }
       }
 
-      b = this[_inputBuffer][this[_inputOffset]++];
+      code = this[_inputBuffer][this[_inputOffset]++];
 
       if (skipLineFeed) {
         skipLineFeed = false;
 
-        if (b === ASCII.LF) {
+        if (code === ASCII.LF) {
           continue;
         }
       }
 
       if (skipWhiteSpace) {
-        if (b === ASCII.SP || b === ASCII.HT || b === ASCII.FF) {
+        if (code === ASCII.SP || code === ASCII.HT || code === ASCII.FF) {
           continue;
         }
-        if (!appendedLineBegin && (b === ASCII.CR || b === ASCII.LF)) {
+        if (!appendedLineBegin && (code === ASCII.CR || code === ASCII.LF)) {
           continue;
         }
 
@@ -229,11 +229,11 @@ class LineReader {
       if (isNewLine) {
         isNewLine = false;
 
-        if (b === ASCII.NUMBER_SIGN || b === ASCII.EXC) {
+        if (code === ASCII.NUMBER_SIGN || code === ASCII.EXC) {
           while (this[_inputOffset] < this[_inputLimit]) {
-            b = this[_inputBuffer][this[_inputOffset]++];
+            code = this[_inputBuffer][this[_inputOffset]++];
 
-            if (b === ASCII.LF || b === ASCII.CR || b === ASCII.BACKSLASH) {
+            if (code === ASCII.LF || code === ASCII.CR || code === ASCII.BACKSLASH) {
               break;
             }
           }
@@ -242,8 +242,8 @@ class LineReader {
         }
       }
 
-      if (b !== ASCII.LF && b !== ASCII.CR) {
-        this[_lineBuffer][length++] = b;
+      if (code !== ASCII.LF && code !== ASCII.CR) {
+        this[_lineBuffer][length++] = code;
 
         if (length === this[_lineBuffer].length) {
           const newLineBuffer = Buffer.alloc(Math.min(length * 2, buffer.constants.MAX_LENGTH));
@@ -252,7 +252,7 @@ class LineReader {
           this[_lineBuffer] = newLineBuffer;
         }
 
-        if (b === ASCII.BACKSLASH) {
+        if (code === ASCII.BACKSLASH) {
           precedingBackslash = !precedingBackslash;
         } else {
           precedingBackslash = false;
@@ -287,7 +287,7 @@ class LineReader {
           skipWhiteSpace = true;
           length--;
 
-          if (b === ASCII.CR) {
+          if (code === ASCII.CR) {
             skipLineFeed = true;
           }
         } else {
