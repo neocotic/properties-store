@@ -1587,6 +1587,34 @@ describe('PropertiesStore', () => {
         expect(output.buffer.toString()).to.equal(expected);
       });
     });
+
+    context('when escapeUnicode option is disabled', () => {
+      it('should write non-ASCII characters to output as-is', async() => {
+        const output = new MockWritable();
+        const expected = `foo¥bar=fu¥baz${EOL}`;
+
+        const store = new PropertiesStore();
+        store.set('foo¥bar', 'fu¥baz');
+
+        await store.store(output, { encoding: 'utf8', escapeUnicode: false });
+
+        expect(output.buffer.toString()).to.equal(expected);
+      });
+    });
+
+    context('when escapeUnicode option is enabled', () => {
+      it('should escape non-ASCII characters before being written to output', async() => {
+        const output = new MockWritable();
+        const expected = `foo\\u00a5bar=fu\\u00a5baz${EOL}`;
+
+        const store = new PropertiesStore();
+        store.set('foo¥bar', 'fu¥baz');
+
+        await store.store(output, { encoding: 'utf8', escapeUnicode: true });
+
+        expect(output.buffer.toString()).to.equal(expected);
+      });
+    });
   });
 
   describe('#values', () => {
