@@ -1485,7 +1485,10 @@ describe('PropertiesStore', () => {
         const store = new PropertiesStore();
         store.set('foo¥bar', 'fu¥baz');
 
-        await store.store(output, { encoding: 'utf8', escapeUnicode: false });
+        await store.store(output, {
+          encoding: 'utf8',
+          escapeUnicode: false
+        });
 
         expect(output.buffer.toString()).to.equal(expected);
       });
@@ -1499,7 +1502,10 @@ describe('PropertiesStore', () => {
         const store = new PropertiesStore();
         store.set('foo¥bar', 'fu¥baz');
 
-        await store.store(output, { encoding: 'utf8', escapeUnicode: true });
+        await store.store(output, {
+          encoding: 'utf8',
+          escapeUnicode: true
+        });
 
         expect(output.buffer.toString()).to.equal(expected);
       });
