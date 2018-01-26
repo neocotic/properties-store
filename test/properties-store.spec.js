@@ -1492,7 +1492,10 @@ describe('PropertiesStore', () => {
 
       expect(storeCalls[0].args).to.deep.equal([
         {
-          options: { encoding: 'latin1' },
+          options: {
+            encoding: 'latin1',
+            escapeUnicode: true
+          },
           output,
           properties: store
         }
@@ -1525,7 +1528,10 @@ describe('PropertiesStore', () => {
 
         expect(storeCalls[0].args).to.deep.equal([
           {
-            options: { encoding: 'latin1' },
+            options: {
+              encoding: 'latin1',
+              escapeUnicode: true
+            },
             output,
             properties: store
           }

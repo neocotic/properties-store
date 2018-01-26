@@ -22,24 +22,16 @@
 
 'use strict';
 
-// TODO: Complete
-
 const escapeUnicode = require('escape-unicode');
 const os = require('os');
 
+const ASCII = require('./constants/ascii');
+
 const _convert = Symbol('convert');
-const _encoding = Symbol('encoding');
+const _options = Symbol('options');
 const _outputStream = Symbol('outputStream');
 const _write = Symbol('write');
 const _writeLine = Symbol('writeLine');
-
-const ascii = {
-  BACKSLASH: 0x5c,
-  DEL: 0x7f,
-  EQUAL_SIGN: 0x3d,
-  SP: 0x20,
-  TILDE: 0x7f
-};
 
 const escapes = {
   '=': '\\=',
@@ -53,20 +45,32 @@ const escapes = {
 };
 
 /**
- * TODO: Document
+ * A <code>LineWriter</code> is responsible for converting and writing properties from a {@link PropertiesStore} to an
+ * output stream.
  *
- * @param {stream.Writable} output -
- * @param {string} encoding -
+ * @param {stream.Writable} output - the output stream to be written to
+ * @param {Object} options - the options to be used
+ * @param {string} options.encoding - the character encoding to be used to write the output
+ * @param {boolean} options.escapeUnicode - <code>true</code> to convert all non-ASCII characters to Unicode escapes
+ * ("\uxxxx" notation); otherwise <code>false</code>
  * @protected
  */
 class LineWriter {
 
-  constructor(output, encoding) {
+  constructor(output, options) {
     this[_outputStream] = output;
-    this[_encoding] = encoding;
+    this[_options] = options;
   }
 
-  // TODO: Document
+  /**
+   * Writes the properties from the <code>properties</code> store provided to the output stream after converting the
+   * key/value pairs.
+   *
+   * @param {PropertiesStore} properties - the {@link PropertiesStroe} whose properties are to be written
+   * @return {Promise.<void, Error>} A <code>Promise</code> that is resolved once <code>output</code> has been written
+   * to.
+   * @public
+   */
   write(properties) {
     return new Promise((resolve, reject) => {
       this[_outputStream].on('error', (error) => {
@@ -89,13 +93,13 @@ class LineWriter {
       const ch = str[i];
       const code = ch.charCodeAt(0);
 
-      if (code > ascii.EQUAL_SIGN && code < ascii.DEL) {
-        result += code === ascii.BACKSLASH ? '\\\\' : ch;
-      } else if (code === ascii.SP) {
+      if (code > ASCII.EQUAL_SIGN && code < ASCII.DEL) {
+        result += code === ASCII.BACKSLASH ? '\\\\' : ch;
+      } else if (code === ASCII.SP) {
         result += i === 0 || escapeSpace ? `\\${ch}` : ch;
       } else if (escapes[ch]) {
         result += escapes[ch];
-      } else if (code < ascii.SP || code > ascii.TILDE) {
+      } else if ((code < ASCII.SP || code > ASCII.TILDE) && this[_options].escapeUnicode) {
         result += escapeUnicode(str, i, i + 1);
       } else {
         result += ch;
@@ -118,7 +122,7 @@ class LineWriter {
     value = this[_convert](value, false);
 
     return new Promise((resolve, reject) => {
-      this[_outputStream].write(`${key}=${value}${os.EOL}`, this[_encoding], (error) => {
+      this[_outputStream].write(`${key}=${value}${os.EOL}`, this[_options].encoding, (error) => {
         if (error) {
           reject(error);
         } else {

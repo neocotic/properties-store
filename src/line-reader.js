@@ -22,35 +22,22 @@
 
 'use strict';
 
-// TODO: Complete
-
 /* eslint "complexity": "off", "max-depth": "off", "no-constant-condition": "off" */
 
 const buffer = require('buffer');
 const unescapeUnicode = require('unescape-unicode');
 
+const ASCII = require('./constants/ascii');
+
 const _convert = Symbol('convert');
-const _encoding = Symbol('encoding');
 const _inputBuffer = Symbol('inputBuffer');
 const _inputLimit = Symbol('inputLimit');
 const _inputOffset = Symbol('inputOffset');
 const _inputStream = Symbol('inputStream');
 const _lineBuffer = Symbol('lineBuffer');
+const _options = Symbol('options');
 const _read = Symbol('read');
 const _readLine = Symbol('readLine');
-
-const ascii = {
-  BACKSLASH: 0x5c,
-  COLON: 0x3a,
-  CR: 0x0d,
-  EQUAL_SIGN: 0x3d,
-  EXC: 0x21,
-  FF: 0x0c,
-  HT: 0x09,
-  LF: 0x0a,
-  NUMBER_SIGN: 0x23,
-  SP: 0x20
-};
 
 const escapes = {
   f: '\f',
@@ -60,24 +47,33 @@ const escapes = {
 };
 
 /**
- * TODO: Document
+ * A <code>LineReader</code> is responsible for reading lines from an input stream and converting and extracting
+ * property information into a {@link PropertiesStore}.
  *
- * @param {stream.Readable} input -
- * @param {string} encoding -
+ * @param {stream.Readable} input - the input stream to be read
+ * @param {Object} options - the options to be used
+ * @param {string} options.encoding - the character encoding to be used to read the input
  * @protected
  */
 class LineReader {
 
-  constructor(input, encoding) {
+  constructor(input, options) {
     this[_inputStream] = input;
-    this[_encoding] = encoding;
+    this[_options] = options;
     this[_inputBuffer] = null;
     this[_inputLimit] = 0;
     this[_inputOffset] = 0;
     this[_lineBuffer] = Buffer.alloc(1024);
   }
 
-  // TODO: Document
+  /**
+   * Reads the lines from the input stream and identifies property information before converting and extracting it into
+   * the specified <code>properties</code> store.
+   *
+   * @param {PropertiesStore} properties - the {@link PropertiesStroe} to which any read properties are to be added
+   * @return {Promise.<void, Error>} A <code>Promise</code> that is resolved once <code>input</code> has been read.
+   * @public
+   */
   read(properties) {
     return new Promise((resolve, reject) => {
       // Just in case stream is STDIN when run in TTY context
@@ -140,16 +136,16 @@ class LineReader {
       while (keyLength < limit) {
         b = this[_lineBuffer][keyLength];
 
-        if ((b === ascii.EQUAL_SIGN || b === ascii.COLON) && !precedingBackslash) {
+        if ((b === ASCII.EQUAL_SIGN || b === ASCII.COLON) && !precedingBackslash) {
           hasSeparator = true;
           valueStart = keyLength + 1;
           break;
-        } else if ((b === ascii.SP && b === ascii.HT && b === ascii.FF) && !precedingBackslash) {
+        } else if ((b === ASCII.SP && b === ASCII.HT && b === ASCII.FF) && !precedingBackslash) {
           valueStart = keyLength + 1;
           break;
         }
 
-        if (b === ascii.BACKSLASH) {
+        if (b === ASCII.BACKSLASH) {
           precedingBackslash = !precedingBackslash;
         } else {
           precedingBackslash = false;
@@ -161,8 +157,8 @@ class LineReader {
       while (valueStart < limit) {
         b = this[_lineBuffer][valueStart];
 
-        if (b !== ascii.SP && b !== ascii.HT && b !== ascii.FF) {
-          if (!hasSeparator && (b === ascii.EQUAL_SIGN || b === ascii.COLON)) {
+        if (b !== ASCII.SP && b !== ASCII.HT && b !== ASCII.FF) {
+          if (!hasSeparator && (b === ASCII.EQUAL_SIGN || b === ASCII.COLON)) {
             hasSeparator = true;
           } else {
             break;
@@ -172,8 +168,8 @@ class LineReader {
         valueStart++;
       }
 
-      const key = this[_convert](this[_lineBuffer].toString(this[_encoding], 0, keyLength));
-      const value = this[_convert](this[_lineBuffer].toString(this[_encoding], valueStart, limit));
+      const key = this[_convert](this[_lineBuffer].toString(this[_options].encoding, 0, keyLength));
+      const value = this[_convert](this[_lineBuffer].toString(this[_options].encoding, valueStart, limit));
 
       properties.set(key, value);
     }
@@ -213,16 +209,16 @@ class LineReader {
       if (skipLineFeed) {
         skipLineFeed = false;
 
-        if (b === ascii.LF) {
+        if (b === ASCII.LF) {
           continue;
         }
       }
 
       if (skipWhiteSpace) {
-        if (b === ascii.SP || b === ascii.HT || b === ascii.FF) {
+        if (b === ASCII.SP || b === ASCII.HT || b === ASCII.FF) {
           continue;
         }
-        if (!appendedLineBegin && (b === ascii.CR || b === ascii.LF)) {
+        if (!appendedLineBegin && (b === ASCII.CR || b === ASCII.LF)) {
           continue;
         }
 
@@ -233,11 +229,11 @@ class LineReader {
       if (isNewLine) {
         isNewLine = false;
 
-        if (b === ascii.NUMBER_SIGN || b === ascii.EXC) {
+        if (b === ASCII.NUMBER_SIGN || b === ASCII.EXC) {
           while (this[_inputOffset] < this[_inputLimit]) {
             b = this[_inputBuffer][this[_inputOffset]++];
 
-            if (b === ascii.LF || b === ascii.CR || b === ascii.BACKSLASH) {
+            if (b === ASCII.LF || b === ASCII.CR || b === ASCII.BACKSLASH) {
               break;
             }
           }
@@ -246,7 +242,7 @@ class LineReader {
         }
       }
 
-      if (b !== ascii.LF && b !== ascii.CR) {
+      if (b !== ASCII.LF && b !== ASCII.CR) {
         this[_lineBuffer][length++] = b;
 
         if (length === this[_lineBuffer].length) {
@@ -256,7 +252,7 @@ class LineReader {
           this[_lineBuffer] = newLineBuffer;
         }
 
-        if (b === ascii.BACKSLASH) {
+        if (b === ASCII.BACKSLASH) {
           precedingBackslash = !precedingBackslash;
         } else {
           precedingBackslash = false;
@@ -291,7 +287,7 @@ class LineReader {
           skipWhiteSpace = true;
           length--;
 
-          if (b === ascii.CR) {
+          if (b === ASCII.CR) {
             skipLineFeed = true;
           }
         } else {
