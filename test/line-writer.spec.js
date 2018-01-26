@@ -56,6 +56,18 @@ describe('LineWriter', () => {
 
     it('should convert property key/value pairs before being written to output', async() => {
       const tests = {
+        '=': [
+          [ '', '' ]
+        ],
+        '=bar': [
+          [ '', 'bar' ]
+        ],
+        'foo=': [
+          [ 'foo', '' ]
+        ],
+        'foo\\ bar=': [
+          [ 'foo bar', '' ]
+        ],
         'foo=bar': [
           [ 'foo', 'bar' ]
         ],
@@ -71,8 +83,11 @@ describe('LineWriter', () => {
         'f\\\\oo=ba\\\\r': [
           [ 'f\\oo', 'ba\\r' ]
         ],
-        'foo\\=\\:\\#\\!\\f\\n\\r\\t=bar\\=\\:\\#\\!\\f\\n\\r\\t': [
-          [ 'foo=:#!\f\n\r\t', 'bar=:#!\f\n\r\t' ]
+        'foo\\f\\n\\r\\t=bar\\f\\n\\r\\t': [
+          [ 'foo\f\n\r\t', 'bar\f\n\r\t' ]
+        ],
+        'foo\\=\\:\\#\\!=bar\\=\\:\\#\\!': [
+          [ 'foo=:#!', 'bar=:#!' ]
         ]
       };
 
@@ -115,7 +130,6 @@ describe('LineWriter', () => {
       it('should write empty buffer to output', async() => {
         const output = new MockWritable();
         const expected = '';
-
         const writer = new LineWriter(output, { encoding: 'latin1' });
 
         await writer.write(store);

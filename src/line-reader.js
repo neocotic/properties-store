@@ -140,7 +140,7 @@ class LineReader {
           hasSeparator = true;
           valueStart = keyLength + 1;
           break;
-        } else if ((b === ASCII.SP && b === ASCII.HT && b === ASCII.FF) && !precedingBackslash) {
+        } else if ((b === ASCII.SP || b === ASCII.HT || b === ASCII.FF) && !precedingBackslash) {
           valueStart = keyLength + 1;
           break;
         }
@@ -246,8 +246,8 @@ class LineReader {
         this[_lineBuffer][length++] = b;
 
         if (length === this[_lineBuffer].length) {
-          const newLineBuffer = Buffer.alloc(Math.min(this[_lineBuffer].length * 2, buffer.MAX_LENGTH));
-          newLineBuffer.fill(this[_lineBuffer], 0, this[_lineBuffer].length);
+          const newLineBuffer = Buffer.alloc(Math.min(length * 2, buffer.constants.MAX_LENGTH));
+          this[_lineBuffer].copy(newLineBuffer);
 
           this[_lineBuffer] = newLineBuffer;
         }
@@ -267,6 +267,7 @@ class LineReader {
           continue;
         }
 
+        /* istanbul ignore if */
         if (this[_inputOffset] >= this[_inputLimit]) {
           this[_inputBuffer] = this[_inputStream].read(8192);
           this[_inputLimit] = this[_inputBuffer] == null ? 0 : this[_inputBuffer].length;

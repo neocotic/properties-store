@@ -955,7 +955,7 @@ describe('PropertiesStore', () => {
       it('should throw an error', async() => {
         const expectedError = new Error('foo');
         const input = new MockReadable(null, expectedError);
-        const expected = [];
+        const expectedProperties = [];
         const store = new PropertiesStore();
 
         try {
@@ -966,7 +966,7 @@ describe('PropertiesStore', () => {
           expect(e).to.equal(expectedError);
         }
 
-        expect(Array.from(store)).to.deep.equal(expected);
+        expect(Array.from(store)).to.deep.equal(expectedProperties);
       });
     });
 
