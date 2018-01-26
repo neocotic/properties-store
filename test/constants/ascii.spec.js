@@ -22,7 +22,7 @@
 
 'use strict';
 
-const { expect } = require('chai');
+const assert = require('assert');
 
 const ASCII = require('../../src/constants/ascii');
 
@@ -44,13 +44,13 @@ describe('ASCII', () => {
     };
 
     for (const [ name, value ] of Object.entries(ASCII)) {
-      expect(String.fromCharCode(value)).to.equal(expected[name]);
+      assert.equal(String.fromCharCode(value), expected[name]);
     }
   });
 
   it('should be read-only', () => {
-    expect(() => {
+    assert.throws(() => {
       ASCII.FOO = 123;
-    }).to.throw(TypeError);
+    }, TypeError);
   });
 });
