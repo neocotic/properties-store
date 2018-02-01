@@ -995,6 +995,75 @@ describe('PropertiesStore', () => {
     });
   });
 
+  describe('#search', () => {
+    it('should return iterator for each matching property key/value pair whose key matches regexp', () => {
+      const properties = [
+        [ 'foo', 'bar' ],
+        [ 'fu', 'baz' ],
+        [ 'fizz', 'buzz' ]
+      ];
+      const store = new PropertiesStore();
+
+      for (const [ key, value ] of properties) {
+        store.set(key, value);
+      }
+
+      let iterator = store.search(/foo/);
+
+      assert.deepEqual(iterator.next().value, [ 'foo', 'bar' ]);
+      assert.strictEqual(iterator.next().value, undefined);
+
+      assert.deepEqual(Array.from(store.search(/foo/)), [
+        [ 'foo', 'bar' ]
+      ]);
+
+      iterator = store.search(/^f/);
+
+      assert.deepEqual(iterator.next().value, [ 'foo', 'bar' ]);
+      assert.deepEqual(iterator.next().value, [ 'fu', 'baz' ]);
+      assert.deepEqual(iterator.next().value, [ 'fizz', 'buzz' ]);
+      assert.strictEqual(iterator.next().value, undefined);
+
+      assert.deepEqual(Array.from(store.search(/^f/)), properties);
+
+      iterator = store.search(/^F\S{2,3}$/i);
+
+      assert.deepEqual(iterator.next().value, [ 'foo', 'bar' ]);
+      assert.deepEqual(iterator.next().value, [ 'fizz', 'buzz' ]);
+      assert.strictEqual(iterator.next().value, undefined);
+
+      assert.deepEqual(Array.from(store.search(/^F\S{2,3}$/i)), [
+        [ 'foo', 'bar' ],
+        [ 'fizz', 'buzz' ]
+      ]);
+    });
+
+    context('when regexp matches no properties', () => {
+      it('should return an empty iterator', () => {
+        const store = new PropertiesStore();
+        store.set('foo', 'bar');
+        store.set('fu', 'baz');
+
+        const iterator = store.search(/^ba/);
+
+        assert.strictEqual(iterator.next().value, undefined);
+
+        assert.deepEqual(Array.from(store.search(/^ba/)), []);
+      });
+    });
+
+    context('when regexp is null', () => {
+      it('should return an empty iterator', () => {
+        const store = new PropertiesStore();
+        const iterator = store.search(null);
+
+        assert.strictEqual(iterator.next().value, undefined);
+
+        assert.deepEqual(Array.from(store.search(null)), []);
+      });
+    });
+  });
+
   describe('#set', () => {
     context('when no property exists for key', () => {
       it('should set property value for key and return PropertiesStore', () => {
