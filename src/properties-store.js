@@ -327,6 +327,37 @@ class PropertiesStore extends events.EventEmitter {
   }
 
   /**
+   * Searches for matches between the specified regular expression and the keys within this {@link PropertiesStore},
+   * returning an iterator containing the key/value pairs for each matching property.
+   *
+   * @example
+   * const properties = new PropertiesStore()
+   * properties.set('foo', 'bar');
+   * properties.set('fu', 'baz');
+   *
+   * Array.from(properties.search(/^ba/));
+   * => []
+   * Array.from(properties.search(/^f/));
+   * //=> [["foo", "bar"], ["fu", "baz"]]
+   * @param {?RegExp} regexp - the regular expression to be used to search for matching properties (may be
+   * <code>null</code>)
+   * @return {Iterator.<string[]>} An <code>Iterator</code> for the key/value pairs for each property whose key matches
+   * <code>regexp</code>.
+   * @public
+   */
+  *search(regexp) {
+    if (regexp == null) {
+      return;
+    }
+
+    for (const [ key, value ] of this[_map].entries()) {
+      if (regexp.test(key)) {
+        yield [ key, value ];
+      }
+    }
+  }
+
+  /**
    * Sets the value of the property in this {@link PropertiesStore} with the specified <code>key</code> to
    * <code>value</code>.
    *
