@@ -1,15 +1,15 @@
 # properties-store
 
 [![Build Status](https://img.shields.io/travis/NotNinja/properties-store/develop.svg?style=flat-square)](https://travis-ci.org/NotNinja/properties-store)
-[![Documentation](https://img.shields.io/badge/docs-online-brightgreen.svg?style=flat-square)](https://notninja.github.io/properties-store/docs/)
+[![Documentation](https://img.shields.io/badge/docs-online-brightgreen.svg?style=flat-square)](https://github.com/NotNinja/properties-store/blob/master/docs/api.md)
 [![Coverage](https://img.shields.io/codecov/c/github/NotNinja/properties-store/develop.svg?style=flat-square)](https://codecov.io/gh/NotNinja/properties-store)
 [![Dependency Status](https://img.shields.io/david/NotNinja/properties-store.svg?style=flat-square)](https://david-dm.org/NotNinja/properties-store)
 [![Dev Dependency Status](https://img.shields.io/david/dev/NotNinja/properties-store.svg?style=flat-square)](https://david-dm.org/NotNinja/properties-store?type=dev)
 [![License](https://img.shields.io/npm/l/properties-store.svg?style=flat-square)](https://github.com/NotNinja/properties-store/blob/master/LICENSE.md)
 [![Release](https://img.shields.io/npm/v/properties-store.svg?style=flat-square)](https://www.npmjs.com/package/properties-store)
 
-[properties-store](https://notninja.github.io/properties-store) is a Node.js library for working with `.properties` file
-stores with an API based closely on that of ECMAScript's `Map`.
+[properties-store](https://github.com/NotNinja/properties-store) is a Node.js library for working with `.properties`
+file stores with an API based closely on that of ECMAScript's `Map`.
 
 * [Install](#install)
 * [API](#api)
@@ -32,7 +32,7 @@ You'll need to have at least [Node.js](https://nodejs.org) 8 or newer.
     new PropertiesStore([store][, options])
 
 The complete API documentation, along with lots of examples, can be found
-[here](https://notninja.github.io/properties-store/docs/).
+[here](https://github.com/NotNinja/properties-store/blob/master/docs/api.md).
 
 ``` javascript
 const properties = new PropertiesStore();
