@@ -24,6 +24,7 @@
 
 const assert = require('assert');
 const { EOL } = require('os');
+const moment = require('moment-timezone');
 const sinon = require('sinon');
 
 const { MockReadable, MockWritable } = require('./mock-stream');
@@ -1894,6 +1895,19 @@ describe('PropertiesStore', () => {
   });
 
   describe('#store', () => {
+    const expectedTimestampComment = `#Mon Oct 31 21:05:00 GMT 2016${EOL}`;
+    let mockClock;
+
+    beforeEach(() => {
+      sinon.stub(moment.tz, 'guess').returns('GMT');
+      mockClock = sinon.useFakeTimers(1477947900000);
+    });
+
+    afterEach(() => {
+      moment.tz.guess.restore();
+      mockClock.restore();
+    });
+
     it('should write property lines to output', async() => {
       const output = new MockWritable();
       const expected = [
@@ -1906,7 +1920,7 @@ describe('PropertiesStore', () => {
 
       await store.store(output);
 
-      assert.equal(output.buffer.toString('latin1'), expected);
+      assert.equal(output.buffer.toString('latin1'), `${expectedTimestampComment}${expected}`);
     });
 
     it('should emit "store" event', async() => {
@@ -1937,14 +1951,13 @@ describe('PropertiesStore', () => {
     });
 
     context('when no properties exist', () => {
-      it('should write empty buffer to output', async() => {
+      it('should only write timestamp comment to output', async() => {
         const output = new MockWritable();
-        const expected = '';
         const store = new PropertiesStore();
 
         await store.store(output);
 
-        assert.equal(output.buffer.toString('latin1'), expected);
+        assert.equal(output.buffer.toString('latin1'), expectedTimestampComment);
       });
 
       it('should emit "store" event', async() => {
@@ -2004,7 +2017,7 @@ describe('PropertiesStore', () => {
 
         await store.store(output);
 
-        assert.equal(output.buffer.toString('latin1'), expected);
+        assert.equal(output.buffer.toString('latin1'), `${expectedTimestampComment}${expected}`);
       });
     });
 
@@ -2018,7 +2031,7 @@ describe('PropertiesStore', () => {
 
         await store.store(output, { encoding: 'ascii' });
 
-        assert.equal(output.buffer.toString('ascii'), expected);
+        assert.equal(output.buffer.toString('ascii'), `${expectedTimestampComment}${expected}`);
       });
     });
 
@@ -2035,7 +2048,7 @@ describe('PropertiesStore', () => {
           escapeUnicode: false
         });
 
-        assert.equal(output.buffer.toString('utf8'), expected);
+        assert.equal(output.buffer.toString('utf8'), `${expectedTimestampComment}${expected}`);
       });
     });
 
@@ -2052,7 +2065,7 @@ describe('PropertiesStore', () => {
           escapeUnicode: true
         });
 
-        assert.equal(output.buffer.toString('utf8'), expected);
+        assert.equal(output.buffer.toString('utf8'), `${expectedTimestampComment}${expected}`);
       });
     });
   });

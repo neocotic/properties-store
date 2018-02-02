@@ -35,7 +35,7 @@ describe('LineReader', () => {
     store = new PropertiesStore();
   });
 
-  describe('.read', () => {
+  describe('#read', () => {
     it('should read all property information from input', async() => {
       const input = new MockReadable(Buffer.from([
         '',

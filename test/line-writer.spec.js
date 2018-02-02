@@ -36,7 +36,49 @@ describe('LineWriter', () => {
     store = new PropertiesStore();
   });
 
-  describe('.write', () => {
+  describe('.writeLine', () => {
+    it('should write str to output', async() => {
+      const output = new MockWritable();
+      const expected = `foo${EOL}`;
+
+      await LineWriter.writeLine(output, 'foo', { encoding: 'latin1' });
+
+      assert.equal(output.buffer.toString('latin1'), expected);
+    });
+
+    it('should write output using encoding option', async() => {
+      const latin1Output = new MockWritable();
+      const utf8Output = new MockWritable();
+      const expected = `foo¥bar${EOL}`;
+
+      await LineWriter.writeLine(latin1Output, 'foo¥bar', { encoding: 'latin1' });
+      await LineWriter.writeLine(utf8Output, 'foo¥bar', { encoding: 'utf8' });
+
+      assert.equal(latin1Output.buffer.toString('latin1'), expected);
+      assert.equal(utf8Output.buffer.toString('utf8'), expected);
+      assert.notDeepEqual(latin1Output.buffer, utf8Output.buffer);
+    });
+
+    context('when failed to write to output', () => {
+      it('should throw an error', async() => {
+        const expectedError = new Error('foo');
+        const output = new MockWritable(null, expectedError);
+        const expectedOutput = '';
+
+        try {
+          await LineWriter.writeLine(output, 'foo', { encoding: 'latin1' });
+          // Should have thrown
+          assert.fail();
+        } catch (e) {
+          assert.strictEqual(e, expectedError);
+        }
+
+        assert.equal(output.buffer.toString('latin1'), expectedOutput);
+      });
+    });
+  });
+
+  describe('#write', () => {
     it('should write property key/value pairs on separate lines to output', async() => {
       const output = new MockWritable();
       const expected = [

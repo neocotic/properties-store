@@ -31,7 +31,6 @@ const _convert = Symbol('convert');
 const _options = Symbol('options');
 const _outputStream = Symbol('outputStream');
 const _write = Symbol('write');
-const _writeLine = Symbol('writeLine');
 
 const escapes = {
   '=': '\\=',
@@ -56,6 +55,29 @@ const escapes = {
  * @protected
  */
 class LineWriter {
+
+  /**
+   * Writes the specified string followed by an OS-specific end-of-line to the <code>output</code> stream provided.
+   *
+   * @param {stream.Writable} output - the output stream to be written to
+   * @param {string} str - the string to be written to <code>output</code>
+   * @param {Object} options - the options to be used
+   * @param {string} options.encoding - the character encoding to be used to write the output
+   * @return {Promise.<void, Error>} A <code>Promise</code> that is resolved once <code>output</code> has been written
+   * to.
+   * @public
+   */
+  static writeLine(output, str, options) {
+    return new Promise((resolve, reject) => {
+      output.write(`${str}${os.EOL}`, options.encoding, (error) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve();
+        }
+      });
+    });
+  }
 
   constructor(output, options) {
     this[_outputStream] = output;
@@ -110,26 +132,14 @@ class LineWriter {
   }
 
   async [_write](properties) {
-    for (const [ key, value ] of properties) {
-      await this[_writeLine](key, value);
+    for (let [ key, value ] of properties) {
+      key = this[_convert](key, true);
+      value = this[_convert](value, false);
+
+      await LineWriter.writeLine(this[_outputStream], `${key}=${value}`, this[_options]);
     }
 
     this[_outputStream].end();
-  }
-
-  [_writeLine](key, value) {
-    key = this[_convert](key, true);
-    value = this[_convert](value, false);
-
-    return new Promise((resolve, reject) => {
-      this[_outputStream].write(`${key}=${value}${os.EOL}`, this[_options].encoding, (error) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve();
-        }
-      });
-    });
   }
 
 }

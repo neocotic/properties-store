@@ -23,6 +23,7 @@
 'use strict';
 
 const events = require('events');
+const moment = require('moment-timezone');
 
 const LineReader = require('./line-reader');
 const LineWriter = require('./line-writer');
@@ -549,7 +550,11 @@ class PropertiesStore extends events.EventEmitter {
       escapeUnicode: true
     }, options);
 
+    const timeZone = moment.tz.guess();
+    const timestamp = moment().tz(timeZone).format('ddd MMM DD HH:mm:ss z YYYY');
+
     const writer = new LineWriter(output, options);
+    await LineWriter.writeLine(output, `#${timestamp}`, options);
     await writer.write(this);
 
     this.emit('store', {
