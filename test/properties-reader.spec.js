@@ -24,18 +24,18 @@
 
 const assert = require('assert');
 
-const LineReader = require('../src/line-reader');
 const { MockReadable } = require('./mock-stream');
+const PropertiesReader = require('../src/properties-reader');
 const PropertiesStore = require('../src/properties-store');
 
-describe('LineReader', () => {
+describe('PropertiesReader', () => {
   let store;
 
   beforeEach(() => {
     store = new PropertiesStore();
   });
 
-  describe('.read', () => {
+  describe('#read', () => {
     it('should read all property information from input', async() => {
       const input = new MockReadable(Buffer.from([
         '',
@@ -50,7 +50,7 @@ describe('LineReader', () => {
         [ 'fu', 'baz' ],
         [ 'fizz', 'buzz' ]
       ];
-      const reader = new LineReader(input, { encoding: 'latin1' });
+      const reader = new PropertiesReader(input, { encoding: 'latin1' });
 
       await reader.read(store);
 
@@ -68,7 +68,7 @@ describe('LineReader', () => {
         [ 'fu', 'b  a z ' ],
         [ 'fizz', 'buzz' ]
       ];
-      const reader = new LineReader(input, { encoding: 'latin1' });
+      const reader = new PropertiesReader(input, { encoding: 'latin1' });
 
       await reader.read(store);
 
@@ -130,7 +130,7 @@ describe('LineReader', () => {
 
         store.clear();
 
-        const reader = new LineReader(input, { encoding: 'latin1' });
+        const reader = new PropertiesReader(input, { encoding: 'latin1' });
 
         await reader.read(store);
 
@@ -145,7 +145,7 @@ describe('LineReader', () => {
       const expected = [
         [ key, value ]
       ];
-      const reader = new LineReader(input, { encoding: 'latin1' });
+      const reader = new PropertiesReader(input, { encoding: 'latin1' });
 
       await reader.read(store);
 
@@ -159,7 +159,7 @@ describe('LineReader', () => {
       const expected = [
         [ key, `${value}foo` ]
       ];
-      const reader = new LineReader(input, { encoding: 'latin1' });
+      const reader = new PropertiesReader(input, { encoding: 'latin1' });
 
       await reader.read(store);
 
@@ -173,7 +173,7 @@ describe('LineReader', () => {
       const expected = [
         [ key, value ]
       ];
-      const reader = new LineReader(input, { encoding: 'latin1' });
+      const reader = new PropertiesReader(input, { encoding: 'latin1' });
 
       await reader.read(store);
 
@@ -187,7 +187,7 @@ describe('LineReader', () => {
       const expected = [
         [ key, value ]
       ];
-      const reader = new LineReader(input, { encoding: 'latin1' });
+      const reader = new PropertiesReader(input, { encoding: 'latin1' });
 
       await reader.read(store);
 
@@ -202,7 +202,7 @@ describe('LineReader', () => {
         const expected = [
           [ 'foo¥bar', 'fu¥baz' ]
         ];
-        const reader = new LineReader(input, { encoding });
+        const reader = new PropertiesReader(input, { encoding });
 
         await reader.read(store);
 
@@ -217,7 +217,7 @@ describe('LineReader', () => {
           '# foo'
         ].join('\n'), 'latin1'));
         const expected = [];
-        const reader = new LineReader(input, { encoding: 'latin1' });
+        const reader = new PropertiesReader(input, { encoding: 'latin1' });
 
         await reader.read(input);
 
@@ -228,7 +228,7 @@ describe('LineReader', () => {
     context('when input is empty', () => {
       it('should read no properties', async() => {
         const input = new MockReadable();
-        const reader = new LineReader(input, { encoding: 'latin1' });
+        const reader = new PropertiesReader(input, { encoding: 'latin1' });
 
         await reader.read(input);
 
@@ -240,7 +240,7 @@ describe('LineReader', () => {
       it('should read no properties', async() => {
         const input = new MockReadable(Buffer.from('foo=bar', 'latin1'));
         input.isTTY = true;
-        const reader = new LineReader(input, { encoding: 'latin1' });
+        const reader = new PropertiesReader(input, { encoding: 'latin1' });
 
         await reader.read(input);
 
@@ -252,7 +252,7 @@ describe('LineReader', () => {
       it('should throw an error', async() => {
         const expectedError = new Error('foo');
         const input = new MockReadable(null, expectedError);
-        const reader = new LineReader(input, { encoding: 'latin1' });
+        const reader = new PropertiesReader(input, { encoding: 'latin1' });
 
         try {
           await reader.read(store);

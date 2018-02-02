@@ -36,8 +36,8 @@ const _inputOffset = Symbol('inputOffset');
 const _inputStream = Symbol('inputStream');
 const _lineBuffer = Symbol('lineBuffer');
 const _options = Symbol('options');
-const _read = Symbol('read');
 const _readLine = Symbol('readLine');
+const _readProperties = Symbol('readProperties');
 
 const escapes = {
   f: '\f',
@@ -47,7 +47,7 @@ const escapes = {
 };
 
 /**
- * A <code>LineReader</code> is responsible for reading lines from an input stream and converting and extracting
+ * A <code>PropertiesReader</code> is responsible for reading lines from an input stream and converting and extracting
  * property information into a {@link PropertiesStore}.
  *
  * @param {stream.Readable} input - the input stream to be read
@@ -55,7 +55,7 @@ const escapes = {
  * @param {string} options.encoding - the character encoding to be used to read the input
  * @protected
  */
-class LineReader {
+class PropertiesReader {
 
   constructor(input, options) {
     this[_inputStream] = input;
@@ -85,7 +85,7 @@ class LineReader {
         });
 
         this[_inputStream].on('readable', () => {
-          this[_read](properties);
+          this[_readProperties](properties);
         });
 
         this[_inputStream].on('end', () => {
@@ -116,63 +116,6 @@ class LineReader {
     }
 
     return result;
-  }
-
-  [_read](properties) {
-    let code;
-    let hasSeparator;
-    let keyLength;
-    let limit;
-    let precedingBackslash;
-    let valueStart;
-
-    while ((limit = this[_readLine]()) >= 0) {
-      code = 0;
-      hasSeparator = false;
-      keyLength = 0;
-      precedingBackslash = false;
-      valueStart = limit;
-
-      while (keyLength < limit) {
-        code = this[_lineBuffer][keyLength];
-
-        if ((code === ASCII.EQUAL_SIGN || code === ASCII.COLON) && !precedingBackslash) {
-          hasSeparator = true;
-          valueStart = keyLength + 1;
-          break;
-        } else if ((code === ASCII.SP || code === ASCII.HT || code === ASCII.FF) && !precedingBackslash) {
-          valueStart = keyLength + 1;
-          break;
-        }
-
-        if (code === ASCII.BACKSLASH) {
-          precedingBackslash = !precedingBackslash;
-        } else {
-          precedingBackslash = false;
-        }
-
-        keyLength++;
-      }
-
-      while (valueStart < limit) {
-        code = this[_lineBuffer][valueStart];
-
-        if (code !== ASCII.SP && code !== ASCII.HT && code !== ASCII.FF) {
-          if (!hasSeparator && (code === ASCII.EQUAL_SIGN || code === ASCII.COLON)) {
-            hasSeparator = true;
-          } else {
-            break;
-          }
-        }
-
-        valueStart++;
-      }
-
-      const key = this[_convert](this[_lineBuffer].toString(this[_options].encoding, 0, keyLength));
-      const value = this[_convert](this[_lineBuffer].toString(this[_options].encoding, valueStart, limit));
-
-      properties.set(key, value);
-    }
   }
 
   [_readLine]() {
@@ -297,6 +240,63 @@ class LineReader {
     }
   }
 
+  [_readProperties](properties) {
+    let code;
+    let hasSeparator;
+    let keyLength;
+    let limit;
+    let precedingBackslash;
+    let valueStart;
+
+    while ((limit = this[_readLine]()) >= 0) {
+      code = 0;
+      hasSeparator = false;
+      keyLength = 0;
+      precedingBackslash = false;
+      valueStart = limit;
+
+      while (keyLength < limit) {
+        code = this[_lineBuffer][keyLength];
+
+        if ((code === ASCII.EQUAL_SIGN || code === ASCII.COLON) && !precedingBackslash) {
+          hasSeparator = true;
+          valueStart = keyLength + 1;
+          break;
+        } else if ((code === ASCII.SP || code === ASCII.HT || code === ASCII.FF) && !precedingBackslash) {
+          valueStart = keyLength + 1;
+          break;
+        }
+
+        if (code === ASCII.BACKSLASH) {
+          precedingBackslash = !precedingBackslash;
+        } else {
+          precedingBackslash = false;
+        }
+
+        keyLength++;
+      }
+
+      while (valueStart < limit) {
+        code = this[_lineBuffer][valueStart];
+
+        if (code !== ASCII.SP && code !== ASCII.HT && code !== ASCII.FF) {
+          if (!hasSeparator && (code === ASCII.EQUAL_SIGN || code === ASCII.COLON)) {
+            hasSeparator = true;
+          } else {
+            break;
+          }
+        }
+
+        valueStart++;
+      }
+
+      const key = this[_convert](this[_lineBuffer].toString(this[_options].encoding, 0, keyLength));
+      const value = this[_convert](this[_lineBuffer].toString(this[_options].encoding, valueStart, limit));
+
+      properties.set(key, value);
+    }
+  }
+
 }
 
-module.exports = LineReader;
+module.exports = PropertiesReader;

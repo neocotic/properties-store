@@ -24,8 +24,8 @@
 
 const events = require('events');
 
-const LineReader = require('./line-reader');
-const LineWriter = require('./line-writer');
+const PropertiesReader = require('./properties-reader');
+const PropertiesWriter = require('./properties-writer');
 
 const _delete = Symbol('delete');
 const _map = Symbol('map');
@@ -355,7 +355,7 @@ class PropertiesStore extends events.EventEmitter {
   async load(input, options) {
     options = Object.assign({ encoding: 'latin1' }, options);
 
-    const reader = new LineReader(input, options);
+    const reader = new PropertiesReader(input, options);
     await reader.read(this);
 
     this.emit('load', {
@@ -524,17 +524,25 @@ class PropertiesStore extends events.EventEmitter {
    *
    * await properties.store(fs.createWriteStream('path/to/my.properties'));
    * fs.readFileSync('path/to/my.properties', 'latin1');
-   * //=> "foo=b\\u00e0r
+   * //=> "#Mon Oct 31 21:05:00 GMT 2016
+   * foo=b\\u00e0r
    * fu=b\\u00e0z
    * "
    *
-   * await properties.store(fs.createWriteStream('path/to/my.properties'), { encoding: 'utf8', escapeUnicode: false});
+   * await properties.store(fs.createWriteStream('path/to/my.properties'), {
+   *   comments: 'Some witty comment',
+   *   encoding: 'utf8',
+   *   escapeUnicode: false
+   * });
    * fs.readFileSync('path/to/my.properties', 'utf8');
-   * //=> "foo=bàr
+   * //=> "#Some witty comment
+   * #Mon Oct 31 21:05:00 GMT 2016
+   * foo=bàr
    * fu=bàz
    * "
    * @param {stream.Writable} output - the output stream to which the properties are to be written
    * @param {Object} [options] - the options to be used
+   * @param {string} [options.comments] - any comments to be written to the output before the properties
    * @param {string} [options.encoding="latin1"] - the character encoding to be used to write the output
    * @param {string} [options.escapeUnicode=true] - <code>true</code> to convert all non-ASCII characters to Unicode
    * escapes ("\uxxxx" notation); otherwise <code>false</code>
@@ -545,11 +553,12 @@ class PropertiesStore extends events.EventEmitter {
    */
   async store(output, options) {
     options = Object.assign({
+      comments: null,
       encoding: 'latin1',
       escapeUnicode: true
     }, options);
 
-    const writer = new LineWriter(output, options);
+    const writer = new PropertiesWriter(output, options);
     await writer.write(this);
 
     this.emit('store', {
