@@ -105,6 +105,13 @@ class PropertiesStore extends events.EventEmitter {
   /**
    * Removes all properties from this {@link PropertiesStore}.
    *
+   * This method will trigger the following event(s):
+   *
+   * <ul>
+   *   <li><code>clear</code> once all properties have been removed</li>
+   *   <li><code>delete</code> for each property that is removed</li>
+   * </ul>
+   *
    * @example
    * const properties = new PropertiesStore();
    * properties.set('foo', 'bar');
@@ -140,6 +147,12 @@ class PropertiesStore extends events.EventEmitter {
    * considerably slower than using an exact string as the former requires all properties to be iterated over and
    * checked while the latter has the performance of a hash lookup.
    *
+   * This method will trigger the following event(s):
+   *
+   * <ul>
+   *   <li><code>delete</code> for each property that is removed</li>
+   * </ul>
+   *
    * @example
    * const properties = new PropertiesStore();
    * properties.set('foo', 'bar');
@@ -159,7 +172,7 @@ class PropertiesStore extends events.EventEmitter {
    * //=> false
    * properties.has('fizz');
    * //=> false
-   * @param {?string|RegExp} key - the key of the property to be removed or a regular expression to delete any matching
+   * @param {?string|?RegExp} key - the key of the property to be removed or a regular expression to delete any matching
    * properties (may be <code>null</code>)
    * @return {boolean} <code>true</code> if a property with <code>key</code> was successfully removed; otherwise
    * <code>false</code>.
@@ -289,7 +302,7 @@ class PropertiesStore extends events.EventEmitter {
    * //=> true
    * properties.has(/^ba/);
    * //=> false
-   * @param {?string|RegExp} key - the key of the property to be checked or a regular expression to check for any
+   * @param {?string|?RegExp} key - the key of the property to be checked or a regular expression to check for any
    * matching properties (may be <code>null</code>)
    * @return {boolean} <code>true</code> if a property with <code>key</code> exists; otherwise <code>false</code>.
    * @public
@@ -335,6 +348,13 @@ class PropertiesStore extends events.EventEmitter {
    * Any Unicode escapes ("\uxxxx" notation) read from input will be converted to their corresponding Unicode
    * characters.
    *
+   * This method will trigger the following event(s):
+   *
+   * <ul>
+   *   <li><code>change</code> if a property is created/changed</li>
+   *   <li><code>load</code> once all properties have been read from <code>input</code></li>
+   * </ul>
+   *
    * @example
    * const properties = new PropertiesStore()
    *
@@ -372,6 +392,13 @@ class PropertiesStore extends events.EventEmitter {
    *
    * Nothing happens if <code>key</code> is <code>null</code>. If <code>callback</code> returns <code>null</code>,
    * {@link PropertiesStore#delete} will be called to removed the matching property.
+   *
+   * This method will trigger the following event(s):
+   *
+   * <ul>
+   *   <li><code>change</code> if a property is changed</li>
+   *   <li><code>delete</code> if a property is removed</li>
+   * </ul>
    *
    * @example
    * const properties = new PropertiesStore();
@@ -454,6 +481,13 @@ class PropertiesStore extends events.EventEmitter {
    * Nothing happens if <code>key</code> is <code>null</code>. If <code>value</code> is <code>null</code>,
    * {@link PropertiesStore#delete} will be called to removed the property.
    *
+   * This method will trigger the following event(s):
+   *
+   * <ul>
+   *   <li><code>change</code> if a property is created/changed</li>
+   *   <li><code>delete</code> if a property is removed</li>
+   * </ul>
+   *
    * @example
    * const properties = new PropertiesStore();
    *
@@ -517,6 +551,12 @@ class PropertiesStore extends events.EventEmitter {
    * ("\uxxxx" notation) before being written to <code>output</code>. This behaviour can be prevented by disabling the
    * <code>escapeUnicode</code> option.
    *
+   * This method will trigger the following event(s):
+   *
+   * <ul>
+   *   <li><code>store</code> once all properties have been written to <code>output</code></li>
+   * </ul>
+   *
    * @example
    * const properties = new PropertiesStore();
    * properties.set('foo', 'bàr');
@@ -525,9 +565,9 @@ class PropertiesStore extends events.EventEmitter {
    * await properties.store(fs.createWriteStream('path/to/my.properties'));
    * fs.readFileSync('path/to/my.properties', 'latin1');
    * //=> "#Mon Oct 31 21:05:00 GMT 2016
-   * foo=b\\u00e0r
-   * fu=b\\u00e0z
-   * "
+   * //=> foo=b\\u00e0r
+   * //=> fu=b\\u00e0z
+   * //=> "
    *
    * await properties.store(fs.createWriteStream('path/to/my.properties'), {
    *   comments: 'Some witty comment',
@@ -536,10 +576,10 @@ class PropertiesStore extends events.EventEmitter {
    * });
    * fs.readFileSync('path/to/my.properties', 'utf8');
    * //=> "#Some witty comment
-   * #Mon Oct 31 21:05:00 GMT 2016
-   * foo=bàr
-   * fu=bàz
-   * "
+   * //=> #Mon Oct 31 21:05:00 GMT 2016
+   * //=> foo=bàr
+   * //=> fu=bàz
+   * //=> "
    * @param {stream.Writable} output - the output stream to which the properties are to be written
    * @param {Object} [options] - the options to be used
    * @param {string} [options.comments] - any comments to be written to the output before the properties
