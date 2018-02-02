@@ -24,6 +24,8 @@
 
 const assert = require('assert');
 const { EOL } = require('os');
+const moment = require('moment-timezone');
+const sinon = require('sinon');
 
 const LineWriter = require('../src/line-writer');
 const { MockWritable } = require('./mock-stream');
@@ -36,52 +38,24 @@ describe('LineWriter', () => {
     store = new PropertiesStore();
   });
 
-  describe('.writeLine', () => {
-    it('should write str to output', async() => {
-      const output = new MockWritable();
-      const expected = `foo${EOL}`;
-
-      await LineWriter.writeLine(output, 'foo', { encoding: 'latin1' });
-
-      assert.equal(output.buffer.toString('latin1'), expected);
-    });
-
-    it('should write output using encoding option', async() => {
-      const latin1Output = new MockWritable();
-      const utf8Output = new MockWritable();
-      const expected = `foo¥bar${EOL}`;
-
-      await LineWriter.writeLine(latin1Output, 'foo¥bar', { encoding: 'latin1' });
-      await LineWriter.writeLine(utf8Output, 'foo¥bar', { encoding: 'utf8' });
-
-      assert.equal(latin1Output.buffer.toString('latin1'), expected);
-      assert.equal(utf8Output.buffer.toString('utf8'), expected);
-      assert.notDeepEqual(latin1Output.buffer, utf8Output.buffer);
-    });
-
-    context('when failed to write to output', () => {
-      it('should throw an error', async() => {
-        const expectedError = new Error('foo');
-        const output = new MockWritable(null, expectedError);
-        const expectedOutput = '';
-
-        try {
-          await LineWriter.writeLine(output, 'foo', { encoding: 'latin1' });
-          // Should have thrown
-          assert.fail();
-        } catch (e) {
-          assert.strictEqual(e, expectedError);
-        }
-
-        assert.equal(output.buffer.toString('latin1'), expectedOutput);
-      });
-    });
-  });
-
   describe('#write', () => {
+    const expectedTimestampComment = '#Mon Oct 31 21:05:00 GMT 2016';
+    let mockClock;
+
+    beforeEach(() => {
+      sinon.stub(moment.tz, 'guess').returns('GMT');
+      mockClock = sinon.useFakeTimers(1477947900000);
+    });
+
+    afterEach(() => {
+      moment.tz.guess.restore();
+      mockClock.restore();
+    });
+
     it('should write property key/value pairs on separate lines to output', async() => {
       const output = new MockWritable();
       const expected = [
+        expectedTimestampComment,
         'foo=bar',
         'fu=baz'
       ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
@@ -146,14 +120,17 @@ describe('LineWriter', () => {
 
         await writer.write(store);
 
-        assert.equal(output.buffer.toString('latin1'), `${expected}${EOL}`);
+        assert.equal(output.buffer.toString('latin1'), `${expectedTimestampComment}${EOL}${expected}${EOL}`);
       }
     });
 
     it('should write output using encoding option', async() => {
       const latin1Output = new MockWritable();
       const utf8Output = new MockWritable();
-      const expected = `foo¥bar=fu¥baz${EOL}`;
+      const expected = [
+        expectedTimestampComment,
+        'foo¥bar=fu¥baz'
+      ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
 
       store.set('foo¥bar', 'fu¥baz');
 
@@ -169,14 +146,13 @@ describe('LineWriter', () => {
     });
 
     context('when no properties exist', () => {
-      it('should write empty buffer to output', async() => {
+      it('should only write timestamp comment to output', async() => {
         const output = new MockWritable();
-        const expected = '';
         const writer = new LineWriter(output, { encoding: 'latin1' });
 
         await writer.write(store);
 
-        assert.equal(output.buffer.toString('latin1'), expected);
+        assert.equal(output.buffer.toString('latin1'), `${expectedTimestampComment}${EOL}`);
       });
     });
 
@@ -203,10 +179,233 @@ describe('LineWriter', () => {
       });
     });
 
+    context('when comments option is not null', () => {
+      it('should write comments before timestamp comment and property lines to output', async() => {
+        const comments = 'This is a comment';
+        const output = new MockWritable();
+        const expected = [
+          `#${comments}`,
+          expectedTimestampComment,
+          'foo=bar',
+          'fu=baz'
+        ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
+
+        store.set('foo', 'bar');
+        store.set('fu', 'baz');
+
+        const writer = new LineWriter(output, {
+          comments,
+          encoding: 'latin1'
+        });
+
+        await writer.write(store);
+
+        assert.equal(output.buffer.toString('latin1'), expected);
+      });
+
+      it('should write multi-line comments', async() => {
+        const comments = 'This\ris\r\na\n\nmulti-line\ncomment\n';
+        const output = new MockWritable();
+        const expected = [
+          '#This',
+          '#is',
+          '#a',
+          '#',
+          '#multi-line',
+          '#comment',
+          '#',
+          expectedTimestampComment,
+          'foo=bar',
+          'fu=baz'
+        ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
+
+        store.set('foo', 'bar');
+        store.set('fu', 'baz');
+
+        const writer = new LineWriter(output, {
+          comments,
+          encoding: 'latin1'
+        });
+
+        await writer.write(store);
+
+        assert.equal(output.buffer.toString('latin1'), expected);
+      });
+
+      it('should write valid prefixes in comments', async() => {
+        const comments = 'This#is!a#comment';
+        const output = new MockWritable();
+        const expected = [
+          `#${comments}`,
+          expectedTimestampComment,
+          'foo=bar',
+          'fu=baz'
+        ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
+
+        store.set('foo', 'bar');
+        store.set('fu', 'baz');
+
+        const writer = new LineWriter(output, {
+          comments,
+          encoding: 'latin1'
+        });
+
+        await writer.write(store);
+
+        assert.equal(output.buffer.toString('latin1'), expected);
+      });
+
+      it('should write valid prefixes in multi-line comments', async() => {
+        const comments = 'This\ris\r\na\n\n#multi-line\n!comment\n';
+        const output = new MockWritable();
+        const expected = [
+          '#This',
+          '#is',
+          '#a',
+          '#',
+          '#multi-line',
+          '!comment',
+          '#',
+          expectedTimestampComment,
+          'foo=bar',
+          'fu=baz'
+        ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
+
+        store.set('foo', 'bar');
+        store.set('fu', 'baz');
+
+        const writer = new LineWriter(output, {
+          comments,
+          encoding: 'latin1'
+        });
+
+        await writer.write(store);
+
+        assert.equal(output.buffer.toString('latin1'), expected);
+      });
+
+      context('and comments option is an empty string', () => {
+        it('should write empty comment before timestamp comment and property lines to output', async() => {
+          const output = new MockWritable();
+          const expected = [
+            '#',
+            expectedTimestampComment,
+            'foo=bar',
+            'fu=baz'
+          ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
+
+          store.set('foo', 'bar');
+          store.set('fu', 'baz');
+
+          const writer = new LineWriter(output, {
+            comments: '',
+            encoding: 'latin1'
+          });
+
+          await writer.write(store);
+
+          assert.equal(output.buffer.toString('latin1'), expected);
+        });
+      });
+
+      context('and no properties exist', () => {
+        it('should only write comments and timestamp comment', async() => {
+          const comments = 'This is a comment';
+          const output = new MockWritable();
+          const expected = [
+            `#${comments}`,
+            expectedTimestampComment
+          ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
+          const writer = new LineWriter(output, {
+            comments,
+            encoding: 'latin1'
+          });
+
+          await writer.write(store);
+
+          assert.equal(output.buffer.toString('latin1'), expected);
+        });
+      });
+
+      context('and escapeUnicode option is disabled', () => {
+        it('should write non-ASCII characters within comments to output as-is', async() => {
+          const comments = 'This¥is¥a¥comment';
+          const output = new MockWritable();
+          const expected = [
+            `#${comments}`,
+            expectedTimestampComment,
+            'foo¥bar=fu¥baz'
+          ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
+
+          store.set('foo¥bar', 'fu¥baz');
+
+          const writer = new LineWriter(output, {
+            comments,
+            encoding: 'utf8',
+            escapeUnicode: false
+          });
+
+          await writer.write(store);
+
+          assert.equal(output.buffer.toString('utf8'), expected);
+        });
+      });
+
+      context('and escapeUnicode option is enabled', () => {
+        it('should escape non-ASCII characters within comments before being written to output', async() => {
+          const comments = 'This¥is¥a¥comment';
+          const output = new MockWritable();
+          const expected = [
+            '#This\\u00a5is\\u00a5a\\u00a5comment',
+            expectedTimestampComment,
+            'foo\\u00a5bar=fu\\u00a5baz'
+          ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
+
+          store.set('foo¥bar', 'fu¥baz');
+
+          const writer = new LineWriter(output, {
+            comments,
+            encoding: 'ascii',
+            escapeUnicode: true
+          });
+
+          await writer.write(store);
+
+          assert.equal(output.buffer.toString('ascii'), expected);
+        });
+      });
+    });
+
+    context('when comments option is null', () => {
+      it('should only write timestamp comment and property lines to output', async() => {
+        const output = new MockWritable();
+        const expected = [
+          expectedTimestampComment,
+          'foo=bar',
+          'fu=baz'
+        ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
+
+        store.set('foo', 'bar');
+        store.set('fu', 'baz');
+
+        const writer = new LineWriter(output, {
+          comments: null,
+          encoding: 'latin1'
+        });
+
+        await writer.write(store);
+
+        assert.equal(output.buffer.toString('latin1'), expected);
+      });
+    });
+
     context('when escapeUnicode option is disabled', () => {
       it('should write non-ASCII characters to output as-is', async() => {
         const output = new MockWritable();
-        const expected = `foo¥bar=fu¥baz${EOL}`;
+        const expected = [
+          expectedTimestampComment,
+          'foo¥bar=fu¥baz'
+        ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
 
         store.set('foo¥bar', 'fu¥baz');
 
@@ -224,7 +423,10 @@ describe('LineWriter', () => {
     context('when escapeUnicode option is enabled', () => {
       it('should escape non-ASCII characters before being written to output', async() => {
         const output = new MockWritable();
-        const expected = `foo\\u00a5bar=fu\\u00a5baz${EOL}`;
+        const expected = [
+          expectedTimestampComment,
+          'foo\\u00a5bar=fu\\u00a5baz'
+        ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
 
         store.set('foo¥bar', 'fu¥baz');
 

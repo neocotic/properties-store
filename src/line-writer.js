@@ -23,6 +23,7 @@
 'use strict';
 
 const escapeUnicode = require('escape-unicode');
+const moment = require('moment-timezone');
 const os = require('os');
 
 const ASCII = require('./constants/ascii');
@@ -31,6 +32,10 @@ const _convert = Symbol('convert');
 const _options = Symbol('options');
 const _outputStream = Symbol('outputStream');
 const _write = Symbol('write');
+const _writeComments = Symbol('writeComments');
+const _writeLine = Symbol('writeLine');
+const _writeProperties = Symbol('writeProperties');
+const _writeTimestamp = Symbol('writeTimestamp');
 
 const escapes = {
   '=': '\\=',
@@ -49,35 +54,14 @@ const escapes = {
  *
  * @param {stream.Writable} output - the output stream to be written to
  * @param {Object} options - the options to be used
+ * @param {?string} options.comments - any comments to be written to the output before the properties (may be
+ * <code>null</code>)
  * @param {string} options.encoding - the character encoding to be used to write the output
  * @param {boolean} options.escapeUnicode - <code>true</code> to convert all non-ASCII characters to Unicode escapes
  * ("\uxxxx" notation); otherwise <code>false</code>
  * @protected
  */
 class LineWriter {
-
-  /**
-   * Writes the specified string followed by an OS-specific end-of-line to the <code>output</code> stream provided.
-   *
-   * @param {stream.Writable} output - the output stream to be written to
-   * @param {string} str - the string to be written to <code>output</code>
-   * @param {Object} options - the options to be used
-   * @param {string} options.encoding - the character encoding to be used to write the output
-   * @return {Promise.<void, Error>} A <code>Promise</code> that is resolved once <code>output</code> has been written
-   * to.
-   * @public
-   */
-  static writeLine(output, str, options) {
-    return new Promise((resolve, reject) => {
-      output.write(`${str}${os.EOL}`, options.encoding, (error) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve();
-        }
-      });
-    });
-  }
 
   constructor(output, options) {
     this[_outputStream] = output;
@@ -103,7 +87,7 @@ class LineWriter {
         resolve();
       });
 
-      this[_write](properties)
+      this[_writeProperties](properties)
         .catch(reject);
     });
   }
@@ -131,15 +115,91 @@ class LineWriter {
     return result;
   }
 
-  async [_write](properties) {
+  [_write](str) {
+    return new Promise((resolve, reject) => {
+      this[_outputStream].write(str, this[_options].encoding, (error) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve();
+        }
+      });
+    });
+  }
+
+  async [_writeComments]() {
+    const { comments } = this[_options];
+    if (comments == null) {
+      return;
+    }
+
+    await this[_write]('#');
+
+    let current = 0;
+    let last = 0;
+    const length = comments.length;
+
+    while (current < length) {
+      const ch = comments[current];
+      const code = ch.charCodeAt(0);
+
+      if (((code < ASCII.SP || code > ASCII.TILDE) && this[_options].escapeUnicode) || code === ASCII.LF ||
+          code === ASCII.CR) {
+        if (last !== current) {
+          await this[_write](comments.substring(last, current));
+        }
+
+        if ((code < ASCII.SP || code > ASCII.TILDE) && this[_options].escapeUnicode) {
+          await this[_write](escapeUnicode(comments, current, current + 1));
+        } else {
+          await this[_write](os.EOL);
+
+          if (code === ASCII.CR && current !== length - 1 && comments.charCodeAt(current + 1) === ASCII.LF) {
+            current++;
+          }
+
+          if (current === length - 1 || (comments.charCodeAt(current + 1) !== ASCII.NUMBER_SIGN &&
+              comments.charCodeAt(current + 1) !== ASCII.EXC)) {
+            await this[_write]('#');
+          }
+        }
+
+        last = current + 1;
+      }
+
+      current++;
+    }
+
+    if (last !== current) {
+      await this[_write](comments.substring(last, current));
+    }
+
+    await this[_write](os.EOL);
+  }
+
+  async [_writeLine](str) {
+    await this[_write](`${str}${os.EOL}`);
+  }
+
+  async [_writeProperties](properties) {
+    await this[_writeComments]();
+    await this[_writeTimestamp]();
+
     for (let [ key, value ] of properties) {
       key = this[_convert](key, true);
       value = this[_convert](value, false);
 
-      await LineWriter.writeLine(this[_outputStream], `${key}=${value}`, this[_options]);
+      await this[_writeLine](`${key}=${value}`);
     }
 
     this[_outputStream].end();
+  }
+
+  async [_writeTimestamp]() {
+    const timeZone = moment.tz.guess();
+    const timestamp = moment().tz(timeZone).format('ddd MMM DD HH:mm:ss z YYYY');
+
+    await this[_writeLine](`#${timestamp}`);
   }
 
 }

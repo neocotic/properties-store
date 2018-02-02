@@ -1895,7 +1895,7 @@ describe('PropertiesStore', () => {
   });
 
   describe('#store', () => {
-    const expectedTimestampComment = `#Mon Oct 31 21:05:00 GMT 2016${EOL}`;
+    const expectedTimestampComment = '#Mon Oct 31 21:05:00 GMT 2016';
     let mockClock;
 
     beforeEach(() => {
@@ -1911,6 +1911,7 @@ describe('PropertiesStore', () => {
     it('should write property lines to output', async() => {
       const output = new MockWritable();
       const expected = [
+        expectedTimestampComment,
         'foo=bar',
         'fu=baz'
       ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
@@ -1920,7 +1921,7 @@ describe('PropertiesStore', () => {
 
       await store.store(output);
 
-      assert.equal(output.buffer.toString('latin1'), `${expectedTimestampComment}${expected}`);
+      assert.equal(output.buffer.toString('latin1'), expected);
     });
 
     it('should emit "store" event', async() => {
@@ -1941,6 +1942,7 @@ describe('PropertiesStore', () => {
       assert.deepEqual(storeCalls[0].args, [
         {
           options: {
+            comments: null,
             encoding: 'latin1',
             escapeUnicode: true
           },
@@ -1957,7 +1959,7 @@ describe('PropertiesStore', () => {
 
         await store.store(output);
 
-        assert.equal(output.buffer.toString('latin1'), expectedTimestampComment);
+        assert.equal(output.buffer.toString('latin1'), `${expectedTimestampComment}${EOL}`);
       });
 
       it('should emit "store" event', async() => {
@@ -1976,6 +1978,7 @@ describe('PropertiesStore', () => {
         assert.deepEqual(storeCalls[0].args, [
           {
             options: {
+              comments: null,
               encoding: 'latin1',
               escapeUnicode: true
             },
@@ -2007,38 +2010,139 @@ describe('PropertiesStore', () => {
       });
     });
 
+    context('when comments option is not specified', () => {
+      it('should only write timestamp comment and property lines to output', async() => {
+        const output = new MockWritable();
+        const expected = [
+          expectedTimestampComment,
+          'foo=bar',
+          'fu=baz'
+        ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
+        const store = new PropertiesStore();
+        store.set('foo', 'bar');
+        store.set('fu', 'baz');
+
+        await store.store(output);
+
+        assert.equal(output.buffer.toString('latin1'), expected);
+      });
+    });
+
+    context('when comments option is specified', () => {
+      it('should write comments before timestamp comment and property lines to output', async() => {
+        const comments = 'This is a comment';
+        const output = new MockWritable();
+        const expected = [
+          `#${comments}`,
+          expectedTimestampComment,
+          'foo=bar',
+          'fu=baz'
+        ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
+        const store = new PropertiesStore();
+        store.set('foo', 'bar');
+        store.set('fu', 'baz');
+
+        await store.store(output, { comments });
+
+        assert.equal(output.buffer.toString('latin1'), expected);
+      });
+
+      context('and no properties exist', () => {
+        it('should only write comments and timestamp comment', async() => {
+          const comments = 'This is a comment';
+          const output = new MockWritable();
+          const expected = [
+            `#${comments}`,
+            expectedTimestampComment
+          ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
+          const store = new PropertiesStore();
+
+          await store.store(output, { comments });
+
+          assert.equal(output.buffer.toString('latin1'), expected);
+        });
+      });
+
+      context('and escapeUnicode option is disabled', () => {
+        it('should write non-ASCII characters within comments to output as-is', async() => {
+          const comments = 'This¥is¥a¥comment';
+          const output = new MockWritable();
+          const expected = [
+            `#${comments}`,
+            expectedTimestampComment
+          ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
+          const store = new PropertiesStore();
+
+          await store.store(output, {
+            comments,
+            escapeUnicode: false
+          });
+
+          assert.equal(output.buffer.toString('latin1'), expected);
+        });
+      });
+
+      context('and escapeUnicode option is enabled', () => {
+        it('should escape non-ASCII characters within comments before being written to output', async() => {
+          const comments = 'This¥is¥a¥comment';
+          const output = new MockWritable();
+          const expected = [
+            '#This\\u00a5is\\u00a5a\\u00a5comment',
+            expectedTimestampComment
+          ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
+          const store = new PropertiesStore();
+
+          await store.store(output, {
+            comments,
+            escapeUnicode: true
+          });
+
+          assert.equal(output.buffer.toString('latin1'), expected);
+        });
+      });
+    });
+
     context('when encoding option is not specified', () => {
       it('should write output using latin1 encoding', async() => {
         const output = new MockWritable();
-        const expected = `foo\\u00a5bar=fu\\u00a5baz${EOL}`;
+        const expected = [
+          expectedTimestampComment,
+          'foo\\u00a5bar=fu\\u00a5baz'
+        ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
 
         const store = new PropertiesStore();
         store.set('foo¥bar', 'fu¥baz');
 
         await store.store(output);
 
-        assert.equal(output.buffer.toString('latin1'), `${expectedTimestampComment}${expected}`);
+        assert.equal(output.buffer.toString('latin1'), expected);
       });
     });
 
     context('when encoding option is specified', () => {
       it('should write output using encoding', async() => {
         const output = new MockWritable();
-        const expected = `foo\\u00a5bar=fu\\u00a5baz${EOL}`;
+        const expected = [
+          expectedTimestampComment,
+          'foo\\u00a5bar=fu\\u00a5baz'
+        ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
 
         const store = new PropertiesStore();
         store.set('foo¥bar', 'fu¥baz');
 
         await store.store(output, { encoding: 'ascii' });
 
-        assert.equal(output.buffer.toString('ascii'), `${expectedTimestampComment}${expected}`);
+        assert.equal(output.buffer.toString('ascii'), expected);
       });
     });
 
     context('when escapeUnicode option is disabled', () => {
       it('should write non-ASCII characters to output as-is', async() => {
         const output = new MockWritable();
-        const expected = `foo¥bar=fu¥baz${EOL}`;
+        const expected = [
+          expectedTimestampComment,
+          'foo¥bar=fu¥baz'
+        ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
 
         const store = new PropertiesStore();
         store.set('foo¥bar', 'fu¥baz');
@@ -2048,14 +2152,17 @@ describe('PropertiesStore', () => {
           escapeUnicode: false
         });
 
-        assert.equal(output.buffer.toString('utf8'), `${expectedTimestampComment}${expected}`);
+        assert.equal(output.buffer.toString('utf8'), expected);
       });
     });
 
     context('when escapeUnicode option is enabled', () => {
       it('should escape non-ASCII characters before being written to output', async() => {
         const output = new MockWritable();
-        const expected = `foo\\u00a5bar=fu\\u00a5baz${EOL}`;
+        const expected = [
+          expectedTimestampComment,
+          'foo\\u00a5bar=fu\\u00a5baz'
+        ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
 
         const store = new PropertiesStore();
         store.set('foo¥bar', 'fu¥baz');
@@ -2065,7 +2172,7 @@ describe('PropertiesStore', () => {
           escapeUnicode: true
         });
 
-        assert.equal(output.buffer.toString('utf8'), `${expectedTimestampComment}${expected}`);
+        assert.equal(output.buffer.toString('utf8'), expected);
       });
     });
   });
