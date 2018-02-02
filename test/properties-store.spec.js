@@ -373,6 +373,100 @@ describe('PropertiesStore', () => {
         assert.equal(deleteCallback.callCount, 0);
       });
     });
+
+    context('when key is a regular expression', () => {
+      it('should only remove properties that match key', () => {
+        const properties = [
+          [ 'foo', 'bar' ],
+          [ 'fu', 'baz' ],
+          [ 'fizz', 'buzz' ]
+        ];
+        const expected = properties.slice(2);
+        const store = new PropertiesStore();
+
+        for (const [ key, value ] of properties) {
+          store.set(key, value);
+        }
+
+        assert.equal(store.delete(/^f(oo|u)$/), true);
+
+        assert.deepEqual(Array.from(store), expected);
+      });
+
+      it('should emit "delete" event for each property that matches key', () => {
+        const deleteCallback = sinon.spy();
+        const properties = [
+          [ 'foo', 'bar' ],
+          [ 'fu', 'baz' ],
+          [ 'fizz', 'buzz' ]
+        ];
+        const store = new PropertiesStore();
+
+        for (const [ key, value ] of properties) {
+          store.set(key, value);
+        }
+
+        store.on('delete', deleteCallback);
+
+        assert.equal(store.delete(/^f(oo|u)$/), true);
+
+        assert.equal(deleteCallback.callCount, 2);
+
+        const deleteCalls = deleteCallback.getCalls();
+
+        assert.deepEqual(deleteCalls[0].args, [
+          {
+            key: 'foo',
+            properties: store,
+            value: 'bar'
+          }
+        ]);
+        assert.deepEqual(deleteCalls[1].args, [
+          {
+            key: 'fu',
+            properties: store,
+            value: 'baz'
+          }
+        ]);
+      });
+
+      context('and no properties match key', () => {
+        it('should not remove any properties and return false', () => {
+          const properties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ]
+          ];
+          const store = new PropertiesStore();
+
+          for (const [ key, value ] of properties) {
+            store.set(key, value);
+          }
+
+          assert.equal(store.delete(/fiz{2}/), false);
+
+          assert.deepEqual(Array.from(store), properties);
+        });
+
+        it('should not emit any "delete" events', () => {
+          const deleteCallback = sinon.spy();
+          const properties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ]
+          ];
+          const store = new PropertiesStore();
+
+          for (const [ key, value ] of properties) {
+            store.set(key, value);
+          }
+
+          store.on('delete', deleteCallback);
+
+          assert.equal(store.delete(/fiz{2}/), false);
+
+          assert.equal(deleteCallback.callCount, 0);
+        });
+      });
+    });
   });
 
   describe('#entries', () => {
@@ -733,6 +827,59 @@ describe('PropertiesStore', () => {
         }
 
         assert.equal(store.has(null), false);
+      });
+    });
+
+    context('when key is a regular expression', () => {
+      context('and a single property matches key', () => {
+        it('should return true', () => {
+          const properties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ],
+            [ 'fizz', 'buzz' ]
+          ];
+          const store = new PropertiesStore();
+
+          for (const [ key, value ] of properties) {
+            store.set(key, value);
+          }
+
+          assert.equal(store.has(/foo/), true);
+        });
+      });
+
+      context('and multiple properties match key', () => {
+        it('should return true', () => {
+          const properties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ],
+            [ 'fizz', 'buzz' ]
+          ];
+          const store = new PropertiesStore();
+
+          for (const [ key, value ] of properties) {
+            store.set(key, value);
+          }
+
+          assert.equal(store.has(/^f/), true);
+        });
+      });
+
+      context('and no properties match key', () => {
+        it('should return false', () => {
+          const properties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ],
+            [ 'fizz', 'buzz' ]
+          ];
+          const store = new PropertiesStore();
+
+          for (const [ key, value ] of properties) {
+            store.set(key, value);
+          }
+
+          assert.equal(store.has(/^ba/), false);
+        });
       });
     });
   });

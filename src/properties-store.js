@@ -27,6 +27,7 @@ const events = require('events');
 const LineReader = require('./line-reader');
 const LineWriter = require('./line-writer');
 
+const _delete = Symbol('delete');
 const _map = Symbol('map');
 
 /**
@@ -134,11 +135,16 @@ class PropertiesStore extends events.EventEmitter {
   /**
    * Removes the property with the specified <code>key</code> from this {@link PropertiesStore}.
    *
-   * <code>key</code> is case sensitive.
+   * <code>key</code> is case sensitive. Alternatively, <code>key</code> can be a regular expression which can be used
+   * to delete any properties with a matching key. It's important to note that using a regular expression is
+   * considerably slower than using an exact string as the former requires all properties to be iterated over and
+   * checked while the latter has the performance of a hash lookup.
    *
    * @example
    * const properties = new PropertiesStore();
    * properties.set('foo', 'bar');
+   * properties.set('fu', 'baz');
+   * properties.set('fizz', 'buzz');
    *
    * properties.delete('FOO');
    * properties.has('foo');
@@ -147,23 +153,36 @@ class PropertiesStore extends events.EventEmitter {
    * properties.delete('foo');
    * properties.has('foo');
    * //=> false
-   * @param {?string} key - the key of the property to be removed (may be <code>null</code>)
+   *
+   * properties.delete(/^f(u|izz)$/);
+   * properties.has('fu');
+   * //=> false
+   * properties.has('fizz');
+   * //=> false
+   * @param {?string|RegExp} key - the key of the property to be removed or a regular expression to delete any matching
+   * properties (may be <code>null</code>)
    * @return {boolean} <code>true</code> if a property with <code>key</code> was successfully removed; otherwise
    * <code>false</code>.
    * @emits PropertiesStore#delete
    * @public
    */
   delete(key) {
+    if (key instanceof RegExp) {
+      let removedCount = 0;
+
+      for (const existingKey of this[_map].keys()) {
+        if (key.test(existingKey)) {
+          this[_delete](existingKey);
+
+          removedCount++;
+        }
+      }
+
+      return removedCount > 0;
+    }
+
     if (this[_map].has(key)) {
-      const value = this[_map].get(key);
-
-      this[_map].delete(key);
-
-      this.emit('delete', {
-        key,
-        properties: this,
-        value
-      });
+      this[_delete](key);
 
       return true;
     }
@@ -249,7 +268,11 @@ class PropertiesStore extends events.EventEmitter {
   /**
    * Returns whether a property with the specified <code>key</code> exists within this {@link PropertiesStore}.
    *
-   * <code>key</code> is case sensitive.
+   * <code>key</code> is case sensitive. Alternatively, <code>key</code> can be a regular expression which can be used
+   * to check for the existence of any property with a matching key. It's important to note that using a regular
+   * expression is considerably slower than using an exact string as the former requires all properties - up to and
+   * including the first matching property - to be iterated over and checked while the latter has the performance of a
+   * hash lookup.
    *
    * @example
    * const properties = new PropertiesStore();
@@ -261,11 +284,27 @@ class PropertiesStore extends events.EventEmitter {
    * //=> false
    * properties.has('fu');
    * //=> false
-   * @param {?string} key - the key of the property to be checked (may be <code>null</code>)
+   *
+   * properties.has(/^f/);
+   * //=> true
+   * properties.has(/^ba/);
+   * //=> false
+   * @param {?string|RegExp} key - the key of the property to be checked or a regular expression to check for any
+   * matching properties (may be <code>null</code>)
    * @return {boolean} <code>true</code> if a property with <code>key</code> exists; otherwise <code>false</code>.
    * @public
    */
   has(key) {
+    if (key instanceof RegExp) {
+      for (const existingKey of this[_map].keys()) {
+        if (key.test(existingKey)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
     return this[_map].has(key);
   }
 
@@ -488,6 +527,18 @@ class PropertiesStore extends events.EventEmitter {
 
   [Symbol.iterator]() {
     return this[_map].entries();
+  }
+
+  [_delete](key) {
+    const value = this[_map].get(key);
+
+    this[_map].delete(key);
+
+    this.emit('delete', {
+      key,
+      properties: this,
+      value
+    });
   }
 
   /**
