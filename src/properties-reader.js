@@ -47,7 +47,7 @@ const escapes = {
 };
 
 /**
- * A <code>LineReader</code> is responsible for reading lines from an input stream and converting and extracting
+ * A <code>PropertiesReader</code> is responsible for reading lines from an input stream and converting and extracting
  * property information into a {@link PropertiesStore}.
  *
  * @param {stream.Readable} input - the input stream to be read
@@ -55,7 +55,7 @@ const escapes = {
  * @param {string} options.encoding - the character encoding to be used to read the input
  * @protected
  */
-class LineReader {
+class PropertiesReader {
 
   constructor(input, options) {
     this[_inputStream] = input;
@@ -299,4 +299,4 @@ class LineReader {
 
 }
 
-module.exports = LineReader;
+module.exports = PropertiesReader;

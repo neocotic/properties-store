@@ -24,8 +24,8 @@
 
 const events = require('events');
 
-const LineReader = require('./line-reader');
-const LineWriter = require('./line-writer');
+const PropertiesReader = require('./properties-reader');
+const PropertiesWriter = require('./properties-writer');
 
 const _delete = Symbol('delete');
 const _map = Symbol('map');
@@ -355,7 +355,7 @@ class PropertiesStore extends events.EventEmitter {
   async load(input, options) {
     options = Object.assign({ encoding: 'latin1' }, options);
 
-    const reader = new LineReader(input, options);
+    const reader = new PropertiesReader(input, options);
     await reader.read(this);
 
     this.emit('load', {
@@ -558,7 +558,7 @@ class PropertiesStore extends events.EventEmitter {
       escapeUnicode: true
     }, options);
 
-    const writer = new LineWriter(output, options);
+    const writer = new PropertiesWriter(output, options);
     await writer.write(this);
 
     this.emit('store', {

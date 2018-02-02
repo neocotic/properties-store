@@ -27,11 +27,11 @@ const { EOL } = require('os');
 const moment = require('moment-timezone');
 const sinon = require('sinon');
 
-const LineWriter = require('../src/line-writer');
 const { MockWritable } = require('./mock-stream');
 const PropertiesStore = require('../src/properties-store');
+const PropertiesWriter = require('../src/properties-writer');
 
-describe('LineWriter', () => {
+describe('PropertiesWriter', () => {
   let store;
 
   beforeEach(() => {
@@ -63,7 +63,7 @@ describe('LineWriter', () => {
       store.set('foo', 'bar');
       store.set('fu', 'baz');
 
-      const writer = new LineWriter(output, { encoding: 'latin1' });
+      const writer = new PropertiesWriter(output, { encoding: 'latin1' });
 
       await writer.write(store);
 
@@ -116,7 +116,7 @@ describe('LineWriter', () => {
           store.set(key, value);
         }
 
-        const writer = new LineWriter(output, { encoding: 'latin1' });
+        const writer = new PropertiesWriter(output, { encoding: 'latin1' });
 
         await writer.write(store);
 
@@ -134,8 +134,8 @@ describe('LineWriter', () => {
 
       store.set('foo¥bar', 'fu¥baz');
 
-      const latin1Writer = new LineWriter(latin1Output, { encoding: 'latin1' });
-      const utf8Writer = new LineWriter(utf8Output, { encoding: 'utf8' });
+      const latin1Writer = new PropertiesWriter(latin1Output, { encoding: 'latin1' });
+      const utf8Writer = new PropertiesWriter(utf8Output, { encoding: 'utf8' });
 
       await latin1Writer.write(store);
       await utf8Writer.write(store);
@@ -148,7 +148,7 @@ describe('LineWriter', () => {
     context('when no properties exist', () => {
       it('should only write timestamp comment to output', async() => {
         const output = new MockWritable();
-        const writer = new LineWriter(output, { encoding: 'latin1' });
+        const writer = new PropertiesWriter(output, { encoding: 'latin1' });
 
         await writer.write(store);
 
@@ -165,7 +165,7 @@ describe('LineWriter', () => {
         store.set('foo', 'bar');
         store.set('fu', 'baz');
 
-        const writer = new LineWriter(output, { encoding: 'latin1' });
+        const writer = new PropertiesWriter(output, { encoding: 'latin1' });
 
         try {
           await writer.write(store);
@@ -193,7 +193,7 @@ describe('LineWriter', () => {
         store.set('foo', 'bar');
         store.set('fu', 'baz');
 
-        const writer = new LineWriter(output, {
+        const writer = new PropertiesWriter(output, {
           comments,
           encoding: 'latin1'
         });
@@ -222,7 +222,7 @@ describe('LineWriter', () => {
         store.set('foo', 'bar');
         store.set('fu', 'baz');
 
-        const writer = new LineWriter(output, {
+        const writer = new PropertiesWriter(output, {
           comments,
           encoding: 'latin1'
         });
@@ -245,7 +245,7 @@ describe('LineWriter', () => {
         store.set('foo', 'bar');
         store.set('fu', 'baz');
 
-        const writer = new LineWriter(output, {
+        const writer = new PropertiesWriter(output, {
           comments,
           encoding: 'latin1'
         });
@@ -274,7 +274,7 @@ describe('LineWriter', () => {
         store.set('foo', 'bar');
         store.set('fu', 'baz');
 
-        const writer = new LineWriter(output, {
+        const writer = new PropertiesWriter(output, {
           comments,
           encoding: 'latin1'
         });
@@ -297,7 +297,7 @@ describe('LineWriter', () => {
           store.set('foo', 'bar');
           store.set('fu', 'baz');
 
-          const writer = new LineWriter(output, {
+          const writer = new PropertiesWriter(output, {
             comments: '',
             encoding: 'latin1'
           });
@@ -316,7 +316,7 @@ describe('LineWriter', () => {
             `#${comments}`,
             expectedTimestampComment
           ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
-          const writer = new LineWriter(output, {
+          const writer = new PropertiesWriter(output, {
             comments,
             encoding: 'latin1'
           });
@@ -339,7 +339,7 @@ describe('LineWriter', () => {
 
           store.set('foo¥bar', 'fu¥baz');
 
-          const writer = new LineWriter(output, {
+          const writer = new PropertiesWriter(output, {
             comments,
             encoding: 'utf8',
             escapeUnicode: false
@@ -363,7 +363,7 @@ describe('LineWriter', () => {
 
           store.set('foo¥bar', 'fu¥baz');
 
-          const writer = new LineWriter(output, {
+          const writer = new PropertiesWriter(output, {
             comments,
             encoding: 'ascii',
             escapeUnicode: true
@@ -388,7 +388,7 @@ describe('LineWriter', () => {
         store.set('foo', 'bar');
         store.set('fu', 'baz');
 
-        const writer = new LineWriter(output, {
+        const writer = new PropertiesWriter(output, {
           comments: null,
           encoding: 'latin1'
         });
@@ -409,7 +409,7 @@ describe('LineWriter', () => {
 
         store.set('foo¥bar', 'fu¥baz');
 
-        const writer = new LineWriter(output, {
+        const writer = new PropertiesWriter(output, {
           encoding: 'utf8',
           escapeUnicode: false
         });
@@ -430,7 +430,7 @@ describe('LineWriter', () => {
 
         store.set('foo¥bar', 'fu¥baz');
 
-        const writer = new LineWriter(output, {
+        const writer = new PropertiesWriter(output, {
           encoding: 'ascii',
           escapeUnicode: true
         });

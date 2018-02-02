@@ -49,8 +49,8 @@ const escapes = {
 };
 
 /**
- * A <code>LineWriter</code> is responsible for converting and writing properties from a {@link PropertiesStore} to an
- * output stream.
+ * A <code>PropertiesWriter</code> is responsible for converting and writing properties from a {@link PropertiesStore}
+ * to an output stream.
  *
  * @param {stream.Writable} output - the output stream to be written to
  * @param {Object} options - the options to be used
@@ -61,7 +61,7 @@ const escapes = {
  * ("\uxxxx" notation); otherwise <code>false</code>
  * @protected
  */
-class LineWriter {
+class PropertiesWriter {
 
   constructor(output, options) {
     this[_outputStream] = output;
@@ -204,4 +204,4 @@ class LineWriter {
 
 }
 
-module.exports = LineWriter;
+module.exports = PropertiesWriter;
