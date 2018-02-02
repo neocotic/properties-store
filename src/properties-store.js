@@ -366,6 +366,55 @@ class PropertiesStore extends events.EventEmitter {
   }
 
   /**
+   * Replaces the value of each property whose key matches the specified regular expression in this
+   * {@link PropertiesStore}, executing the <code>callback</code> provided to determine the replacement value for each
+   * matching property.
+   *
+   * Nothing happens if <code>key</code> is <code>null</code>. If <code>callback</code> returns <code>null</code>,
+   * {@link PropertiesStore#delete} will be called to removed the matching property.
+   *
+   * @example
+   * const properties = new PropertiesStore();
+   * properties.set('foo', 'bar');
+   * properties.set('fu', 'baz');
+   * properties.set('fizz', 'buzz');
+   *
+   * properties.replace(/quux/, () => 'foo');
+   * Array.from(properties);
+   * //=> [["foo", "bar"], ["fu", "baz"], ["fizz", "buzz"]]
+   *
+   * properties.replace(/^f\S{2,3}$/, (value) => value.toUpperCase());
+   * Array.from(properties);
+   * //=> [["foo", "BAR"], ["fu", "baz"], ["fizz", "BUZZ"]]
+   *
+   * properties.replace(/FU/i, () => null);
+   * Array.from(properties);
+   * //=> [["foo", "BAR"], ["fizz", "BUZZ"]]
+   * @param {?RegExp} regexp - the regular expression to be used to search for matching properties whose value are to be
+   * set (may be <code>null</code>)
+   * @param {PropertiesStore~ReplaceCallback} callback - the function to provide the replacement value for each matching
+   * property
+   * @param {Object} [thisArg] - the value to use as <code>this</code> when executing <code>callback</code>
+   * @return {PropertiesStore} A reference to this {@link PropertiesStore}.
+   * @emits PropertiesStore#change
+   * @emits PropertiesStore#delete
+   * @public
+   */
+  replace(regexp, callback, thisArg) {
+    if (regexp == null) {
+      return this;
+    }
+
+    for (const [ key, value ] of this[_map].entries()) {
+      if (regexp.test(key)) {
+        this.set(key, callback.call(thisArg, value, key, this));
+      }
+    }
+
+    return this;
+  }
+
+  /**
    * Searches for matches between the specified regular expression and the keys within this {@link PropertiesStore},
    * returning an iterator containing the key/value pairs for each matching property.
    *
@@ -439,7 +488,9 @@ class PropertiesStore extends events.EventEmitter {
     }
 
     if (value == null) {
-      this.delete(key);
+      if (this[_map].has(key)) {
+        this[_delete](key);
+      }
     } else {
       const newValue = String(value);
       const oldValue = this[_map].get(key);
@@ -574,6 +625,17 @@ module.exports = PropertiesStore;
  * @param {string} key - the property key
  * @param {PropertiesStore} properties - the {@link PropertiesStore}
  * @return {void}
+ */
+
+/**
+ * The callback function that is passed to {@link PropertiesStore#replace}.
+ *
+ * @public
+ * @callback PropertiesStore~ReplaceCallback
+ * @param {string} value - the property value
+ * @param {string} key - the property key
+ * @param {PropertiesStore} properties - the {@link PropertiesStore}
+ * @return {*} The replacement value for the property or <code>null</code> to remove the property instead.
  */
 
 /**

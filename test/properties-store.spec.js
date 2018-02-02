@@ -506,7 +506,7 @@ describe('PropertiesStore', () => {
 
   describe('#forEach', () => {
     it('should invoke callback with each property key/value pair', () => {
-      const callback = sinon.stub();
+      const callback = sinon.spy();
       const properties = [
         [ 'foo', 'bar' ],
         [ 'fu', 'baz' ],
@@ -536,7 +536,7 @@ describe('PropertiesStore', () => {
 
     context('when no properties exist', () => {
       it('should not invoke callback', () => {
-        const callback = sinon.stub();
+        const callback = sinon.spy();
         const store = new PropertiesStore();
 
         store.forEach(callback);
@@ -547,7 +547,7 @@ describe('PropertiesStore', () => {
 
     context('when thisArg is specified', () => {
       it('should invoke callback using thisArg as "this"', () => {
-        const callback = sinon.stub();
+        const callback = sinon.spy();
         const properties = [
           [ 'foo', 'bar' ],
           [ 'fu', 'baz' ],
@@ -1138,6 +1138,339 @@ describe('PropertiesStore', () => {
         await store.load(input, { encoding: 'utf8' });
 
         assert.deepEqual(Array.from(store), expected);
+      });
+    });
+  });
+
+  describe('#replace', () => {
+    context('when no properties match regexp', () => {
+      it('should not change or remove any properties and return PropertiesStore', () => {
+        const callback = sinon.spy();
+        const properties = [
+          [ 'foo', 'bar' ],
+          [ 'fu', 'baz' ]
+        ];
+        const store = new PropertiesStore();
+
+        for (const [ key, value ] of properties) {
+          store.set(key, value);
+        }
+
+        assert.strictEqual(store.replace(/fizz/, callback), store);
+
+        assert.deepEqual(Array.from(store), properties);
+
+        assert.equal(callback.callCount, 0);
+      });
+
+      it('should not emit any "change" or "delete" events', () => {
+        const changeCallback = sinon.spy();
+        const deleteCallback = sinon.spy();
+        const properties = [
+          [ 'foo', 'bar' ],
+          [ 'fu', 'baz' ]
+        ];
+        const store = new PropertiesStore();
+
+        for (const [ key, value ] of properties) {
+          store.set(key, value);
+        }
+
+        store.on('change', changeCallback);
+        store.on('delete', deleteCallback);
+
+        assert.strictEqual(store.replace(/fizz/, () => 'buzz'), store);
+
+        assert.equal(changeCallback.callCount, 0);
+        assert.equal(deleteCallback.callCount, 0);
+      });
+    });
+
+    context('when properties match regexp', () => {
+      it('should set matching property value returned by invoking callback and return PropertiesStore', () => {
+        const callback = sinon.spy((value) => value.split('').reverse().join(''));
+        const properties = [
+          [ 'foo', 'bar' ],
+          [ 'fu', 'baz' ],
+          [ 'fizz', 'buzz' ]
+        ];
+        const expected = [
+          [ 'foo', 'rab' ],
+          [ 'fu', 'zab' ],
+          [ 'fizz', 'buzz' ]
+        ];
+        const store = new PropertiesStore();
+
+        for (const [ key, value ] of properties) {
+          store.set(key, value);
+        }
+
+        assert.strictEqual(store.replace(/^f(oo|u)$/, callback), store);
+
+        assert.deepEqual(Array.from(store), expected);
+
+        assert.equal(callback.callCount, 2);
+
+        const calls = callback.getCalls();
+
+        assert.deepEqual(calls[0].args, [ 'bar', 'foo', store ]);
+        assert.strictEqual(calls[0].thisValue, undefined);
+
+        assert.deepEqual(calls[1].args, [ 'baz', 'fu', store ]);
+        assert.strictEqual(calls[1].thisValue, undefined);
+      });
+
+      it('should emit "change" event but not "delete" event for each matching property', () => {
+        const callback = sinon.spy((value) => value.split('').reverse().join(''));
+        const changeCallback = sinon.spy();
+        const deleteCallback = sinon.spy();
+        const properties = [
+          [ 'foo', 'bar' ],
+          [ 'fu', 'baz' ],
+          [ 'fizz', 'buzz' ]
+        ];
+        const store = new PropertiesStore();
+
+        for (const [ key, value ] of properties) {
+          store.set(key, value);
+        }
+
+        store.on('change', changeCallback);
+        store.on('delete', deleteCallback);
+
+        assert.strictEqual(store.replace(/^f(oo|u)$/, callback), store);
+
+        assert.equal(changeCallback.callCount, 2);
+        assert.equal(deleteCallback.callCount, 0);
+
+        const changeCalls = changeCallback.getCalls();
+
+        assert.deepEqual(changeCalls[0].args, [
+          {
+            key: 'foo',
+            newValue: 'rab',
+            oldValue: 'bar',
+            properties: store
+          }
+        ]);
+        assert.deepEqual(changeCalls[1].args, [
+          {
+            key: 'fu',
+            newValue: 'zab',
+            oldValue: 'baz',
+            properties: store
+          }
+        ]);
+      });
+
+      context('and value returned by callback is same as existing', () => {
+        it('should not change or remove matching property and return PropertiesStore', () => {
+          const callback = sinon.spy((value) => value);
+          const properties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ],
+            [ 'fizz', 'buzz' ]
+          ];
+          const store = new PropertiesStore();
+
+          for (const [ key, value ] of properties) {
+            store.set(key, value);
+          }
+
+          assert.strictEqual(store.replace(/^f(oo|u)$/, callback), store);
+
+          assert.deepEqual(Array.from(store), properties);
+
+          assert.equal(callback.callCount, 2);
+
+          const calls = callback.getCalls();
+
+          assert.deepEqual(calls[0].args, [ 'bar', 'foo', store ]);
+          assert.strictEqual(calls[0].thisValue, undefined);
+
+          assert.deepEqual(calls[1].args, [ 'baz', 'fu', store ]);
+          assert.strictEqual(calls[1].thisValue, undefined);
+        });
+
+        it('should not emit "change" or "delete" event', () => {
+          const callback = sinon.spy((value) => value);
+          const changeCallback = sinon.spy();
+          const deleteCallback = sinon.spy();
+          const properties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ],
+            [ 'fizz', 'buzz' ]
+          ];
+          const store = new PropertiesStore();
+
+          for (const [ key, value ] of properties) {
+            store.set(key, value);
+          }
+
+          store.on('change', changeCallback);
+          store.on('delete', deleteCallback);
+
+          assert.strictEqual(store.replace(/^f(oo|u)$/, callback), store);
+
+          assert.equal(changeCallback.callCount, 0);
+          assert.equal(deleteCallback.callCount, 0);
+        });
+      });
+
+      context('and value returned by callback is null', () => {
+        it('should remove matching property and return PropertiesStore', () => {
+          const callback = sinon.spy((value) => null);
+          const properties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ],
+            [ 'fizz', 'buzz' ]
+          ];
+          const expected = properties.slice(2);
+          const store = new PropertiesStore();
+
+          for (const [ key, value ] of properties) {
+            store.set(key, value);
+          }
+
+          assert.strictEqual(store.replace(/^f(oo|u)$/, callback), store);
+
+          assert.deepEqual(Array.from(store), expected);
+
+          assert.equal(callback.callCount, 2);
+
+          const calls = callback.getCalls();
+
+          assert.deepEqual(calls[0].args, [ 'bar', 'foo', store ]);
+          assert.strictEqual(calls[0].thisValue, undefined);
+
+          assert.deepEqual(calls[1].args, [ 'baz', 'fu', store ]);
+          assert.strictEqual(calls[1].thisValue, undefined);
+        });
+
+        it('should emit "delete" event but not "change" event', () => {
+          const callback = sinon.spy((value) => null);
+          const changeCallback = sinon.spy();
+          const deleteCallback = sinon.spy();
+          const properties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ],
+            [ 'fizz', 'buzz' ]
+          ];
+          const store = new PropertiesStore();
+
+          for (const [ key, value ] of properties) {
+            store.set(key, value);
+          }
+
+          store.on('change', changeCallback);
+          store.on('delete', deleteCallback);
+
+          assert.strictEqual(store.replace(/^f(oo|u)$/, callback), store);
+
+          assert.equal(changeCallback.callCount, 0);
+          assert.equal(deleteCallback.callCount, 2);
+
+          const deleteCalls = deleteCallback.getCalls();
+
+          assert.deepEqual(deleteCalls[0].args, [
+            {
+              key: 'foo',
+              properties: store,
+              value: 'bar'
+            }
+          ]);
+          assert.deepEqual(deleteCalls[1].args, [
+            {
+              key: 'fu',
+              properties: store,
+              value: 'baz'
+            }
+          ]);
+        });
+      });
+    });
+
+    context('when regexp is null', () => {
+      it('should not change or remove any properties and return PropertiesStore', () => {
+        const callback = sinon.spy((value, key) => {
+          return key === 'foo' ? value.toUpperCase() : null;
+        });
+        const properties = [
+          [ 'foo', 'bar' ],
+          [ 'fu', 'baz' ],
+          [ 'fizz', 'buzz' ]
+        ];
+        const store = new PropertiesStore();
+
+        for (const [ key, value ] of properties) {
+          store.set(key, value);
+        }
+
+        assert.strictEqual(store.replace(null, callback), store);
+
+        assert.deepEqual(Array.from(store), properties);
+      });
+
+      it('should not emit any "change" or "delete" events', () => {
+        const callback = sinon.spy((value, key) => {
+          return key === 'foo' ? value.toUpperCase() : null;
+        });
+        const changeCallback = sinon.spy();
+        const deleteCallback = sinon.spy();
+        const properties = [
+          [ 'foo', 'bar' ],
+          [ 'fu', 'baz' ],
+          [ 'fizz', 'buzz' ]
+        ];
+        const store = new PropertiesStore();
+
+        for (const [ key, value ] of properties) {
+          store.set(key, value);
+        }
+
+        store.on('change', changeCallback);
+        store.on('delete', deleteCallback);
+
+        assert.strictEqual(store.replace(null, callback), store);
+
+        assert.equal(changeCallback.callCount, 0);
+        assert.equal(deleteCallback.callCount, 0);
+      });
+    });
+
+    context('when thisArg is specified', () => {
+      it('should invoke callback using thisArg as "this"', () => {
+        const callback = sinon.spy((value) => value.split('').reverse().join(''));
+        const properties = [
+          [ 'foo', 'bar' ],
+          [ 'fu', 'baz' ],
+          [ 'fizz', 'buzz' ]
+        ];
+        const expected = [
+          [ 'foo', 'rab' ],
+          [ 'fu', 'zab' ],
+          [ 'fizz', 'buzz' ]
+        ];
+        const store = new PropertiesStore();
+        const thisArg = {};
+
+        for (const [ key, value ] of properties) {
+          store.set(key, value);
+        }
+
+        assert.strictEqual(store.replace(/^f(oo|u)$/, callback, thisArg), store);
+
+        assert.deepEqual(Array.from(store), expected);
+
+        assert.equal(callback.callCount, 2);
+
+        const calls = callback.getCalls();
+
+        assert.deepEqual(calls[0].args, [ 'bar', 'foo', store ]);
+        assert.strictEqual(calls[0].thisValue, thisArg);
+
+        assert.deepEqual(calls[1].args, [ 'baz', 'fu', store ]);
+        assert.strictEqual(calls[1].thisValue, thisArg);
       });
     });
   });
