@@ -1,8 +1,8 @@
 {
   "name": "properties-store",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Store for .properties files in Node.js",
-  "homepage": "https://notninja.github.io/properties-store",
+  "homepage": "https://github.com/NotNinja/properties-store",
   "bugs": {
     "url": "https://github.com/NotNinja/properties-store/issues"
   },
@@ -22,23 +22,23 @@
     "url": "https://github.com/NotNinja/properties-store.git"
   },
   "dependencies": {
-    "lodash.trimstart": "^4.5.1",
-    "node-native2ascii": "^0.1.1"
+    "escape-unicode": "^0.1.0",
+    "moment-timezone": "^0.5.14",
+    "unescape-unicode": "^0.1.0"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
     "codecov": "^3.0.0",
     "documentation": "^5.3.5",
-    "eslint": "^4.15.0",
+    "eslint": "^4.16.0",
     "eslint-config-notninja": "^0.2.3",
     "mocha": "^5.0.0",
     "nyc": "^11.4.1",
-    "sinon": "^4.1.6"
+    "sinon": "^4.2.2"
   },
   "main": "src/properties-store.js",
   "scripts": {
     "coverage": "nyc report && codecov",
-    "doc": "documentation build \"src/**/*.js\" -f html -o docs -a public -g --sort-order alpha",
+    "doc": "documentation build \"src/**/*.js\" -f md -o docs/api.md -a public -g --sort-order alpha",
     "pretest": "eslint \"src/**/*.js\" \"test/**/*.js\"",
     "test": "nyc mocha -R list \"test/**/*.spec.js\"",
     "posttest": "nyc check-coverage"

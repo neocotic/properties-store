@@ -22,65 +22,13 @@
 
 'use strict';
 
+const assert = require('assert');
 const { EOL } = require('os');
-const { expect } = require('chai');
-const { Readable, Writable } = require('stream');
+const moment = require('moment-timezone');
 const sinon = require('sinon');
 
+const { MockReadable, MockWritable } = require('./mock-stream');
 const PropertiesStore = require('../src/properties-store');
-
-class MockReadable extends Readable {
-
-  constructor(buffer, error, options) {
-    super(options);
-
-    this.buffer = buffer || Buffer.alloc(0);
-    this.error = error;
-    this._bufferRead = false;
-  }
-
-  _read() {
-    if (this.error) {
-      this.emit('error', this.error);
-    }
-
-    if (this.buffer.length === 0) {
-      this._bufferRead = true;
-    }
-
-    if (this._bufferRead) {
-      this.push(null);
-    } else {
-      this.push(this.buffer);
-
-      this._bufferRead = true;
-    }
-  }
-
-}
-
-class MockWritable extends Writable {
-
-  constructor(buffer, error, options) {
-    super(options);
-
-    this.buffer = buffer || Buffer.alloc(0);
-    this.error = error;
-    this._length = 0;
-  }
-
-  _write(chunk, encoding, callback) {
-    if (this.error) {
-      return callback(this.error);
-    }
-
-    this._length += chunk.length;
-    this.buffer = Buffer.concat([ this.buffer, Buffer.from(chunk, encoding) ], this._length);
-
-    return callback();
-  }
-
-}
 
 describe('PropertiesStore', () => {
   describe('.load', () => {
@@ -90,19 +38,13 @@ describe('PropertiesStore', () => {
         '# foo',
         'foo=bar'
       ].join('\n')));
-      const output = new MockWritable();
-      const expectedOutput = 'foo=bar';
-      const expectedProperties = [
+      const expected = [
         [ 'foo', 'bar' ]
       ];
 
       const store = await PropertiesStore.load(input);
 
-      expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-      await store.store(output);
-
-      expect(output.buffer.toString()).to.equal(expectedOutput);
+      assert.deepEqual(Array.from(store), expected);
     });
 
     context('when encoding option is not specified', () => {
@@ -114,7 +56,7 @@ describe('PropertiesStore', () => {
 
         const store = await PropertiesStore.load(input);
 
-        expect(Array.from(store)).to.deep.equal(expected);
+        assert.deepEqual(Array.from(store), expected);
       });
     });
 
@@ -127,79 +69,7 @@ describe('PropertiesStore', () => {
 
         const store = await PropertiesStore.load(input, { encoding: 'utf8' });
 
-        expect(Array.from(store)).to.deep.equal(expected);
-      });
-    });
-
-    context('when unescape option is disabled', () => {
-      it('should read Unicode escapes as-is', async() => {
-        const input = new MockReadable(Buffer.from('foo\\u00a5bar=fu\\u00a5baz'));
-        const expected = [
-          [ 'foo\\u00a5bar', 'fu\\u00a5baz' ]
-        ];
-
-        const store = await PropertiesStore.load(input, { unescape: false });
-
-        expect(Array.from(store)).to.deep.equal(expected);
-      });
-    });
-
-    context('when unescape option is enabled', () => {
-      it('should replace Unicode escapes with corresponding Unicode characters in property lines', async() => {
-        const input = new MockReadable(Buffer.from('foo\\u00a5bar=fu\\u00a5baz'));
-        const expected = [
-          [ 'foo¥bar', 'fu¥baz' ]
-        ];
-
-        const store = await PropertiesStore.load(input, { unescape: true });
-
-        expect(Array.from(store)).to.deep.equal(expected);
-      });
-    });
-
-    context('when preserve option is disabled', () => {
-      it('should read only property lines', async() => {
-        const input = new MockReadable(Buffer.from([
-          '',
-          '# foo',
-          'foo=bar'
-        ].join('\n')));
-        const output = new MockWritable();
-        const expectedOutput = 'foo=bar';
-        const expectedProperties = [
-          [ 'foo', 'bar' ]
-        ];
-
-        const store = await PropertiesStore.load(input, { preserve: false });
-
-        expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-        await store.store(output);
-
-        expect(output.buffer.toString()).to.equal(expectedOutput);
-      });
-    });
-
-    context('when preserve option is enabled', () => {
-      it('should read all non-property lines', async() => {
-        const input = new MockReadable(Buffer.from([
-          '',
-          '# foo'
-        ].join('\n')));
-        const output = new MockWritable();
-        const expectedOutput = [
-          '',
-          '# foo'
-        ].join(EOL);
-        const expectedProperties = [];
-
-        const store = await PropertiesStore.load(input, { preserve: true });
-
-        expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-        await store.store(output);
-
-        expect(output.buffer.toString()).to.equal(expectedOutput);
+        assert.deepEqual(Array.from(store), expected);
       });
     });
   });
@@ -208,7 +78,7 @@ describe('PropertiesStore', () => {
     const expected = [];
     const store = new PropertiesStore();
 
-    expect(Array.from(store)).to.deep.equal(expected);
+    assert.deepEqual(Array.from(store), expected);
   });
 
   context('when store is specified', () => {
@@ -225,187 +95,25 @@ describe('PropertiesStore', () => {
 
       const store = new PropertiesStore(other);
 
-      expect(Array.from(store)).to.deep.equal(properties);
+      assert.deepEqual(Array.from(store), properties);
     });
 
-    it('should not reflect any changes to store afterwards', async() => {
-      const input = new MockReadable(Buffer.from([
-        '',
-        '# foo',
-        'foo=bar',
-        '',
-        'fu=baz'
-      ].join('\n')));
-      const output = new MockWritable();
-      const expectedOutput = [
-        '',
-        '# foo',
-        'foo=bar',
-        '',
-        'fu=baz'
-      ].join(EOL);
-      const expectedProperties = [
+    it('should not reflect any changes to store afterwards', () => {
+      const properties = [
         [ 'foo', 'bar' ],
         [ 'fu', 'baz' ]
       ];
-      const other = new PropertiesStore({ preserve: true });
-      await other.load(input);
+      const other = new PropertiesStore();
 
-      const store = new PropertiesStore(other, { preserve: true });
+      for (const [ key, value ] of properties) {
+        other.set(key, value);
+      }
+
+      const store = new PropertiesStore(other);
 
       other.clear();
 
-      expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-      await store.store(output);
-
-      expect(output.buffer.toString()).to.equal(expectedOutput);
-    });
-
-    context('when preserve option is disabled', () => {
-      context('and preserve option is disabled on store', () => {
-        it('should contain properties but not lines from store initially', async() => {
-          const input = new MockReadable(Buffer.from([
-            '',
-            '# foo',
-            'foo=bar',
-            '',
-            'fu=baz'
-          ].join('\n')));
-          const output = new MockWritable();
-          const expectedOutput = [
-            'foo=bar',
-            'fu=baz'
-          ].join(EOL);
-          const expectedProperties = [
-            [ 'foo', 'bar' ],
-            [ 'fu', 'baz' ]
-          ];
-          const other = new PropertiesStore({ preserve: false });
-          await other.load(input);
-
-          const store = new PropertiesStore(other, { preserve: false });
-
-          expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-          await store.store(output);
-
-          expect(output.buffer.toString()).to.equal(expectedOutput);
-        });
-      });
-
-      context('and preserve option is enabled on store', () => {
-        it('should contain properties but not lines from store initially', async() => {
-          const input = new MockReadable(Buffer.from([
-            '',
-            '# foo',
-            'foo=bar',
-            '',
-            'fu=baz'
-          ].join('\n')));
-          const output = new MockWritable();
-          const expectedOutput = [
-            'foo=bar',
-            'fu=baz'
-          ].join(EOL);
-          const expectedProperties = [
-            [ 'foo', 'bar' ],
-            [ 'fu', 'baz' ]
-          ];
-          const other = new PropertiesStore({ preserve: true });
-          await other.load(input);
-
-          const store = new PropertiesStore(other, { preserve: false });
-
-          expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-          await store.store(output);
-
-          expect(output.buffer.toString()).to.equal(expectedOutput);
-        });
-      });
-    });
-
-    context('when preserve option is enabled', () => {
-      context('and preserve option is disabled on store', () => {
-        it('should contain properties but not lines from store initially', async() => {
-          const input = new MockReadable(Buffer.from([
-            '',
-            '# foo',
-            'foo=bar',
-            '',
-            'fu=baz'
-          ].join('\n')));
-          const output = new MockWritable();
-          const expectedOutput = [
-            'foo=bar',
-            'fu=baz'
-          ].join(EOL);
-          const expectedProperties = [
-            [ 'foo', 'bar' ],
-            [ 'fu', 'baz' ]
-          ];
-          const other = new PropertiesStore({ preserve: false });
-          await other.load(input);
-
-          const store = new PropertiesStore(other, { preserve: true });
-
-          expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-          await store.store(output);
-
-          expect(output.buffer.toString()).to.equal(expectedOutput);
-        });
-      });
-
-      context('and preserve option is enabled on store', () => {
-        it('should contain properties and lines from store initially', async() => {
-          const input = new MockReadable(Buffer.from([
-            '',
-            '# foo',
-            'foo=bar',
-            '',
-            'fu=baz'
-          ].join('\n')));
-          const output = new MockWritable();
-          const expectedOutput = [
-            '',
-            '# foo',
-            'foo=bar',
-            '',
-            'fu=baz'
-          ].join(EOL);
-          const expectedProperties = [
-            [ 'foo', 'bar' ],
-            [ 'fu', 'baz' ]
-          ];
-          const other = new PropertiesStore({ preserve: true });
-          await other.load(input);
-
-          const store = new PropertiesStore(other, { preserve: true });
-
-          expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-          await store.store(output);
-
-          expect(output.buffer.toString()).to.equal(expectedOutput);
-        });
-      });
-    });
-  });
-
-  context('when preserve option is enabled', () => {
-    it('should contain no properties or lines initially', async() => {
-      const output = new MockWritable();
-      const expectedOutput = '';
-      const expectedProperties = [];
-      const store = new PropertiesStore({ preserve: true });
-
-      expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-      await store.store(output);
-
-      expect(output.buffer.toString()).to.equal(expectedOutput);
+      assert.deepEqual(Array.from(store), properties);
     });
   });
 
@@ -424,7 +132,7 @@ describe('PropertiesStore', () => {
 
       store.clear();
 
-      expect(Array.from(store)).to.deep.equal([]);
+      assert.equal(store.size, 0);
     });
 
     it('should emit single "clear" event and a "delete" event for each removed property', () => {
@@ -446,32 +154,32 @@ describe('PropertiesStore', () => {
 
       store.clear();
 
-      expect(clearCallback.callCount).to.equal(1);
-      expect(deleteCallback.callCount).to.equal(3);
+      assert.equal(clearCallback.callCount, 1);
+      assert.equal(deleteCallback.callCount, 3);
 
       const clearCalls = clearCallback.getCalls();
 
-      expect(clearCalls[0].args).to.deep.equal([
+      assert.deepEqual(clearCalls[0].args, [
         { properties: store }
       ]);
 
       const deleteCalls = deleteCallback.getCalls();
 
-      expect(deleteCalls[0].args).to.deep.equal([
+      assert.deepEqual(deleteCalls[0].args, [
         {
           key: 'foo',
           properties: store,
           value: 'bar'
         }
       ]);
-      expect(deleteCalls[1].args).to.deep.equal([
+      assert.deepEqual(deleteCalls[1].args, [
         {
           key: 'fu',
           properties: store,
           value: 'baz'
         }
       ]);
-      expect(deleteCalls[2].args).to.deep.equal([
+      assert.deepEqual(deleteCalls[2].args, [
         {
           key: 'fizz',
           properties: store,
@@ -491,45 +199,14 @@ describe('PropertiesStore', () => {
 
         store.clear();
 
-        expect(clearCallback.callCount).to.equal(1);
-        expect(deleteCallback.callCount).to.equal(0);
+        assert.equal(clearCallback.callCount, 1);
+        assert.equal(deleteCallback.callCount, 0);
 
         const clearCalls = clearCallback.getCalls();
 
-        expect(clearCalls[0].args).to.deep.equal([
+        assert.deepEqual(clearCalls[0].args, [
           { properties: store }
         ]);
-      });
-    });
-
-    context('when preserve option is enabled', () => {
-      it('should remove all lines', async() => {
-        const input = new MockReadable(Buffer.from([
-          '',
-          '# foo',
-          'foo=bar',
-          '',
-          'foo=baz',
-          'foo=buzz',
-          '',
-          'fu=bar'
-        ].join('\n')));
-        const output = new MockWritable();
-        const expected = '';
-        const store = new PropertiesStore({ preserve: true });
-        await store.load(input, {
-          encoding: 'utf8',
-          unescape: false
-        });
-
-        store.clear();
-
-        await store.store(output, {
-          encoding: 'utf8',
-          escape: false
-        });
-
-        expect(output.buffer.toString()).to.equal(expected);
       });
     });
   });
@@ -548,9 +225,9 @@ describe('PropertiesStore', () => {
         store.set(key, value);
       }
 
-      expect(store.delete('foo')).to.equal(true);
+      assert.equal(store.delete('foo'), true);
 
-      expect(Array.from(store)).to.deep.equal(expected);
+      assert.deepEqual(Array.from(store), expected);
     });
 
     it('should emit "delete" event', () => {
@@ -568,13 +245,13 @@ describe('PropertiesStore', () => {
 
       store.on('delete', deleteCallback);
 
-      expect(store.delete('foo')).to.equal(true);
+      assert.equal(store.delete('foo'), true);
 
-      expect(deleteCallback.callCount).to.equal(1);
+      assert.equal(deleteCallback.callCount, 1);
 
       const deleteCalls = deleteCallback.getCalls();
 
-      expect(deleteCalls[0].args).to.deep.equal([
+      assert.deepEqual(deleteCalls[0].args, [
         {
           key: 'foo',
           properties: store,
@@ -595,9 +272,9 @@ describe('PropertiesStore', () => {
           store.set(key, value);
         }
 
-        expect(store.delete('fizz')).to.equal(false);
+        assert.equal(store.delete('fizz'), false);
 
-        expect(Array.from(store)).to.deep.equal(properties);
+        assert.deepEqual(Array.from(store), properties);
       });
 
       it('should not emit "delete" event', () => {
@@ -614,9 +291,9 @@ describe('PropertiesStore', () => {
 
         store.on('delete', deleteCallback);
 
-        expect(store.delete('fizz')).to.equal(false);
+        assert.equal(store.delete('fizz'), false);
 
-        expect(deleteCallback.callCount).to.equal(0);
+        assert.equal(deleteCallback.callCount, 0);
       });
     });
 
@@ -632,10 +309,10 @@ describe('PropertiesStore', () => {
           store.set(key, value);
         }
 
-        expect(store.delete('FOO')).to.equal(false);
-        expect(store.delete('fu')).to.equal(false);
+        assert.equal(store.delete('FOO'), false);
+        assert.equal(store.delete('fu'), false);
 
-        expect(Array.from(store)).to.deep.equal(properties);
+        assert.deepEqual(Array.from(store), properties);
       });
 
       it('should not emit "delete" event', () => {
@@ -652,10 +329,10 @@ describe('PropertiesStore', () => {
 
         store.on('delete', deleteCallback);
 
-        expect(store.delete('FOO')).to.equal(false);
-        expect(store.delete('fu')).to.equal(false);
+        assert.equal(store.delete('FOO'), false);
+        assert.equal(store.delete('fu'), false);
 
-        expect(deleteCallback.callCount).to.equal(0);
+        assert.equal(deleteCallback.callCount, 0);
       });
     });
 
@@ -672,9 +349,9 @@ describe('PropertiesStore', () => {
           store.set(key, value);
         }
 
-        expect(store.delete(null)).to.equal(false);
+        assert.equal(store.delete(null), false);
 
-        expect(Array.from(store)).to.deep.equal(properties);
+        assert.deepEqual(Array.from(store), properties);
       });
 
       it('should not emit "delete" event', () => {
@@ -692,46 +369,103 @@ describe('PropertiesStore', () => {
 
         store.on('delete', deleteCallback);
 
-        expect(store.delete(null)).to.equal(false);
+        assert.equal(store.delete(null), false);
 
-        expect(deleteCallback.callCount).to.equal(0);
+        assert.equal(deleteCallback.callCount, 0);
       });
     });
 
-    context('when preserve option is enabled', () => {
-      it('should remove all property lines for key', async() => {
-        const input = new MockReadable(Buffer.from([
-          '',
-          '# foo',
-          'foo=bar',
-          '',
-          'foo=baz',
-          'foo=buzz',
-          '',
-          'fu=bar'
-        ].join('\n')));
-        const output = new MockWritable();
-        const expected = [
-          '',
-          '# foo',
-          '',
-          '',
-          'fu=bar'
-        ].join(EOL);
-        const store = new PropertiesStore({ preserve: true });
-        await store.load(input, {
-          encoding: 'utf8',
-          unescape: false
+    context('when key is a regular expression', () => {
+      it('should only remove properties that match key', () => {
+        const properties = [
+          [ 'foo', 'bar' ],
+          [ 'fu', 'baz' ],
+          [ 'fizz', 'buzz' ]
+        ];
+        const expected = properties.slice(2);
+        const store = new PropertiesStore();
+
+        for (const [ key, value ] of properties) {
+          store.set(key, value);
+        }
+
+        assert.equal(store.delete(/^f(oo|u)$/), true);
+
+        assert.deepEqual(Array.from(store), expected);
+      });
+
+      it('should emit "delete" event for each property that matches key', () => {
+        const deleteCallback = sinon.spy();
+        const properties = [
+          [ 'foo', 'bar' ],
+          [ 'fu', 'baz' ],
+          [ 'fizz', 'buzz' ]
+        ];
+        const store = new PropertiesStore();
+
+        for (const [ key, value ] of properties) {
+          store.set(key, value);
+        }
+
+        store.on('delete', deleteCallback);
+
+        assert.equal(store.delete(/^f(oo|u)$/), true);
+
+        assert.equal(deleteCallback.callCount, 2);
+
+        const deleteCalls = deleteCallback.getCalls();
+
+        assert.deepEqual(deleteCalls[0].args, [
+          {
+            key: 'foo',
+            properties: store,
+            value: 'bar'
+          }
+        ]);
+        assert.deepEqual(deleteCalls[1].args, [
+          {
+            key: 'fu',
+            properties: store,
+            value: 'baz'
+          }
+        ]);
+      });
+
+      context('and no properties match key', () => {
+        it('should not remove any properties and return false', () => {
+          const properties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ]
+          ];
+          const store = new PropertiesStore();
+
+          for (const [ key, value ] of properties) {
+            store.set(key, value);
+          }
+
+          assert.equal(store.delete(/fiz{2}/), false);
+
+          assert.deepEqual(Array.from(store), properties);
         });
 
-        expect(store.delete('foo')).to.equal(true);
+        it('should not emit any "delete" events', () => {
+          const deleteCallback = sinon.spy();
+          const properties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ]
+          ];
+          const store = new PropertiesStore();
 
-        await store.store(output, {
-          encoding: 'utf8',
-          escape: false
+          for (const [ key, value ] of properties) {
+            store.set(key, value);
+          }
+
+          store.on('delete', deleteCallback);
+
+          assert.equal(store.delete(/fiz{2}/), false);
+
+          assert.equal(deleteCallback.callCount, 0);
         });
-
-        expect(output.buffer.toString()).to.equal(expected);
       });
     });
   });
@@ -751,12 +485,12 @@ describe('PropertiesStore', () => {
 
       const iterator = store.entries();
 
-      expect(iterator.next().value).to.deep.equal([ 'foo', 'bar' ]);
-      expect(iterator.next().value).to.deep.equal([ 'fu', 'baz' ]);
-      expect(iterator.next().value).to.deep.equal([ 'fizz', 'buzz' ]);
-      expect(iterator.next().value).to.equal(undefined);
+      assert.deepEqual(iterator.next().value, [ 'foo', 'bar' ]);
+      assert.deepEqual(iterator.next().value, [ 'fu', 'baz' ]);
+      assert.deepEqual(iterator.next().value, [ 'fizz', 'buzz' ]);
+      assert.strictEqual(iterator.next().value, undefined);
 
-      expect(Array.from(store.entries())).to.deep.equal(properties);
+      assert.deepEqual(Array.from(store.entries()), properties);
     });
 
     context('when no properties exist', () => {
@@ -764,16 +498,16 @@ describe('PropertiesStore', () => {
         const store = new PropertiesStore();
         const iterator = store.entries();
 
-        expect(iterator.next().value).to.equal(undefined);
+        assert.strictEqual(iterator.next().value, undefined);
 
-        expect(Array.from(store.entries())).to.deep.equal([]);
+        assert.deepEqual(Array.from(store.entries()), []);
       });
     });
   });
 
   describe('#forEach', () => {
     it('should invoke callback with each property key/value pair', () => {
-      const callback = sinon.stub();
+      const callback = sinon.spy();
       const properties = [
         [ 'foo', 'bar' ],
         [ 'fu', 'baz' ],
@@ -787,34 +521,34 @@ describe('PropertiesStore', () => {
 
       store.forEach(callback);
 
-      expect(callback.callCount).to.equal(3);
+      assert.equal(callback.callCount, 3);
 
       const calls = callback.getCalls();
 
-      expect(calls[0].args).to.deep.equal([ 'bar', 'foo', store ]);
-      expect(calls[0].thisValue).to.equal(undefined);
+      assert.deepEqual(calls[0].args, [ 'bar', 'foo', store ]);
+      assert.strictEqual(calls[0].thisValue, undefined);
 
-      expect(calls[1].args).to.deep.equal([ 'baz', 'fu', store ]);
-      expect(calls[1].thisValue).to.equal(undefined);
+      assert.deepEqual(calls[1].args, [ 'baz', 'fu', store ]);
+      assert.strictEqual(calls[1].thisValue, undefined);
 
-      expect(calls[2].args).to.deep.equal([ 'buzz', 'fizz', store ]);
-      expect(calls[2].thisValue).to.equal(undefined);
+      assert.deepEqual(calls[2].args, [ 'buzz', 'fizz', store ]);
+      assert.strictEqual(calls[2].thisValue, undefined);
     });
 
     context('when no properties exist', () => {
       it('should not invoke callback', () => {
-        const callback = sinon.stub();
+        const callback = sinon.spy();
         const store = new PropertiesStore();
 
         store.forEach(callback);
 
-        expect(callback.callCount).to.equal(0);
+        assert.equal(callback.callCount, 0);
       });
     });
 
     context('when thisArg is specified', () => {
       it('should invoke callback using thisArg as "this"', () => {
-        const callback = sinon.stub();
+        const callback = sinon.spy();
         const properties = [
           [ 'foo', 'bar' ],
           [ 'fu', 'baz' ],
@@ -829,18 +563,18 @@ describe('PropertiesStore', () => {
 
         store.forEach(callback, thisArg);
 
-        expect(callback.callCount).to.equal(3);
+        assert.equal(callback.callCount, 3);
 
         const calls = callback.getCalls();
 
-        expect(calls[0].args).to.deep.equal([ 'bar', 'foo', store ]);
-        expect(calls[0].thisValue).to.equal(thisArg);
+        assert.deepEqual(calls[0].args, [ 'bar', 'foo', store ]);
+        assert.strictEqual(calls[0].thisValue, thisArg);
 
-        expect(calls[1].args).to.deep.equal([ 'baz', 'fu', store ]);
-        expect(calls[1].thisValue).to.equal(thisArg);
+        assert.deepEqual(calls[1].args, [ 'baz', 'fu', store ]);
+        assert.strictEqual(calls[1].thisValue, thisArg);
 
-        expect(calls[2].args).to.deep.equal([ 'buzz', 'fizz', store ]);
-        expect(calls[2].thisValue).to.equal(thisArg);
+        assert.deepEqual(calls[2].args, [ 'buzz', 'fizz', store ]);
+        assert.strictEqual(calls[2].thisValue, thisArg);
       });
     });
   });
@@ -859,9 +593,9 @@ describe('PropertiesStore', () => {
           store.set(key, value);
         }
 
-        expect(store.get('foo')).to.equal('bar');
-        expect(store.get('fu')).to.equal('baz');
-        expect(store.get('fizz')).to.equal('buzz');
+        assert.strictEqual(store.get('foo'), 'bar');
+        assert.strictEqual(store.get('fu'), 'baz');
+        assert.strictEqual(store.get('fizz'), 'buzz');
       });
     });
 
@@ -878,9 +612,9 @@ describe('PropertiesStore', () => {
             store.set(key, value);
           }
 
-          expect(store.get('fizz', '123')).to.equal('123');
-          expect(store.get('fizz', 123)).to.equal('123');
-          expect(store.get('fizz', false)).to.equal('false');
+          assert.strictEqual(store.get('fizz', '123'), '123');
+          assert.strictEqual(store.get('fizz', 123), '123');
+          assert.strictEqual(store.get('fizz', false), 'false');
         });
       });
 
@@ -896,7 +630,7 @@ describe('PropertiesStore', () => {
             store.set(key, value);
           }
 
-          expect(store.get('fizz', null)).to.equal(null);
+          assert.strictEqual(store.get('fizz', null), null);
         });
       });
 
@@ -912,7 +646,7 @@ describe('PropertiesStore', () => {
             store.set(key, value);
           }
 
-          expect(store.get('fizz')).to.equal(undefined);
+          assert.strictEqual(store.get('fizz'), undefined);
         });
       });
     });
@@ -930,9 +664,9 @@ describe('PropertiesStore', () => {
             store.set(key, value);
           }
 
-          expect(store.get('FOO', '123')).to.equal('123');
-          expect(store.get('fu', 123)).to.equal('123');
-          expect(store.get('FOO', false)).to.equal('false');
+          assert.strictEqual(store.get('FOO', '123'), '123');
+          assert.strictEqual(store.get('fu', 123), '123');
+          assert.strictEqual(store.get('FOO', false), 'false');
         });
       });
 
@@ -948,8 +682,8 @@ describe('PropertiesStore', () => {
             store.set(key, value);
           }
 
-          expect(store.get('FOO', null)).to.equal(null);
-          expect(store.get('fu', null)).to.equal(null);
+          assert.strictEqual(store.get('FOO', null), null);
+          assert.strictEqual(store.get('fu', null), null);
         });
       });
 
@@ -965,8 +699,8 @@ describe('PropertiesStore', () => {
             store.set(key, value);
           }
 
-          expect(store.get('FOO')).to.equal(undefined);
-          expect(store.get('fu')).to.equal(undefined);
+          assert.strictEqual(store.get('FOO'), undefined);
+          assert.strictEqual(store.get('fu'), undefined);
         });
       });
     });
@@ -985,9 +719,9 @@ describe('PropertiesStore', () => {
             store.set(key, value);
           }
 
-          expect(store.get(null, '123')).to.equal('123');
-          expect(store.get(null, 123)).to.equal('123');
-          expect(store.get(null, false)).to.equal('false');
+          assert.strictEqual(store.get(null, '123'), '123');
+          assert.strictEqual(store.get(null, 123), '123');
+          assert.strictEqual(store.get(null, false), 'false');
         });
       });
 
@@ -1004,8 +738,8 @@ describe('PropertiesStore', () => {
             store.set(key, value);
           }
 
-          expect(store.get(null, null)).to.equal(null);
-          expect(store.get(null, null)).to.equal(null);
+          assert.strictEqual(store.get(null, null), null);
+          assert.strictEqual(store.get(null, null), null);
         });
       });
 
@@ -1022,8 +756,8 @@ describe('PropertiesStore', () => {
             store.set(key, value);
           }
 
-          expect(store.get(null)).to.equal(undefined);
-          expect(store.get(null)).to.equal(undefined);
+          assert.strictEqual(store.get(null), undefined);
+          assert.strictEqual(store.get(null), undefined);
         });
       });
     });
@@ -1043,7 +777,7 @@ describe('PropertiesStore', () => {
           store.set(key, value);
         }
 
-        expect(store.has('foo')).to.equal(true);
+        assert.equal(store.has('foo'), true);
       });
     });
 
@@ -1059,7 +793,7 @@ describe('PropertiesStore', () => {
           store.set(key, value);
         }
 
-        expect(store.has('fizz')).to.equal(false);
+        assert.equal(store.has('fizz'), false);
       });
     });
 
@@ -1075,8 +809,8 @@ describe('PropertiesStore', () => {
           store.set(key, value);
         }
 
-        expect(store.has('FOO')).to.equal(false);
-        expect(store.has('fu')).to.equal(false);
+        assert.equal(store.has('FOO'), false);
+        assert.equal(store.has('fu'), false);
       });
     });
 
@@ -1093,7 +827,60 @@ describe('PropertiesStore', () => {
           store.set(key, value);
         }
 
-        expect(store.has(null)).to.equal(false);
+        assert.equal(store.has(null), false);
+      });
+    });
+
+    context('when key is a regular expression', () => {
+      context('and a single property matches key', () => {
+        it('should return true', () => {
+          const properties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ],
+            [ 'fizz', 'buzz' ]
+          ];
+          const store = new PropertiesStore();
+
+          for (const [ key, value ] of properties) {
+            store.set(key, value);
+          }
+
+          assert.equal(store.has(/foo/), true);
+        });
+      });
+
+      context('and multiple properties match key', () => {
+        it('should return true', () => {
+          const properties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ],
+            [ 'fizz', 'buzz' ]
+          ];
+          const store = new PropertiesStore();
+
+          for (const [ key, value ] of properties) {
+            store.set(key, value);
+          }
+
+          assert.equal(store.has(/^f/), true);
+        });
+      });
+
+      context('and no properties match key', () => {
+        it('should return false', () => {
+          const properties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ],
+            [ 'fizz', 'buzz' ]
+          ];
+          const store = new PropertiesStore();
+
+          for (const [ key, value ] of properties) {
+            store.set(key, value);
+          }
+
+          assert.equal(store.has(/^ba/), false);
+        });
       });
     });
   });
@@ -1114,12 +901,12 @@ describe('PropertiesStore', () => {
 
       const iterator = store.keys();
 
-      expect(iterator.next().value).to.equal('foo');
-      expect(iterator.next().value).to.equal('fu');
-      expect(iterator.next().value).to.equal('fizz');
-      expect(iterator.next().value).to.equal(undefined);
+      assert.equal(iterator.next().value, 'foo');
+      assert.equal(iterator.next().value, 'fu');
+      assert.equal(iterator.next().value, 'fizz');
+      assert.strictEqual(iterator.next().value, undefined);
 
-      expect(Array.from(store.keys())).to.deep.equal(expected);
+      assert.deepEqual(Array.from(store.keys()), expected);
     });
 
     context('when no properties exist', () => {
@@ -1127,107 +914,9 @@ describe('PropertiesStore', () => {
         const store = new PropertiesStore();
         const iterator = store.keys();
 
-        expect(iterator.next().value).to.equal(undefined);
+        assert.strictEqual(iterator.next().value, undefined);
 
-        expect(Array.from(store.keys())).to.deep.equal([]);
-      });
-    });
-  });
-
-  describe('#lines', () => {
-    it('should return iterator for each property line', () => {
-      const properties = [
-        [ 'foo', 'bar' ],
-        [ 'fu', 'baz' ],
-        [ 'fizz', 'buzz' ]
-      ];
-      const expected = [
-        'foo=bar',
-        'fu=baz',
-        'fizz=buzz'
-      ];
-      const store = new PropertiesStore();
-
-      for (const [ key, value ] of properties) {
-        store.set(key, value);
-      }
-
-      const iterator = store.lines();
-
-      expect(iterator.next().value).to.equal(expected[0]);
-      expect(iterator.next().value).to.equal(expected[1]);
-      expect(iterator.next().value).to.equal(expected[2]);
-      expect(iterator.next().value).to.equal(undefined);
-
-      expect(Array.from(store.lines())).to.deep.equal(expected);
-    });
-
-    context('when no properties exist', () => {
-      it('should return an empty iterator', () => {
-        const store = new PropertiesStore();
-        const iterator = store.lines();
-
-        expect(iterator.next().value).to.equal(undefined);
-
-        expect(Array.from(store.lines())).to.deep.equal([]);
-      });
-    });
-
-    context('when preserve option is enabled', () => {
-      it('should return iterator for each line', async() => {
-        const input = new MockReadable(Buffer.from([
-          '',
-          '# foo',
-          'foo=bar',
-          '',
-          'fu=baz',
-          'fizz=buzz'
-        ].join('\n')));
-        const expected = [
-          '',
-          '# foo',
-          'foo=bar',
-          '',
-          'fu=baz',
-          'fizz=buzz'
-        ];
-        const store = new PropertiesStore({ preserve: true });
-        await store.load(input);
-
-        const iterator = store.lines();
-
-        expect(iterator.next().value).to.equal(expected[0]);
-        expect(iterator.next().value).to.equal(expected[1]);
-        expect(iterator.next().value).to.equal(expected[2]);
-        expect(iterator.next().value).to.equal(expected[3]);
-        expect(iterator.next().value).to.equal(expected[4]);
-        expect(iterator.next().value).to.equal(expected[5]);
-        expect(iterator.next().value).to.equal(undefined);
-
-        expect(Array.from(store.lines())).to.deep.equal(expected);
-      });
-
-      context('when no properties exist', () => {
-        it('should return iterator for each non-property line', async() => {
-          const input = new MockReadable(Buffer.from([
-            '',
-            '# foo'
-          ].join('\n')));
-          const expected = [
-            '',
-            '# foo'
-          ];
-          const store = new PropertiesStore({ preserve: true });
-          await store.load(input);
-
-          const iterator = store.lines();
-
-          expect(iterator.next().value).to.equal(expected[0]);
-          expect(iterator.next().value).to.equal(expected[1]);
-          expect(iterator.next().value).to.equal(undefined);
-
-          expect(Array.from(store.lines())).to.deep.equal(expected);
-        });
+        assert.deepEqual(Array.from(store.keys()), []);
       });
     });
   });
@@ -1239,20 +928,14 @@ describe('PropertiesStore', () => {
         '# foo',
         'foo=bar'
       ].join('\n')));
-      const output = new MockWritable();
-      const expectedOutput = 'foo=bar';
-      const expectedProperties = [
+      const expected = [
         [ 'foo', 'bar' ]
       ];
       const store = new PropertiesStore();
 
       await store.load(input);
 
-      expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-      await store.store(output);
-
-      expect(output.buffer.toString()).to.equal(expectedOutput);
+      assert.deepEqual(Array.from(store), expected);
     });
 
     it('should emit "load" event and a "change" event for each changed property', async() => {
@@ -1275,12 +958,12 @@ describe('PropertiesStore', () => {
 
       await store.load(input);
 
-      expect(changeCallback.callCount).to.equal(4);
-      expect(loadCallback.callCount).to.equal(1);
+      assert.equal(changeCallback.callCount, 4);
+      assert.equal(loadCallback.callCount, 1);
 
       const changeCalls = changeCallback.getCalls();
 
-      expect(changeCalls[0].args).to.deep.equal([
+      assert.deepEqual(changeCalls[0].args, [
         {
           key: 'foo',
           newValue: 'bar',
@@ -1288,7 +971,7 @@ describe('PropertiesStore', () => {
           properties: store
         }
       ]);
-      expect(changeCalls[1].args).to.deep.equal([
+      assert.deepEqual(changeCalls[1].args, [
         {
           key: 'foo',
           newValue: 'baz',
@@ -1296,7 +979,7 @@ describe('PropertiesStore', () => {
           properties: store
         }
       ]);
-      expect(changeCalls[2].args).to.deep.equal([
+      assert.deepEqual(changeCalls[2].args, [
         {
           key: 'foo',
           newValue: 'buzz',
@@ -1304,7 +987,7 @@ describe('PropertiesStore', () => {
           properties: store
         }
       ]);
-      expect(changeCalls[3].args).to.deep.equal([
+      assert.deepEqual(changeCalls[3].args, [
         {
           key: 'fu',
           newValue: 'bar',
@@ -1315,13 +998,10 @@ describe('PropertiesStore', () => {
 
       const loadCalls = loadCallback.getCalls();
 
-      expect(loadCalls[0].args).to.deep.equal([
+      assert.deepEqual(loadCalls[0].args, [
         {
           input,
-          options: {
-            encoding: 'latin1',
-            unescape: true
-          },
+          options: { encoding: 'latin1' },
           properties: store
         }
       ]);
@@ -1335,12 +1015,7 @@ describe('PropertiesStore', () => {
         '',
         'fu=baz'
       ].join('\n')));
-      const output = new MockWritable();
-      const expectedOutput = [
-        'foo=buzz',
-        'fu=baz'
-      ].join(EOL);
-      const expectedProperties = [
+      const expected = [
         [ 'foo', 'buzz' ],
         [ 'fu', 'baz' ]
       ];
@@ -1349,31 +1024,20 @@ describe('PropertiesStore', () => {
 
       await store.load(input);
 
-      expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-      await store.store(output);
-
-      expect(output.buffer.toString()).to.equal(expectedOutput);
+      assert.deepEqual(Array.from(store), expected);
     });
 
     context('when input contains no property lines', () => {
-      it('should read no lines or properties', async() => {
+      it('should read no properties', async() => {
         const input = new MockReadable(Buffer.from([
           '',
           '# foo'
         ].join('\n')));
-        const output = new MockWritable();
-        const expectedOutput = '';
-        const expectedProperties = [];
         const store = new PropertiesStore();
 
         await store.load(input);
 
-        expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-        await store.store(output);
-
-        expect(output.buffer.toString()).to.equal(expectedOutput);
+        assert.equal(store.size, 0);
       });
 
       it('should emit "load" event but not any "change" events', async() => {
@@ -1390,153 +1054,63 @@ describe('PropertiesStore', () => {
 
         await store.load(input);
 
-        expect(changeCallback.callCount).to.equal(0);
-        expect(loadCallback.callCount).to.equal(1);
+        assert.equal(changeCallback.callCount, 0);
+        assert.equal(loadCallback.callCount, 1);
 
         const loadCalls = loadCallback.getCalls();
 
-        expect(loadCalls[0].args).to.deep.equal([
+        assert.deepEqual(loadCalls[0].args, [
           {
             input,
-            options: {
-              encoding: 'latin1',
-              unescape: true
-            },
+            options: { encoding: 'latin1' },
             properties: store
           }
         ]);
       });
-
-      context('and preserve option is enabled', () => {
-        it('should read all non-property lines', async() => {
-          const input = new MockReadable(Buffer.from([
-            '',
-            '# foo'
-          ].join('\n')));
-          const output = new MockWritable();
-          const expectedOutput = [
-            '',
-            '# foo'
-          ].join(EOL);
-          const expectedProperties = [];
-          const store = new PropertiesStore({ preserve: true });
-
-          await store.load(input);
-
-          expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-          await store.store(output);
-
-          expect(output.buffer.toString()).to.equal(expectedOutput);
-        });
-
-        it('should extend existing properties and lines', async() => {
-          const input1 = new MockReadable(Buffer.from([
-            '',
-            '# foo',
-            'foo=bar',
-            ''
-          ].join('\n')));
-          const input2 = new MockReadable(Buffer.from([
-            'foo=buzz',
-            '',
-            'fu=baz',
-            '# fu',
-            ''
-          ].join('\n')));
-          const output = new MockWritable();
-          const expectedOutput = [
-            '',
-            '# foo',
-            'foo=bar',
-            '',
-            'foo=buzz',
-            '',
-            'fu=baz',
-            '# fu',
-            ''
-          ].join(EOL);
-          const expectedProperties = [
-            [ 'foo', 'buzz' ],
-            [ 'fu', 'baz' ]
-          ];
-          const store = new PropertiesStore({ preserve: true });
-
-          await store.load(input1);
-          await store.load(input2);
-
-          expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-          await store.store(output);
-
-          expect(output.buffer.toString()).to.equal(expectedOutput);
-        });
-      });
     });
 
     context('when input is empty', () => {
-      it('should read no lines or properties', async() => {
+      it('should read no properties', async() => {
         const input = new MockReadable();
-        const output = new MockWritable();
-        const expectedOutput = '';
-        const expectedProperties = [];
         const store = new PropertiesStore();
 
         await store.load(input);
 
-        expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-        await store.store(output);
-
-        expect(output.buffer.toString()).to.equal(expectedOutput);
+        assert.equal(store.size, 0);
       });
     });
 
     context('when input is TTY', () => {
-      it('should read no lines or properties', async() => {
+      it('should read no properties', async() => {
         const input = new MockReadable(Buffer.from([
           '',
           '# foo',
           'foo=bar'
         ].join('\n')));
         input.isTTY = true;
-        const output = new MockWritable();
-        const expectedOutput = '';
-        const expectedProperties = [];
         const store = new PropertiesStore();
 
         await store.load(input);
 
-        expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-        await store.store(output);
-
-        expect(output.buffer.toString()).to.equal(expectedOutput);
+        assert.equal(store.size, 0);
       });
     });
 
     context('when failed to read from input', () => {
       it('should throw an error', async() => {
-        const expectedError = new Error('foo');
-        const input = new MockReadable(null, expectedError);
-        const output = new MockWritable();
-        const expectedOutput = '';
-        const expectedProperties = [];
+        const expected = new Error('foo');
+        const input = new MockReadable(null, expected);
         const store = new PropertiesStore();
 
         try {
           await store.load(input);
           // Should have thrown
-          expect.fail();
+          assert.fail();
         } catch (e) {
-          expect(e).to.equal(expectedError);
+          assert.strictEqual(e, expected);
         }
 
-        expect(Array.from(store)).to.deep.equal(expectedProperties);
-
-        await store.store(output);
-
-        expect(output.buffer.toString()).to.equal(expectedOutput);
+        assert.equal(store.size, 0);
       });
     });
 
@@ -1550,7 +1124,7 @@ describe('PropertiesStore', () => {
 
         await store.load(input);
 
-        expect(Array.from(store)).to.deep.equal(expected);
+        assert.deepEqual(Array.from(store), expected);
       });
     });
 
@@ -1564,118 +1138,409 @@ describe('PropertiesStore', () => {
 
         await store.load(input, { encoding: 'utf8' });
 
-        expect(Array.from(store)).to.deep.equal(expected);
+        assert.deepEqual(Array.from(store), expected);
       });
     });
+  });
 
-    context('when unescape option is disabled', () => {
-      it('should read Unicode escapes as-is', async() => {
-        const input = new MockReadable(Buffer.from('foo\\u00a5bar=fu\\u00a5baz'));
-        const expected = [
-          [ 'foo\\u00a5bar', 'fu\\u00a5baz' ]
+  describe('#replace', () => {
+    context('when no properties match regexp', () => {
+      it('should not change or remove any properties and return PropertiesStore', () => {
+        const callback = sinon.spy();
+        const properties = [
+          [ 'foo', 'bar' ],
+          [ 'fu', 'baz' ]
         ];
         const store = new PropertiesStore();
 
-        await store.load(input, { unescape: false });
+        for (const [ key, value ] of properties) {
+          store.set(key, value);
+        }
 
-        expect(Array.from(store)).to.deep.equal(expected);
+        assert.strictEqual(store.replace(/fizz/, callback), store);
+
+        assert.deepEqual(Array.from(store), properties);
+
+        assert.equal(callback.callCount, 0);
       });
-    });
 
-    context('when unescape option is enabled', () => {
-      it('should replace Unicode escapes with corresponding Unicode characters in property lines', async() => {
-        const input = new MockReadable(Buffer.from('foo\\u00a5bar=fu\\u00a5baz'));
-        const expected = [
-          [ 'foo¥bar', 'fu¥baz' ]
+      it('should not emit any "change" or "delete" events', () => {
+        const changeCallback = sinon.spy();
+        const deleteCallback = sinon.spy();
+        const properties = [
+          [ 'foo', 'bar' ],
+          [ 'fu', 'baz' ]
         ];
         const store = new PropertiesStore();
 
-        await store.load(input, { unescape: true });
+        for (const [ key, value ] of properties) {
+          store.set(key, value);
+        }
 
-        expect(Array.from(store)).to.deep.equal(expected);
+        store.on('change', changeCallback);
+        store.on('delete', deleteCallback);
+
+        assert.strictEqual(store.replace(/fizz/, () => 'buzz'), store);
+
+        assert.equal(changeCallback.callCount, 0);
+        assert.equal(deleteCallback.callCount, 0);
+      });
+    });
+
+    context('when properties match regexp', () => {
+      it('should set matching property value returned by invoking callback and return PropertiesStore', () => {
+        const callback = sinon.spy((value) => value.split('').reverse().join(''));
+        const properties = [
+          [ 'foo', 'bar' ],
+          [ 'fu', 'baz' ],
+          [ 'fizz', 'buzz' ]
+        ];
+        const expected = [
+          [ 'foo', 'rab' ],
+          [ 'fu', 'zab' ],
+          [ 'fizz', 'buzz' ]
+        ];
+        const store = new PropertiesStore();
+
+        for (const [ key, value ] of properties) {
+          store.set(key, value);
+        }
+
+        assert.strictEqual(store.replace(/^f(oo|u)$/, callback), store);
+
+        assert.deepEqual(Array.from(store), expected);
+
+        assert.equal(callback.callCount, 2);
+
+        const calls = callback.getCalls();
+
+        assert.deepEqual(calls[0].args, [ 'bar', 'foo', store ]);
+        assert.strictEqual(calls[0].thisValue, undefined);
+
+        assert.deepEqual(calls[1].args, [ 'baz', 'fu', store ]);
+        assert.strictEqual(calls[1].thisValue, undefined);
       });
 
-      context('and preserve option is enabled', () => {
-        it('should replace Unicode escapes with corresponding Unicode characters in all lines', async() => {
-          const input = new MockReadable(Buffer.from([
-            '',
-            '# foo\\u00a5bar',
-            'foo\\u00a5bar=fu\\u00a5baz'
-          ].join('\n')));
-          const output = new MockWritable();
-          const expectedOutput = [
-            '',
-            '# foo¥bar',
-            'foo¥bar=fu¥baz'
-          ].join(EOL);
-          const expectedProperties = [
-            [ 'foo¥bar', 'fu¥baz' ]
+      it('should emit "change" event but not "delete" event for each matching property', () => {
+        const callback = sinon.spy((value) => value.split('').reverse().join(''));
+        const changeCallback = sinon.spy();
+        const deleteCallback = sinon.spy();
+        const properties = [
+          [ 'foo', 'bar' ],
+          [ 'fu', 'baz' ],
+          [ 'fizz', 'buzz' ]
+        ];
+        const store = new PropertiesStore();
+
+        for (const [ key, value ] of properties) {
+          store.set(key, value);
+        }
+
+        store.on('change', changeCallback);
+        store.on('delete', deleteCallback);
+
+        assert.strictEqual(store.replace(/^f(oo|u)$/, callback), store);
+
+        assert.equal(changeCallback.callCount, 2);
+        assert.equal(deleteCallback.callCount, 0);
+
+        const changeCalls = changeCallback.getCalls();
+
+        assert.deepEqual(changeCalls[0].args, [
+          {
+            key: 'foo',
+            newValue: 'rab',
+            oldValue: 'bar',
+            properties: store
+          }
+        ]);
+        assert.deepEqual(changeCalls[1].args, [
+          {
+            key: 'fu',
+            newValue: 'zab',
+            oldValue: 'baz',
+            properties: store
+          }
+        ]);
+      });
+
+      context('and value returned by callback is same as existing', () => {
+        it('should not change or remove matching property and return PropertiesStore', () => {
+          const callback = sinon.spy((value) => value);
+          const properties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ],
+            [ 'fizz', 'buzz' ]
           ];
-          const store = new PropertiesStore({ preserve: true });
+          const store = new PropertiesStore();
 
-          await store.load(input, { unescape: true });
+          for (const [ key, value ] of properties) {
+            store.set(key, value);
+          }
 
-          expect(Array.from(store)).to.deep.equal(expectedProperties);
+          assert.strictEqual(store.replace(/^f(oo|u)$/, callback), store);
 
-          await store.store(output, {
-            encoding: 'utf8',
-            escape: false
-          });
+          assert.deepEqual(Array.from(store), properties);
 
-          expect(output.buffer.toString()).to.equal(expectedOutput);
+          assert.equal(callback.callCount, 2);
+
+          const calls = callback.getCalls();
+
+          assert.deepEqual(calls[0].args, [ 'bar', 'foo', store ]);
+          assert.strictEqual(calls[0].thisValue, undefined);
+
+          assert.deepEqual(calls[1].args, [ 'baz', 'fu', store ]);
+          assert.strictEqual(calls[1].thisValue, undefined);
+        });
+
+        it('should not emit "change" or "delete" event', () => {
+          const callback = sinon.spy((value) => value);
+          const changeCallback = sinon.spy();
+          const deleteCallback = sinon.spy();
+          const properties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ],
+            [ 'fizz', 'buzz' ]
+          ];
+          const store = new PropertiesStore();
+
+          for (const [ key, value ] of properties) {
+            store.set(key, value);
+          }
+
+          store.on('change', changeCallback);
+          store.on('delete', deleteCallback);
+
+          assert.strictEqual(store.replace(/^f(oo|u)$/, callback), store);
+
+          assert.equal(changeCallback.callCount, 0);
+          assert.equal(deleteCallback.callCount, 0);
+        });
+      });
+
+      context('and value returned by callback is null', () => {
+        it('should remove matching property and return PropertiesStore', () => {
+          const callback = sinon.spy((value) => null);
+          const properties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ],
+            [ 'fizz', 'buzz' ]
+          ];
+          const expected = properties.slice(2);
+          const store = new PropertiesStore();
+
+          for (const [ key, value ] of properties) {
+            store.set(key, value);
+          }
+
+          assert.strictEqual(store.replace(/^f(oo|u)$/, callback), store);
+
+          assert.deepEqual(Array.from(store), expected);
+
+          assert.equal(callback.callCount, 2);
+
+          const calls = callback.getCalls();
+
+          assert.deepEqual(calls[0].args, [ 'bar', 'foo', store ]);
+          assert.strictEqual(calls[0].thisValue, undefined);
+
+          assert.deepEqual(calls[1].args, [ 'baz', 'fu', store ]);
+          assert.strictEqual(calls[1].thisValue, undefined);
+        });
+
+        it('should emit "delete" event but not "change" event', () => {
+          const callback = sinon.spy((value) => null);
+          const changeCallback = sinon.spy();
+          const deleteCallback = sinon.spy();
+          const properties = [
+            [ 'foo', 'bar' ],
+            [ 'fu', 'baz' ],
+            [ 'fizz', 'buzz' ]
+          ];
+          const store = new PropertiesStore();
+
+          for (const [ key, value ] of properties) {
+            store.set(key, value);
+          }
+
+          store.on('change', changeCallback);
+          store.on('delete', deleteCallback);
+
+          assert.strictEqual(store.replace(/^f(oo|u)$/, callback), store);
+
+          assert.equal(changeCallback.callCount, 0);
+          assert.equal(deleteCallback.callCount, 2);
+
+          const deleteCalls = deleteCallback.getCalls();
+
+          assert.deepEqual(deleteCalls[0].args, [
+            {
+              key: 'foo',
+              properties: store,
+              value: 'bar'
+            }
+          ]);
+          assert.deepEqual(deleteCalls[1].args, [
+            {
+              key: 'fu',
+              properties: store,
+              value: 'baz'
+            }
+          ]);
         });
       });
     });
 
-    context('when preserve option is disabled', () => {
-      it('should read only property lines', async() => {
-        const input = new MockReadable(Buffer.from([
-          '',
-          '# foo',
-          'foo=bar'
-        ].join('\n')));
-        const output = new MockWritable();
-        const expectedOutput = 'foo=bar';
-        const expectedProperties = [
-          [ 'foo', 'bar' ]
+    context('when regexp is null', () => {
+      it('should not change or remove any properties and return PropertiesStore', () => {
+        const callback = sinon.spy((value, key) => {
+          return key === 'foo' ? value.toUpperCase() : null;
+        });
+        const properties = [
+          [ 'foo', 'bar' ],
+          [ 'fu', 'baz' ],
+          [ 'fizz', 'buzz' ]
         ];
-        const store = new PropertiesStore({ preserve: false });
+        const store = new PropertiesStore();
 
-        await store.load(input);
+        for (const [ key, value ] of properties) {
+          store.set(key, value);
+        }
 
-        expect(Array.from(store)).to.deep.equal(expectedProperties);
+        assert.strictEqual(store.replace(null, callback), store);
 
-        await store.store(output);
+        assert.deepEqual(Array.from(store), properties);
+      });
 
-        expect(output.buffer.toString()).to.equal(expectedOutput);
+      it('should not emit any "change" or "delete" events', () => {
+        const callback = sinon.spy((value, key) => {
+          return key === 'foo' ? value.toUpperCase() : null;
+        });
+        const changeCallback = sinon.spy();
+        const deleteCallback = sinon.spy();
+        const properties = [
+          [ 'foo', 'bar' ],
+          [ 'fu', 'baz' ],
+          [ 'fizz', 'buzz' ]
+        ];
+        const store = new PropertiesStore();
+
+        for (const [ key, value ] of properties) {
+          store.set(key, value);
+        }
+
+        store.on('change', changeCallback);
+        store.on('delete', deleteCallback);
+
+        assert.strictEqual(store.replace(null, callback), store);
+
+        assert.equal(changeCallback.callCount, 0);
+        assert.equal(deleteCallback.callCount, 0);
       });
     });
 
-    context('when preserve option is enabled', () => {
-      it('should read all lines', async() => {
-        const input = new MockReadable(Buffer.from([
-          '',
-          '# foo',
-          'foo=bar'
-        ].join('\n')));
-        const output = new MockWritable();
-        const expectedOutput = [
-          '',
-          '# foo',
-          'foo=bar'
-        ].join(EOL);
-        const expectedProperties = [
-          [ 'foo', 'bar' ]
+    context('when thisArg is specified', () => {
+      it('should invoke callback using thisArg as "this"', () => {
+        const callback = sinon.spy((value) => value.split('').reverse().join(''));
+        const properties = [
+          [ 'foo', 'bar' ],
+          [ 'fu', 'baz' ],
+          [ 'fizz', 'buzz' ]
         ];
-        const store = new PropertiesStore({ preserve: true });
+        const expected = [
+          [ 'foo', 'rab' ],
+          [ 'fu', 'zab' ],
+          [ 'fizz', 'buzz' ]
+        ];
+        const store = new PropertiesStore();
+        const thisArg = {};
 
-        await store.load(input);
+        for (const [ key, value ] of properties) {
+          store.set(key, value);
+        }
 
-        expect(Array.from(store)).to.deep.equal(expectedProperties);
+        assert.strictEqual(store.replace(/^f(oo|u)$/, callback, thisArg), store);
 
-        await store.store(output);
+        assert.deepEqual(Array.from(store), expected);
 
-        expect(output.buffer.toString()).to.equal(expectedOutput);
+        assert.equal(callback.callCount, 2);
+
+        const calls = callback.getCalls();
+
+        assert.deepEqual(calls[0].args, [ 'bar', 'foo', store ]);
+        assert.strictEqual(calls[0].thisValue, thisArg);
+
+        assert.deepEqual(calls[1].args, [ 'baz', 'fu', store ]);
+        assert.strictEqual(calls[1].thisValue, thisArg);
+      });
+    });
+  });
+
+  describe('#search', () => {
+    it('should return iterator for each matching property key/value pair whose key matches regexp', () => {
+      const properties = [
+        [ 'foo', 'bar' ],
+        [ 'fu', 'baz' ],
+        [ 'fizz', 'buzz' ]
+      ];
+      const store = new PropertiesStore();
+
+      for (const [ key, value ] of properties) {
+        store.set(key, value);
+      }
+
+      let iterator = store.search(/foo/);
+
+      assert.deepEqual(iterator.next().value, [ 'foo', 'bar' ]);
+      assert.strictEqual(iterator.next().value, undefined);
+
+      assert.deepEqual(Array.from(store.search(/foo/)), [
+        [ 'foo', 'bar' ]
+      ]);
+
+      iterator = store.search(/^f/);
+
+      assert.deepEqual(iterator.next().value, [ 'foo', 'bar' ]);
+      assert.deepEqual(iterator.next().value, [ 'fu', 'baz' ]);
+      assert.deepEqual(iterator.next().value, [ 'fizz', 'buzz' ]);
+      assert.strictEqual(iterator.next().value, undefined);
+
+      assert.deepEqual(Array.from(store.search(/^f/)), properties);
+
+      iterator = store.search(/^F\S{2,3}$/i);
+
+      assert.deepEqual(iterator.next().value, [ 'foo', 'bar' ]);
+      assert.deepEqual(iterator.next().value, [ 'fizz', 'buzz' ]);
+      assert.strictEqual(iterator.next().value, undefined);
+
+      assert.deepEqual(Array.from(store.search(/^F\S{2,3}$/i)), [
+        [ 'foo', 'bar' ],
+        [ 'fizz', 'buzz' ]
+      ]);
+    });
+
+    context('when regexp matches no properties', () => {
+      it('should return an empty iterator', () => {
+        const store = new PropertiesStore();
+        store.set('foo', 'bar');
+        store.set('fu', 'baz');
+
+        const iterator = store.search(/^ba/);
+
+        assert.strictEqual(iterator.next().value, undefined);
+
+        assert.deepEqual(Array.from(store.search(/^ba/)), []);
+      });
+    });
+
+    context('when regexp is null', () => {
+      it('should return an empty iterator', () => {
+        const store = new PropertiesStore();
+        const iterator = store.search(null);
+
+        assert.strictEqual(iterator.next().value, undefined);
+
+        assert.deepEqual(Array.from(store.search(null)), []);
       });
     });
   });
@@ -1688,9 +1553,9 @@ describe('PropertiesStore', () => {
         ];
         const store = new PropertiesStore();
 
-        expect(store.set('foo', 'bar')).to.equal(store);
+        assert.strictEqual(store.set('foo', 'bar'), store);
 
-        expect(Array.from(store)).to.deep.equal(expected);
+        assert.deepEqual(Array.from(store), expected);
       });
 
       it('should emit "change" event but not "delete" event', () => {
@@ -1701,14 +1566,14 @@ describe('PropertiesStore', () => {
         store.on('change', changeCallback);
         store.on('delete', deleteCallback);
 
-        expect(store.set('foo', 'bar')).to.equal(store);
+        assert.strictEqual(store.set('foo', 'bar'), store);
 
-        expect(changeCallback.callCount).to.equal(1);
-        expect(deleteCallback.callCount).to.equal(0);
+        assert.equal(changeCallback.callCount, 1);
+        assert.equal(deleteCallback.callCount, 0);
 
         const changeCalls = changeCallback.getCalls();
 
-        expect(changeCalls[0].args).to.deep.equal([
+        assert.deepEqual(changeCalls[0].args, [
           {
             key: 'foo',
             newValue: 'bar',
@@ -1722,9 +1587,9 @@ describe('PropertiesStore', () => {
         it('should not remove any property and return PropertiesStore', () => {
           const store = new PropertiesStore();
 
-          expect(store.set('foo', null)).to.equal(store);
+          assert.strictEqual(store.set('foo', null), store);
 
-          expect(Array.from(store)).to.deep.equal([]);
+          assert.equal(store.size, 0);
         });
 
         it('should not emit "change" or "delete" event', () => {
@@ -1735,27 +1600,10 @@ describe('PropertiesStore', () => {
           store.on('change', changeCallback);
           store.on('delete', deleteCallback);
 
-          expect(store.set('foo', null)).to.equal(store);
+          assert.strictEqual(store.set('foo', null), store);
 
-          expect(changeCallback.callCount).to.equal(0);
-          expect(deleteCallback.callCount).to.equal(0);
-        });
-      });
-
-      context('and preserve option is enabled', () => {
-        it('should add property line for key and value', async() => {
-          const output = new MockWritable();
-          const expected = 'foo=bar';
-          const store = new PropertiesStore();
-
-          expect(store.set('foo', 'bar')).to.equal(store);
-
-          await store.store(output, {
-            encoding: 'utf8',
-            escape: false
-          });
-
-          expect(output.buffer.toString()).to.equal(expected);
+          assert.equal(changeCallback.callCount, 0);
+          assert.equal(deleteCallback.callCount, 0);
         });
       });
     });
@@ -1778,9 +1626,9 @@ describe('PropertiesStore', () => {
           store.set(key, value);
         }
 
-        expect(store.set('foo', 'quux')).to.equal(store);
+        assert.strictEqual(store.set('foo', 'quux'), store);
 
-        expect(Array.from(store)).to.deep.equal(expected);
+        assert.deepEqual(Array.from(store), expected);
       });
 
       it('should emit "change" event but not "delete" event', () => {
@@ -1800,14 +1648,14 @@ describe('PropertiesStore', () => {
         store.on('change', changeCallback);
         store.on('delete', deleteCallback);
 
-        expect(store.set('foo', 'quux')).to.equal(store);
+        assert.strictEqual(store.set('foo', 'quux'), store);
 
-        expect(changeCallback.callCount).to.equal(1);
-        expect(deleteCallback.callCount).to.equal(0);
+        assert.equal(changeCallback.callCount, 1);
+        assert.equal(deleteCallback.callCount, 0);
 
         const changeCalls = changeCallback.getCalls();
 
-        expect(changeCalls[0].args).to.deep.equal([
+        assert.deepEqual(changeCalls[0].args, [
           {
             key: 'foo',
             newValue: 'quux',
@@ -1823,15 +1671,15 @@ describe('PropertiesStore', () => {
           const deleteCallback = sinon.spy();
           const store = new PropertiesStore();
 
-          expect(store.set('foo', 'bar')).to.equal(store);
+          assert.strictEqual(store.set('foo', 'bar'), store);
 
           store.on('change', changeCallback);
           store.on('delete', deleteCallback);
 
-          expect(store.set('foo', 'bar')).to.equal(store);
+          assert.strictEqual(store.set('foo', 'bar'), store);
 
-          expect(changeCallback.callCount).to.equal(0);
-          expect(deleteCallback.callCount).to.equal(0);
+          assert.equal(changeCallback.callCount, 0);
+          assert.equal(deleteCallback.callCount, 0);
         });
       });
 
@@ -1852,9 +1700,9 @@ describe('PropertiesStore', () => {
             store.set(key, value);
           }
 
-          expect(store.set('foo', null)).to.equal(store);
+          assert.strictEqual(store.set('foo', null), store);
 
-          expect(Array.from(store)).to.deep.equal(expected);
+          assert.deepEqual(Array.from(store), expected);
         });
 
         it('should emit "delete" event but not "change" event', () => {
@@ -1874,97 +1722,20 @@ describe('PropertiesStore', () => {
           store.on('change', changeCallback);
           store.on('delete', deleteCallback);
 
-          expect(store.set('foo', null)).to.equal(store);
+          assert.strictEqual(store.set('foo', null), store);
 
-          expect(changeCallback.callCount).to.equal(0);
-          expect(deleteCallback.callCount).to.equal(1);
+          assert.equal(changeCallback.callCount, 0);
+          assert.equal(deleteCallback.callCount, 1);
 
           const deleteCalls = deleteCallback.getCalls();
 
-          expect(deleteCalls[0].args).to.deep.equal([
+          assert.deepEqual(deleteCalls[0].args, [
             {
               key: 'foo',
               properties: store,
               value: 'bar'
             }
           ]);
-        });
-
-        context('and preserve option is enabled', () => {
-          it('should remove all property lines for key', async() => {
-            const input = new MockReadable(Buffer.from([
-              '',
-              '# foo',
-              'foo=bar',
-              '',
-              'foo=baz',
-              'foo=buzz',
-              '',
-              'fu=bar'
-            ].join('\n')));
-            const output = new MockWritable();
-            const expected = [
-              '',
-              '# foo',
-              '',
-              '',
-              'fu=bar'
-            ].join(EOL);
-            const store = new PropertiesStore({ preserve: true });
-            await store.load(input, {
-              encoding: 'utf8',
-              unescape: false
-            });
-
-            expect(store.set('foo', null)).to.equal(store);
-
-            await store.store(output, {
-              encoding: 'utf8',
-              escape: false
-            });
-
-            expect(output.buffer.toString()).to.equal(expected);
-          });
-        });
-      });
-
-      context('and preserve option is enabled', () => {
-        it('should change value for last property line for key', async() => {
-          const input = new MockReadable(Buffer.from([
-            '',
-            '# foo',
-            'foo=bar',
-            '',
-            'foo=baz',
-            'foo=buzz',
-            '',
-            'fu=bar'
-          ].join('\n')));
-          const output = new MockWritable();
-          const expected = [
-            '',
-            '# foo',
-            'foo=bar',
-            '',
-            'foo=baz',
-            'foo=quux',
-            '',
-            'fu=bar'
-          ].join(EOL);
-          const store = new PropertiesStore({ preserve: true });
-          await store.load(input, {
-            encoding: 'utf8',
-            unescape: false
-          });
-
-          expect(store.set('foo', 'quux')).to.equal(store);
-
-          await store.store(output, {
-            encoding: 'utf8',
-            escape: false
-          });
-
-          expect(output.buffer.toString()).to.equal(expected);
         });
       });
     });
@@ -1987,10 +1758,10 @@ describe('PropertiesStore', () => {
           store.set(key, value);
         }
 
-        expect(store.set('FOO', 'buzz')).to.equal(store);
-        expect(store.set('fu', 'quux')).to.equal(store);
+        assert.strictEqual(store.set('FOO', 'buzz'), store);
+        assert.strictEqual(store.set('fu', 'quux'), store);
 
-        expect(Array.from(store)).to.deep.equal(expected);
+        assert.deepEqual(Array.from(store), expected);
       });
 
       it('should emit "change" event but not "delete" event', () => {
@@ -2009,15 +1780,15 @@ describe('PropertiesStore', () => {
         store.on('change', changeCallback);
         store.on('delete', deleteCallback);
 
-        expect(store.set('FOO', 'buzz')).to.equal(store);
-        expect(store.set('fu', 'quux')).to.equal(store);
+        assert.strictEqual(store.set('FOO', 'buzz'), store);
+        assert.strictEqual(store.set('fu', 'quux'), store);
 
-        expect(changeCallback.callCount).to.equal(2);
-        expect(deleteCallback.callCount).to.equal(0);
+        assert.equal(changeCallback.callCount, 2);
+        assert.equal(deleteCallback.callCount, 0);
 
         const changeCalls = changeCallback.getCalls();
 
-        expect(changeCalls[0].args).to.deep.equal([
+        assert.deepEqual(changeCalls[0].args, [
           {
             key: 'FOO',
             newValue: 'buzz',
@@ -2025,7 +1796,7 @@ describe('PropertiesStore', () => {
             properties: store
           }
         ]);
-        expect(changeCalls[1].args).to.deep.equal([
+        assert.deepEqual(changeCalls[1].args, [
           {
             key: 'fu',
             newValue: 'quux',
@@ -2047,10 +1818,10 @@ describe('PropertiesStore', () => {
             store.set(key, value);
           }
 
-          expect(store.set('FOO', null)).to.equal(store);
-          expect(store.set('fu', null)).to.equal(store);
+          assert.equal(store.set('FOO', null), store);
+          assert.equal(store.set('fu', null), store);
 
-          expect(Array.from(store)).to.deep.equal(properties);
+          assert.deepEqual(Array.from(store), properties);
         });
 
         it('should not emit "change" or "delete" event', () => {
@@ -2069,48 +1840,11 @@ describe('PropertiesStore', () => {
           store.on('change', changeCallback);
           store.on('delete', deleteCallback);
 
-          expect(store.set('FOO', null)).to.equal(store);
-          expect(store.set('fu', null)).to.equal(store);
+          assert.strictEqual(store.set('FOO', null), store);
+          assert.strictEqual(store.set('fu', null), store);
 
-          expect(changeCallback.callCount).to.equal(0);
-          expect(deleteCallback.callCount).to.equal(0);
-        });
-      });
-
-      context('and preserve option is enabled', () => {
-        it('should add property line for key and value', async() => {
-          const input = new MockReadable(Buffer.from([
-            '',
-            '# foo',
-            'foo=bar',
-            '',
-            'FU=baz'
-          ].join('\n')));
-          const output = new MockWritable();
-          const expected = [
-            '',
-            '# foo',
-            'foo=bar',
-            '',
-            'FU=baz',
-            'FOO=buzz',
-            'fu=quux'
-          ].join(EOL);
-          const store = new PropertiesStore({ preserve: true });
-          await store.load(input, {
-            encoding: 'utf8',
-            unescape: false
-          });
-
-          expect(store.set('FOO', 'buzz')).to.equal(store);
-          expect(store.set('fu', 'quux')).to.equal(store);
-
-          await store.store(output, {
-            encoding: 'utf8',
-            escape: false
-          });
-
-          expect(output.buffer.toString()).to.equal(expected);
+          assert.equal(changeCallback.callCount, 0);
+          assert.equal(deleteCallback.callCount, 0);
         });
       });
     });
@@ -2128,10 +1862,10 @@ describe('PropertiesStore', () => {
           store.set(key, value);
         }
 
-        expect(store.set(null, 'quxx')).to.equal(store);
-        expect(store.set(null, null)).to.equal(store);
+        assert.strictEqual(store.set(null, 'quxx'), store);
+        assert.strictEqual(store.set(null, null), store);
 
-        expect(Array.from(store)).to.deep.equal(properties);
+        assert.deepEqual(Array.from(store), properties);
       });
 
       it('should not emit "change" or "delete" event', () => {
@@ -2151,29 +1885,43 @@ describe('PropertiesStore', () => {
         store.on('change', changeCallback);
         store.on('delete', deleteCallback);
 
-        expect(store.set(null, 'quxx')).to.equal(store);
-        expect(store.set(null, null)).to.equal(store);
+        assert.strictEqual(store.set(null, 'quxx'), store);
+        assert.strictEqual(store.set(null, null), store);
 
-        expect(changeCallback.callCount).to.equal(0);
-        expect(deleteCallback.callCount).to.equal(0);
+        assert.equal(changeCallback.callCount, 0);
+        assert.equal(deleteCallback.callCount, 0);
       });
     });
   });
 
   describe('#store', () => {
+    const expectedTimestampComment = '#Mon Oct 31 21:05:00 GMT 2016';
+    let mockClock;
+
+    beforeEach(() => {
+      sinon.stub(moment.tz, 'guess').returns('GMT');
+      mockClock = sinon.useFakeTimers(1477947900000);
+    });
+
+    afterEach(() => {
+      moment.tz.guess.restore();
+      mockClock.restore();
+    });
+
     it('should write property lines to output', async() => {
       const output = new MockWritable();
       const expected = [
+        expectedTimestampComment,
         'foo=bar',
         'fu=baz'
-      ].join(EOL);
+      ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
       const store = new PropertiesStore();
       store.set('foo', 'bar');
       store.set('fu', 'baz');
 
       await store.store(output);
 
-      expect(output.buffer.toString()).to.equal(expected);
+      assert.equal(output.buffer.toString('latin1'), expected);
     });
 
     it('should emit "store" event', async() => {
@@ -2187,15 +1935,16 @@ describe('PropertiesStore', () => {
 
       await store.store(output);
 
-      expect(storeCallback.callCount).to.equal(1);
+      assert.equal(storeCallback.callCount, 1);
 
       const storeCalls = storeCallback.getCalls();
 
-      expect(storeCalls[0].args).to.deep.equal([
+      assert.deepEqual(storeCalls[0].args, [
         {
           options: {
+            comments: null,
             encoding: 'latin1',
-            escape: true
+            escapeUnicode: true
           },
           output,
           properties: store
@@ -2203,15 +1952,14 @@ describe('PropertiesStore', () => {
       ]);
     });
 
-    context('when no properties or lines exist', () => {
-      it('should write empty buffer to output', async() => {
+    context('when no properties exist', () => {
+      it('should only write timestamp comment to output', async() => {
         const output = new MockWritable();
-        const expected = '';
         const store = new PropertiesStore();
 
         await store.store(output);
 
-        expect(output.buffer.toString()).to.equal(expected);
+        assert.equal(output.buffer.toString('latin1'), `${expectedTimestampComment}${EOL}`);
       });
 
       it('should emit "store" event', async() => {
@@ -2223,15 +1971,16 @@ describe('PropertiesStore', () => {
 
         await store.store(output);
 
-        expect(storeCallback.callCount).to.equal(1);
+        assert.equal(storeCallback.callCount, 1);
 
         const storeCalls = storeCallback.getCalls();
 
-        expect(storeCalls[0].args).to.deep.equal([
+        assert.deepEqual(storeCalls[0].args, [
           {
             options: {
+              comments: null,
               encoding: 'latin1',
-              escape: true
+              escapeUnicode: true
             },
             output,
             properties: store
@@ -2252,170 +2001,178 @@ describe('PropertiesStore', () => {
         try {
           await store.store(output);
           // Should have thrown
-          expect.fail();
+          assert.fail();
         } catch (e) {
-          expect(e).to.equal(expectedError);
+          assert.strictEqual(e, expectedError);
         }
 
-        expect(output.buffer.toString()).to.equal(expectedOutput);
+        assert.equal(output.buffer.toString('latin1'), expectedOutput);
+      });
+    });
+
+    context('when comments option is not specified', () => {
+      it('should only write timestamp comment and property lines to output', async() => {
+        const output = new MockWritable();
+        const expected = [
+          expectedTimestampComment,
+          'foo=bar',
+          'fu=baz'
+        ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
+        const store = new PropertiesStore();
+        store.set('foo', 'bar');
+        store.set('fu', 'baz');
+
+        await store.store(output);
+
+        assert.equal(output.buffer.toString('latin1'), expected);
+      });
+    });
+
+    context('when comments option is specified', () => {
+      it('should write comments before timestamp comment and property lines to output', async() => {
+        const comments = 'This is a comment';
+        const output = new MockWritable();
+        const expected = [
+          `#${comments}`,
+          expectedTimestampComment,
+          'foo=bar',
+          'fu=baz'
+        ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
+        const store = new PropertiesStore();
+        store.set('foo', 'bar');
+        store.set('fu', 'baz');
+
+        await store.store(output, { comments });
+
+        assert.equal(output.buffer.toString('latin1'), expected);
+      });
+
+      context('and no properties exist', () => {
+        it('should only write comments and timestamp comment', async() => {
+          const comments = 'This is a comment';
+          const output = new MockWritable();
+          const expected = [
+            `#${comments}`,
+            expectedTimestampComment
+          ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
+          const store = new PropertiesStore();
+
+          await store.store(output, { comments });
+
+          assert.equal(output.buffer.toString('latin1'), expected);
+        });
+      });
+
+      context('and escapeUnicode option is disabled', () => {
+        it('should write non-ASCII characters within comments to output as-is', async() => {
+          const comments = 'This¥is¥a¥comment';
+          const output = new MockWritable();
+          const expected = [
+            `#${comments}`,
+            expectedTimestampComment
+          ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
+          const store = new PropertiesStore();
+
+          await store.store(output, {
+            comments,
+            escapeUnicode: false
+          });
+
+          assert.equal(output.buffer.toString('latin1'), expected);
+        });
+      });
+
+      context('and escapeUnicode option is enabled', () => {
+        it('should escape non-ASCII characters within comments before being written to output', async() => {
+          const comments = 'This¥is¥a¥comment';
+          const output = new MockWritable();
+          const expected = [
+            '#This\\u00a5is\\u00a5a\\u00a5comment',
+            expectedTimestampComment
+          ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
+          const store = new PropertiesStore();
+
+          await store.store(output, {
+            comments,
+            escapeUnicode: true
+          });
+
+          assert.equal(output.buffer.toString('latin1'), expected);
+        });
       });
     });
 
     context('when encoding option is not specified', () => {
       it('should write output using latin1 encoding', async() => {
         const output = new MockWritable();
-        const expected = 'foo\\u00a5bar=fu\\u00a5baz';
+        const expected = [
+          expectedTimestampComment,
+          'foo\\u00a5bar=fu\\u00a5baz'
+        ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
 
         const store = new PropertiesStore();
         store.set('foo¥bar', 'fu¥baz');
 
         await store.store(output);
 
-        expect(output.buffer.toString()).to.equal(expected);
-      });
-
-      context('when escape option is disabled', () => {
-        it('should write characters as-is to output using latin1 encoding', async() => {
-          const output = new MockWritable();
-          const expected = 'foo¥bar=fu¥baz';
-
-          const store = new PropertiesStore();
-          store.set('foo¥bar', 'fu¥baz');
-
-          await store.store(output, { escape: false });
-
-          expect(output.buffer.toString('latin1')).to.equal(expected);
-        });
+        assert.equal(output.buffer.toString('latin1'), expected);
       });
     });
 
     context('when encoding option is specified', () => {
       it('should write output using encoding', async() => {
         const output = new MockWritable();
-        const expected = 'foo\\u00a5bar=fu\\u00a5baz';
+        const expected = [
+          expectedTimestampComment,
+          'foo\\u00a5bar=fu\\u00a5baz'
+        ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
 
         const store = new PropertiesStore();
         store.set('foo¥bar', 'fu¥baz');
 
         await store.store(output, { encoding: 'ascii' });
 
-        expect(output.buffer.toString()).to.equal(expected);
-      });
-
-      context('when escape option is disabled', () => {
-        it('should write characters as-is to output using encoding', async() => {
-          const output = new MockWritable();
-          const expected = 'foo¥bar=fu¥baz';
-
-          const store = new PropertiesStore();
-          store.set('foo¥bar', 'fu¥baz');
-
-          await store.store(output, {
-            encoding: 'utf8',
-            escape: false
-          });
-
-          expect(output.buffer.toString()).to.equal(expected);
-        });
+        assert.equal(output.buffer.toString('ascii'), expected);
       });
     });
 
-    context('when escape option is disabled', () => {
-      it('should write all characters as-is', async() => {
+    context('when escapeUnicode option is disabled', () => {
+      it('should write non-ASCII characters to output as-is', async() => {
         const output = new MockWritable();
-        const expected = 'foo¥bar=fu¥baz';
+        const expected = [
+          expectedTimestampComment,
+          'foo¥bar=fu¥baz'
+        ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
 
         const store = new PropertiesStore();
         store.set('foo¥bar', 'fu¥baz');
 
-        await store.store(output, { escape: false });
+        await store.store(output, {
+          encoding: 'utf8',
+          escapeUnicode: false
+        });
 
-        expect(output.buffer.toString('latin1')).to.deep.equal(expected);
+        assert.equal(output.buffer.toString('utf8'), expected);
       });
     });
 
-    context('when escape option is enabled', () => {
-      it('should replace non-ASCII characters with Unicode escapes in property lines', async() => {
+    context('when escapeUnicode option is enabled', () => {
+      it('should escape non-ASCII characters before being written to output', async() => {
         const output = new MockWritable();
-        const expected = 'foo\\u00a5bar=fu\\u00a5baz';
+        const expected = [
+          expectedTimestampComment,
+          'foo\\u00a5bar=fu\\u00a5baz'
+        ].reduce((memo, value) => `${memo}${value}${EOL}`, '');
 
         const store = new PropertiesStore();
         store.set('foo¥bar', 'fu¥baz');
 
-        await store.store(output, { escape: true });
-
-        expect(output.buffer.toString()).to.equal(expected);
-      });
-
-      context('and preserve option is enabled', () => {
-        it('should replace non-ASCII characters with Unicode escapes in all lines', async() => {
-          const input = new MockReadable(Buffer.from([
-            '',
-            '# foo¥bar',
-            'foo¥bar=fu¥baz'
-          ].join('\n'), 'latin1'));
-          const output = new MockWritable();
-          const expected = [
-            '',
-            '# foo\\u00a5bar',
-            'foo\\u00a5bar=fu\\u00a5baz'
-          ].join(EOL);
-          const store = new PropertiesStore({ preserve: true });
-          await store.load(input, { unescape: false });
-
-          await store.store(output, { escape: true });
-
-          expect(output.buffer.toString()).to.equal(expected);
+        await store.store(output, {
+          encoding: 'utf8',
+          escapeUnicode: true
         });
-      });
-    });
 
-    context('when preserve option is disabled', () => {
-      it('should write only property lines', async() => {
-        const input = new MockReadable(Buffer.from([
-          '',
-          '# foo',
-          'foo=bar',
-          '',
-          'fu=baz'
-        ].join('\n')));
-        const output = new MockWritable();
-        const expected = [
-          'foo=bar',
-          'fu=baz'
-        ].join(EOL);
-        const store = new PropertiesStore({ preserve: false });
-        await store.load(input);
-
-        await store.store(output);
-
-        expect(output.buffer.toString()).to.equal(expected);
-      });
-    });
-
-    context('when preserve option is enabled', () => {
-      it('should write all lines', async() => {
-        const input = new MockReadable(Buffer.from([
-          '',
-          '# foo',
-          'foo=bar',
-          '',
-          'fu=baz'
-        ].join('\n')));
-        const output = new MockWritable();
-        const expected = [
-          '',
-          '# foo',
-          'foo=bar',
-          '',
-          'fu=baz'
-        ].join(EOL);
-        const store = new PropertiesStore({ preserve: true });
-        await store.load(input);
-
-        await store.store(output);
-
-        expect(output.buffer.toString()).to.equal(expected);
+        assert.equal(output.buffer.toString('utf8'), expected);
       });
     });
   });
@@ -2436,12 +2193,12 @@ describe('PropertiesStore', () => {
 
       const iterator = store.values();
 
-      expect(iterator.next().value).to.equal('bar');
-      expect(iterator.next().value).to.equal('baz');
-      expect(iterator.next().value).to.equal('buzz');
-      expect(iterator.next().value).to.equal(undefined);
+      assert.equal(iterator.next().value, 'bar');
+      assert.equal(iterator.next().value, 'baz');
+      assert.equal(iterator.next().value, 'buzz');
+      assert.strictEqual(iterator.next().value, undefined);
 
-      expect(Array.from(store.values())).to.deep.equal(expected);
+      assert.deepEqual(Array.from(store.values()), expected);
     });
 
     context('when no properties exist', () => {
@@ -2449,9 +2206,9 @@ describe('PropertiesStore', () => {
         const store = new PropertiesStore();
         const iterator = store.values();
 
-        expect(iterator.next().value).to.equal(undefined);
+        assert.strictEqual(iterator.next().value, undefined);
 
-        expect(Array.from(store.values())).to.deep.equal([]);
+        assert.deepEqual(Array.from(store.values()), []);
       });
     });
   });
@@ -2471,12 +2228,12 @@ describe('PropertiesStore', () => {
 
       const iterator = store[Symbol.iterator]();
 
-      expect(iterator.next().value).to.deep.equal([ 'foo', 'bar' ]);
-      expect(iterator.next().value).to.deep.equal([ 'fu', 'baz' ]);
-      expect(iterator.next().value).to.deep.equal([ 'fizz', 'buzz' ]);
-      expect(iterator.next().value).to.equal(undefined);
+      assert.deepEqual(iterator.next().value, [ 'foo', 'bar' ]);
+      assert.deepEqual(iterator.next().value, [ 'fu', 'baz' ]);
+      assert.deepEqual(iterator.next().value, [ 'fizz', 'buzz' ]);
+      assert.strictEqual(iterator.next().value, undefined);
 
-      expect(Array.from(store)).to.deep.equal(properties);
+      assert.deepEqual(Array.from(store), properties);
     });
 
     context('when no properties exist', () => {
@@ -2484,9 +2241,9 @@ describe('PropertiesStore', () => {
         const store = new PropertiesStore();
         const iterator = store[Symbol.iterator]();
 
-        expect(iterator.next().value).to.equal(undefined);
+        assert.strictEqual(iterator.next().value, undefined);
 
-        expect(Array.from(store)).to.deep.equal([]);
+        assert.deepEqual(Array.from(store), []);
       });
     });
   });
@@ -2505,14 +2262,14 @@ describe('PropertiesStore', () => {
           store.set(key, value);
         }
 
-        expect(store).to.have.property('size', 3);
+        assert.equal(store.size, 3);
       });
 
       context('when no properties exist', () => {
         it('should return zero', () => {
           const store = new PropertiesStore();
 
-          expect(store).to.have.property('size', 0);
+          assert.equal(store.size, 0);
         });
       });
     });
@@ -2521,9 +2278,9 @@ describe('PropertiesStore', () => {
       it('should throw an error', () => {
         const store = new PropertiesStore();
 
-        expect(() => {
+        assert.throws(() => {
           store.size = 123;
-        }).to.throw(TypeError);
+        }, TypeError);
       });
     });
   });

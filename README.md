@@ -1,18 +1,15 @@
 # properties-store
 
 [![Build Status](https://img.shields.io/travis/NotNinja/properties-store/develop.svg?style=flat-square)](https://travis-ci.org/NotNinja/properties-store)
-[![Documentation](https://img.shields.io/badge/docs-online-brightgreen.svg?style=flat-square)](https://notninja.github.io/properties-store/docs/)
+[![Documentation](https://img.shields.io/badge/docs-online-brightgreen.svg?style=flat-square)](https://github.com/NotNinja/properties-store/blob/master/docs/api.md)
 [![Coverage](https://img.shields.io/codecov/c/github/NotNinja/properties-store/develop.svg?style=flat-square)](https://codecov.io/gh/NotNinja/properties-store)
 [![Dependency Status](https://img.shields.io/david/NotNinja/properties-store.svg?style=flat-square)](https://david-dm.org/NotNinja/properties-store)
 [![Dev Dependency Status](https://img.shields.io/david/dev/NotNinja/properties-store.svg?style=flat-square)](https://david-dm.org/NotNinja/properties-store?type=dev)
 [![License](https://img.shields.io/npm/l/properties-store.svg?style=flat-square)](https://github.com/NotNinja/properties-store/blob/master/LICENSE.md)
 [![Release](https://img.shields.io/npm/v/properties-store.svg?style=flat-square)](https://www.npmjs.com/package/properties-store)
 
-[properties-store](https://notninja.github.io/properties-store) is a Node.js library for working with `.properties` file
-stores while also supporting the ability (via options) to maintain the original source of the file as much as possible,
-which can be really useful when merging `.properties` files and wanting to minimizing diffs.
-
-It does not currently support the full syntax for Java `.properties` files (e.g. multiline properties) but this is planned for a future release.
+[properties-store](https://github.com/NotNinja/properties-store) is a Node.js library for working with `.properties`
+file stores with an API based closely on that of ECMAScript's `Map`.
 
 * [Install](#install)
 * [API](#api)
@@ -35,26 +32,20 @@ You'll need to have at least [Node.js](https://nodejs.org) 8 or newer.
     new PropertiesStore([store][, options])
 
 The complete API documentation, along with lots of examples, can be found
-[here](https://notninja.github.io/properties-store/docs/).
+[here](https://github.com/NotNinja/properties-store/blob/master/docs/api.md).
 
 ``` javascript
-const fs = require('fs');
-const PropertiesStore = require('properties-store');
-
 const properties = new PropertiesStore();
+await properties.load(fs.createReadStream('path/to/my.properties'));
 
-(async() {
-  await properties.load(fs.createReadStream('path/to/my.properties'));
+properties.set('new-prop', 'Hello, World!');
+properties.get('new-prop');
+//=> "Hello, World!"
 
-  properties.set('new-prop', 'Hello, World!');
-  properties.get('new-prop');
-  //=> "Hello, World!"
+properties.get('missing-prop', 'Some default value');
+//=> "Some default value"
 
-  properties.get('missing-prop', 'Some default value');
-  //=> "Some default value"
-
-  await properties.store(fs.createWriteStream('path/to/my.properties'));
-})();
+await properties.store(fs.createWriteStream('path/to/my.properties'));
 ```
 
 ## Bugs
