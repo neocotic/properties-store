@@ -1,9 +1,9 @@
 # Contributing
 
-If you have any questions about [properties-store](https://github.com/NotNinja/properties-store) please feel free to
-[raise an issue](https://github.com/NotNinja/properties-store/issues/new).
+If you have any questions about [properties-store](https://github.com/neocotic/properties-store) please feel free to
+[raise an issue](https://github.com/neocotic/properties-store/issues/new).
 
-Please [search existing issues](https://github.com/NotNinja/properties-store/issues) for the same feature and/or issue
+Please [search existing issues](https://github.com/neocotic/properties-store/issues) for the same feature and/or issue
 before raising a new issue. Commenting on an existing issue is usually preferred over raising duplicate issues.
 
 Please ensure that all files conform to the coding standards, using the same coding style as the rest of the code base.
@@ -21,12 +21,12 @@ You must have at least [Node.js](https://nodejs.org) version 8 or newer installe
 All pull requests should be made to the `develop` branch.
 
 Don't forget to add your details to the list of
-[AUTHORS.md](https://github.com/NotNinja/properties-store/blob/master/AUTHORS.md) if you want your contribution to be
+[AUTHORS.md](https://github.com/neocotic/properties-store/blob/master/AUTHORS.md) if you want your contribution to be
 recognized by others.
 
 ## Documentation
 
-The [API documentation](https://github.com/NotNinja/properties-store/blob/master/docs/api.md) is built from source as
+The [API documentation](https://github.com/neocotic/properties-store/blob/master/docs/api.md) is built from source as
 part of the release process by a maintainer. These steps are not required by contributors when opening pull requests
 etc. In fact, it's discouraged in favour of cleaner pull requests.
 

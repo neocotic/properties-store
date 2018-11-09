@@ -23,7 +23,7 @@
 
 ## PropertiesStore
 
-[src/properties-store.js:61-664](https://github.com/NotNinja/properties-store/blob/e1b2339db8c54a28a08fd575f8b58bd6d2328ff1/src/properties-store.js#L61-L664 "Source code on GitHub")
+[src/properties-store.js:61-664](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L61-L664 "Source code on GitHub")
 
 **Extends events.EventEmitter**
 
@@ -61,7 +61,7 @@ Array.from(copy);
 
 ### clear
 
-[src/properties-store.js:128-140](https://github.com/NotNinja/properties-store/blob/e1b2339db8c54a28a08fd575f8b58bd6d2328ff1/src/properties-store.js#L128-L140 "Source code on GitHub")
+[src/properties-store.js:128-140](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L128-L140 "Source code on GitHub")
 
 Removes all properties from this [PropertiesStore](#propertiesstore).
 
@@ -88,7 +88,7 @@ Returns **void**
 
 ### delete
 
-[src/properties-store.js:182-204](https://github.com/NotNinja/properties-store/blob/e1b2339db8c54a28a08fd575f8b58bd6d2328ff1/src/properties-store.js#L182-L204 "Source code on GitHub")
+[src/properties-store.js:182-204](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L182-L204 "Source code on GitHub")
 
 Removes the property with the specified <code>key</code> from this [PropertiesStore](#propertiesstore).
 
@@ -136,7 +136,7 @@ Returns **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/
 
 ### entries
 
-[src/properties-store.js:219-221](https://github.com/NotNinja/properties-store/blob/e1b2339db8c54a28a08fd575f8b58bd6d2328ff1/src/properties-store.js#L219-L221 "Source code on GitHub")
+[src/properties-store.js:219-221](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L219-L221 "Source code on GitHub")
 
 Returns an iterator containing the key/value pairs for each property in this [PropertiesStore](#propertiesstore).
 
@@ -155,7 +155,7 @@ Returns **Iterator&lt;[Array](https://developer.mozilla.org/docs/Web/JavaScript/
 
 ### forEach
 
-[src/properties-store.js:239-243](https://github.com/NotNinja/properties-store/blob/e1b2339db8c54a28a08fd575f8b58bd6d2328ff1/src/properties-store.js#L239-L243 "Source code on GitHub")
+[src/properties-store.js:239-243](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L239-L243 "Source code on GitHub")
 
 Executes the specified <code>callback</code> function once per each property in this [PropertiesStore](#propertiesstore).
 
@@ -180,7 +180,7 @@ Returns **void**
 
 ### get
 
-[src/properties-store.js:272-279](https://github.com/NotNinja/properties-store/blob/e1b2339db8c54a28a08fd575f8b58bd6d2328ff1/src/properties-store.js#L272-L279 "Source code on GitHub")
+[src/properties-store.js:272-279](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L272-L279 "Source code on GitHub")
 
 Returns the value of the property with the specified <code>key</code> in this [PropertiesStore](#propertiesstore).
 
@@ -216,7 +216,7 @@ Returns **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/G
 
 ### has
 
-[src/properties-store.js:310-322](https://github.com/NotNinja/properties-store/blob/e1b2339db8c54a28a08fd575f8b58bd6d2328ff1/src/properties-store.js#L310-L322 "Source code on GitHub")
+[src/properties-store.js:310-322](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L310-L322 "Source code on GitHub")
 
 Returns whether a property with the specified <code>key</code> exists within this [PropertiesStore](#propertiesstore).
 
@@ -254,7 +254,7 @@ Returns **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/
 
 ### keys
 
-[src/properties-store.js:337-339](https://github.com/NotNinja/properties-store/blob/e1b2339db8c54a28a08fd575f8b58bd6d2328ff1/src/properties-store.js#L337-L339 "Source code on GitHub")
+[src/properties-store.js:337-339](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L337-L339 "Source code on GitHub")
 
 Returns an iterator containing the keys for each property in this [PropertiesStore](#propertiesstore).
 
@@ -273,7 +273,7 @@ Returns **Iterator&lt;[string](https://developer.mozilla.org/docs/Web/JavaScript
 
 ### load
 
-[src/properties-store.js:375-386](https://github.com/NotNinja/properties-store/blob/e1b2339db8c54a28a08fd575f8b58bd6d2328ff1/src/properties-store.js#L375-L386 "Source code on GitHub")
+[src/properties-store.js:375-386](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L375-L386 "Source code on GitHub")
 
 Reads the property information from the <code>input</code> stream provided and loads it into this
 [PropertiesStore](#propertiesstore).
@@ -314,7 +314,7 @@ this [PropertiesStore](#propertiesstore).
 
 ### replace
 
-[src/properties-store.js:430-442](https://github.com/NotNinja/properties-store/blob/e1b2339db8c54a28a08fd575f8b58bd6d2328ff1/src/properties-store.js#L430-L442 "Source code on GitHub")
+[src/properties-store.js:430-442](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L430-L442 "Source code on GitHub")
 
 Replaces the value of each property whose key matches the specified regular expression in this
 [PropertiesStore](#propertiesstore), executing the <code>callback</code> provided to determine the replacement value for each
@@ -363,7 +363,7 @@ Returns **[PropertiesStore](#propertiesstore)** A reference to this [PropertiesS
 
 ### search
 
-[src/properties-store.js:463-473](https://github.com/NotNinja/properties-store/blob/e1b2339db8c54a28a08fd575f8b58bd6d2328ff1/src/properties-store.js#L463-L473 "Source code on GitHub")
+[src/properties-store.js:463-473](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L463-L473 "Source code on GitHub")
 
 Searches for matches between the specified regular expression and the keys within this [PropertiesStore](#propertiesstore),
 returning an iterator containing the key/value pairs for each matching property.
@@ -391,7 +391,7 @@ Returns **Iterator&lt;[Array](https://developer.mozilla.org/docs/Web/JavaScript/
 
 ### set
 
-[src/properties-store.js:519-545](https://github.com/NotNinja/properties-store/blob/e1b2339db8c54a28a08fd575f8b58bd6d2328ff1/src/properties-store.js#L519-L545 "Source code on GitHub")
+[src/properties-store.js:519-545](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L519-L545 "Source code on GitHub")
 
 Sets the value of the property in this [PropertiesStore](#propertiesstore) with the specified <code>key</code> to
 <code>value</code>.
@@ -442,7 +442,7 @@ Returns **[PropertiesStore](#propertiesstore)** A reference to this [PropertiesS
 
 ### size
 
-[src/properties-store.js:660-662](https://github.com/NotNinja/properties-store/blob/e1b2339db8c54a28a08fd575f8b58bd6d2328ff1/src/properties-store.js#L660-L662 "Source code on GitHub")
+[src/properties-store.js:660-662](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L660-L662 "Source code on GitHub")
 
 Returns the number of properties in this [PropertiesStore](#propertiesstore).
 
@@ -464,7 +464,7 @@ Returns **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/G
 
 ### store
 
-[src/properties-store.js:594-609](https://github.com/NotNinja/properties-store/blob/e1b2339db8c54a28a08fd575f8b58bd6d2328ff1/src/properties-store.js#L594-L609 "Source code on GitHub")
+[src/properties-store.js:594-609](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L594-L609 "Source code on GitHub")
 
 Writes the property information within this [PropertiesStore](#propertiesstore) to the <code>output</code> stream provided.
 
@@ -519,7 +519,7 @@ written to <code>output</code>.
 
 ### values
 
-[src/properties-store.js:624-626](https://github.com/NotNinja/properties-store/blob/e1b2339db8c54a28a08fd575f8b58bd6d2328ff1/src/properties-store.js#L624-L626 "Source code on GitHub")
+[src/properties-store.js:624-626](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L624-L626 "Source code on GitHub")
 
 Returns an iterator containing the values for each property in this [PropertiesStore](#propertiesstore).
 
@@ -538,7 +538,7 @@ Returns **Iterator&lt;[string](https://developer.mozilla.org/docs/Web/JavaScript
 
 ### load
 
-[src/properties-store.js:86-91](https://github.com/NotNinja/properties-store/blob/e1b2339db8c54a28a08fd575f8b58bd6d2328ff1/src/properties-store.js#L86-L91 "Source code on GitHub")
+[src/properties-store.js:86-91](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L86-L91 "Source code on GitHub")
 
 Reads the property information from the <code>input</code> stream provided and loads it into a new
 [PropertiesStore](#propertiesstore).
@@ -570,7 +570,7 @@ Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/
 
 ## PropertiesStore~ForEachCallback
 
-[src/properties-store.js:666-666](https://github.com/NotNinja/properties-store/blob/e1b2339db8c54a28a08fd575f8b58bd6d2328ff1/src/properties-store.js#L666-L666 "Source code on GitHub")
+[src/properties-store.js:666-666](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L666-L666 "Source code on GitHub")
 
 The callback function that is passed to [PropertiesStore#forEach](#propertiesstoreforeach).
 
@@ -586,7 +586,7 @@ Returns **void**
 
 ## PropertiesStore~ReplaceCallback
 
-[src/properties-store.js:666-666](https://github.com/NotNinja/properties-store/blob/e1b2339db8c54a28a08fd575f8b58bd6d2328ff1/src/properties-store.js#L666-L666 "Source code on GitHub")
+[src/properties-store.js:666-666](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L666-L666 "Source code on GitHub")
 
 The callback function that is passed to [PropertiesStore#replace](#propertiesstorereplace).
 
