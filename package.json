@@ -22,9 +22,9 @@
     "url": "https://github.com/neocotic/properties-store.git"
   },
   "dependencies": {
-    "escape-unicode": "^0.1.0",
-    "moment-timezone": "^0.5.14",
-    "unescape-unicode": "^0.1.0"
+    "escape-unicode": "^0.2.0",
+    "moment-timezone": "^0.5.23",
+    "unescape-unicode": "^0.2.0"
   },
   "devDependencies": {
     "codecov": "^3.0.0",
