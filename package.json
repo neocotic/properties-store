@@ -1,15 +1,15 @@
 {
   "name": "properties-store",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Store for .properties files in Node.js",
-  "homepage": "https://github.com/NotNinja/properties-store",
+  "homepage": "https://github.com/neocotic/properties-store",
   "bugs": {
-    "url": "https://github.com/NotNinja/properties-store/issues"
+    "url": "https://github.com/neocotic/properties-store/issues"
   },
   "author": {
     "name": "Alasdair Mercer",
     "email": "mercer.alasdair@gmail.com",
-    "url": "https://not.ninja"
+    "url": "https://neocotic.com"
   },
   "license": "MIT",
   "keywords": [
@@ -19,21 +19,21 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/NotNinja/properties-store.git"
+    "url": "https://github.com/neocotic/properties-store.git"
   },
   "dependencies": {
-    "escape-unicode": "^0.1.0",
-    "moment-timezone": "^0.5.14",
-    "unescape-unicode": "^0.1.0"
+    "escape-unicode": "^0.2.0",
+    "moment-timezone": "^0.5.23",
+    "unescape-unicode": "^0.2.0"
   },
   "devDependencies": {
-    "codecov": "^3.0.0",
-    "documentation": "^5.3.5",
-    "eslint": "^4.16.0",
-    "eslint-config-notninja": "^0.2.3",
-    "mocha": "^5.0.0",
-    "nyc": "^11.4.1",
-    "sinon": "^4.2.2"
+    "codecov": "^3.1.0",
+    "documentation": "^8.1.2",
+    "eslint": "^5.9.0",
+    "eslint-config-notninja": "^0.4.0",
+    "mocha": "^5.2.0",
+    "nyc": "^13.1.0",
+    "sinon": "^7.1.1"
   },
   "main": "src/properties-store.js",
   "scripts": {

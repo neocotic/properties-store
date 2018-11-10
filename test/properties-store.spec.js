@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Alasdair Mercer, !ninja
+ * Copyright (C) 2018 Alasdair Mercer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -1320,7 +1320,7 @@ describe('PropertiesStore', () => {
 
       context('and value returned by callback is null', () => {
         it('should remove matching property and return PropertiesStore', () => {
-          const callback = sinon.spy((value) => null);
+          const callback = sinon.spy(() => null);
           const properties = [
             [ 'foo', 'bar' ],
             [ 'fu', 'baz' ],
@@ -1349,7 +1349,7 @@ describe('PropertiesStore', () => {
         });
 
         it('should emit "delete" event but not "change" event', () => {
-          const callback = sinon.spy((value) => null);
+          const callback = sinon.spy(() => null);
           const changeCallback = sinon.spy();
           const deleteCallback = sinon.spy();
           const properties = [
@@ -2184,7 +2184,7 @@ describe('PropertiesStore', () => {
         [ 'fu', 'baz' ],
         [ 'fizz', 'buzz' ]
       ];
-      const expected = properties.map(([ key, value ]) => value);
+      const expected = properties.map((entry) => entry[1]);
       const store = new PropertiesStore();
 
       for (const [ key, value ] of properties) {
