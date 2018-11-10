@@ -723,13 +723,13 @@ Returns **any** The replacement value for the property or <code>null</code> to r
 
 [47]: #parameters-12
 
-[48]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L61-L664 "Source code on GitHub"
+[48]: https://github.com/neocotic/properties-store/blob/4302491d505ecafa9a4f98acab436b7eaa7e200b/src/properties-store.js#L61-L664 "Source code on GitHub"
 
 [49]: #propertiesstore
 
-[50]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L128-L140 "Source code on GitHub"
+[50]: https://github.com/neocotic/properties-store/blob/4302491d505ecafa9a4f98acab436b7eaa7e200b/src/properties-store.js#L128-L140 "Source code on GitHub"
 
-[51]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L182-L204 "Source code on GitHub"
+[51]: https://github.com/neocotic/properties-store/blob/4302491d505ecafa9a4f98acab436b7eaa7e200b/src/properties-store.js#L182-L204 "Source code on GitHub"
 
 [52]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
 
@@ -737,23 +737,23 @@ Returns **any** The replacement value for the property or <code>null</code> to r
 
 [54]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
 
-[55]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L219-L221 "Source code on GitHub"
+[55]: https://github.com/neocotic/properties-store/blob/4302491d505ecafa9a4f98acab436b7eaa7e200b/src/properties-store.js#L219-L221 "Source code on GitHub"
 
 [56]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
 
-[57]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L239-L243 "Source code on GitHub"
+[57]: https://github.com/neocotic/properties-store/blob/4302491d505ecafa9a4f98acab436b7eaa7e200b/src/properties-store.js#L239-L243 "Source code on GitHub"
 
 [58]: #propertiesstoreforeachcallback
 
 [59]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
 
-[60]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L272-L279 "Source code on GitHub"
+[60]: https://github.com/neocotic/properties-store/blob/4302491d505ecafa9a4f98acab436b7eaa7e200b/src/properties-store.js#L272-L279 "Source code on GitHub"
 
-[61]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L310-L322 "Source code on GitHub"
+[61]: https://github.com/neocotic/properties-store/blob/4302491d505ecafa9a4f98acab436b7eaa7e200b/src/properties-store.js#L310-L322 "Source code on GitHub"
 
-[62]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L337-L339 "Source code on GitHub"
+[62]: https://github.com/neocotic/properties-store/blob/4302491d505ecafa9a4f98acab436b7eaa7e200b/src/properties-store.js#L337-L339 "Source code on GitHub"
 
-[63]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L375-L386 "Source code on GitHub"
+[63]: https://github.com/neocotic/properties-store/blob/4302491d505ecafa9a4f98acab436b7eaa7e200b/src/properties-store.js#L375-L386 "Source code on GitHub"
 
 [64]: https://nodejs.org/api/stream.html#stream_class_stream_readable
 
@@ -761,34 +761,34 @@ Returns **any** The replacement value for the property or <code>null</code> to r
 
 [66]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error
 
-[67]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L430-L442 "Source code on GitHub"
+[67]: https://github.com/neocotic/properties-store/blob/4302491d505ecafa9a4f98acab436b7eaa7e200b/src/properties-store.js#L430-L442 "Source code on GitHub"
 
 [68]: #propertiesstoredelete
 
 [69]: #propertiesstorereplacecallback
 
-[70]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L463-L473 "Source code on GitHub"
+[70]: https://github.com/neocotic/properties-store/blob/4302491d505ecafa9a4f98acab436b7eaa7e200b/src/properties-store.js#L463-L473 "Source code on GitHub"
 
-[71]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L519-L545 "Source code on GitHub"
+[71]: https://github.com/neocotic/properties-store/blob/4302491d505ecafa9a4f98acab436b7eaa7e200b/src/properties-store.js#L519-L545 "Source code on GitHub"
 
-[72]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L660-L662 "Source code on GitHub"
+[72]: https://github.com/neocotic/properties-store/blob/4302491d505ecafa9a4f98acab436b7eaa7e200b/src/properties-store.js#L660-L662 "Source code on GitHub"
 
 [73]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
 
-[74]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L594-L609 "Source code on GitHub"
+[74]: https://github.com/neocotic/properties-store/blob/4302491d505ecafa9a4f98acab436b7eaa7e200b/src/properties-store.js#L594-L609 "Source code on GitHub"
 
 [75]: https://nodejs.org/api/stream.html#stream_class_stream_writable
 
-[76]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L624-L626 "Source code on GitHub"
+[76]: https://github.com/neocotic/properties-store/blob/4302491d505ecafa9a4f98acab436b7eaa7e200b/src/properties-store.js#L624-L626 "Source code on GitHub"
 
-[77]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L86-L91 "Source code on GitHub"
+[77]: https://github.com/neocotic/properties-store/blob/4302491d505ecafa9a4f98acab436b7eaa7e200b/src/properties-store.js#L86-L91 "Source code on GitHub"
 
-[78]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L668-L677 "Source code on GitHub"
+[78]: https://github.com/neocotic/properties-store/blob/4302491d505ecafa9a4f98acab436b7eaa7e200b/src/properties-store.js#L668-L677 "Source code on GitHub"
 
 [79]: #propertiesstoreforeach
 
 [80]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function
 
-[81]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L679-L688 "Source code on GitHub"
+[81]: https://github.com/neocotic/properties-store/blob/4302491d505ecafa9a4f98acab436b7eaa7e200b/src/properties-store.js#L679-L688 "Source code on GitHub"
 
 [82]: #propertiesstorereplace
