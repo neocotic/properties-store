@@ -2,28 +2,57 @@
 
 ### Table of Contents
 
--   [PropertiesStore](#propertiesstore)
-    -   [clear](#clear)
-    -   [delete](#delete)
-    -   [entries](#entries)
-    -   [forEach](#foreach)
-    -   [get](#get)
-    -   [has](#has)
-    -   [keys](#keys)
-    -   [load](#load)
-    -   [replace](#replace)
-    -   [search](#search)
-    -   [set](#set)
-    -   [size](#size)
-    -   [store](#store)
-    -   [values](#values)
-    -   [load](#load-1)
--   [PropertiesStore~ForEachCallback](#propertiesstoreforeachcallback)
--   [PropertiesStore~ReplaceCallback](#propertiesstorereplacecallback)
+-   [PropertiesStore][1]
+    -   [Parameters][2]
+    -   [Examples][3]
+    -   [clear][4]
+        -   [Examples][5]
+    -   [delete][6]
+        -   [Parameters][7]
+        -   [Examples][8]
+    -   [entries][9]
+        -   [Examples][10]
+    -   [forEach][11]
+        -   [Parameters][12]
+        -   [Examples][13]
+    -   [get][14]
+        -   [Parameters][15]
+        -   [Examples][16]
+    -   [has][17]
+        -   [Parameters][18]
+        -   [Examples][19]
+    -   [keys][20]
+        -   [Examples][21]
+    -   [load][22]
+        -   [Parameters][23]
+        -   [Examples][24]
+    -   [replace][25]
+        -   [Parameters][26]
+        -   [Examples][27]
+    -   [search][28]
+        -   [Parameters][29]
+        -   [Examples][30]
+    -   [set][31]
+        -   [Parameters][32]
+        -   [Examples][33]
+    -   [size][34]
+        -   [Examples][35]
+    -   [store][36]
+        -   [Parameters][37]
+        -   [Examples][38]
+    -   [values][39]
+        -   [Examples][40]
+    -   [load][41]
+        -   [Parameters][42]
+        -   [Examples][43]
+-   [PropertiesStore~ForEachCallback][44]
+    -   [Parameters][45]
+-   [PropertiesStore~ReplaceCallback][46]
+    -   [Parameters][47]
 
 ## PropertiesStore
 
-[src/properties-store.js:61-664](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L61-L664 "Source code on GitHub")
+[src/properties-store.js:61-664][48]
 
 **Extends events.EventEmitter**
 
@@ -36,11 +65,11 @@ It is designed to be compatible with Java's <code>.properties</code> file format
 Optionally, another <code>store</code> can be specified whose properties will be used as the base for the new
 <code>PropertiesStore</code> instance.
 
-**Parameters**
+### Parameters
 
--   `store` **[PropertiesStore](#propertiesstore)?** a [PropertiesStore](#propertiesstore) whose properties are to be used initially
+-   `store` **[PropertiesStore][49]?** a [PropertiesStore][1] whose properties are to be used initially
 
-**Examples**
+### Examples
 
 ```javascript
 const PropertiesStore = require('properties-store');
@@ -61,9 +90,9 @@ Array.from(copy);
 
 ### clear
 
-[src/properties-store.js:128-140](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L128-L140 "Source code on GitHub")
+[src/properties-store.js:128-140][50]
 
-Removes all properties from this [PropertiesStore](#propertiesstore).
+Removes all properties from this [PropertiesStore][1].
 
 This method will trigger the following event(s):
 
@@ -72,7 +101,7 @@ This method will trigger the following event(s):
   <li><code>delete</code> for each property that is removed</li>
 </ul>
 
-**Examples**
+#### Examples
 
 ```javascript
 const properties = new PropertiesStore();
@@ -88,9 +117,9 @@ Returns **void**
 
 ### delete
 
-[src/properties-store.js:182-204](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L182-L204 "Source code on GitHub")
+[src/properties-store.js:182-204][51]
 
-Removes the property with the specified <code>key</code> from this [PropertiesStore](#propertiesstore).
+Removes the property with the specified <code>key</code> from this [PropertiesStore][1].
 
 <code>key</code> is case sensitive. Alternatively, <code>key</code> can be a regular expression which can be used
 to delete any properties with a matching key. It's important to note that using a regular expression is
@@ -103,12 +132,12 @@ This method will trigger the following event(s):
   <li><code>delete</code> for each property that is removed</li>
 </ul>
 
-**Parameters**
+#### Parameters
 
--   `key` **([string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)? | [RegExp](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/RegExp)?)** the key of the property to be removed or a regular expression to delete any matching
+-   `key` **([string][52]? | [RegExp][53]?)** the key of the property to be removed or a regular expression to delete any matching
     properties (may be <code>null</code>)
 
-**Examples**
+#### Examples
 
 ```javascript
 const properties = new PropertiesStore();
@@ -131,16 +160,16 @@ properties.has('fizz');
 //=> false
 ```
 
-Returns **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** <code>true</code> if a property with <code>key</code> was successfully removed; otherwise
+Returns **[boolean][54]** <code>true</code> if a property with <code>key</code> was successfully removed; otherwise
 <code>false</code>.
 
 ### entries
 
-[src/properties-store.js:219-221](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L219-L221 "Source code on GitHub")
+[src/properties-store.js:219-221][55]
 
-Returns an iterator containing the key/value pairs for each property in this [PropertiesStore](#propertiesstore).
+Returns an iterator containing the key/value pairs for each property in this [PropertiesStore][1].
 
-**Examples**
+#### Examples
 
 ```javascript
 const properties = new PropertiesStore();
@@ -151,20 +180,20 @@ Array.from(properties.entries());
 //=> [["foo", "bar"], ["fu", "baz"]]
 ```
 
-Returns **Iterator&lt;[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)>>** An <code>Iterator</code> for the key/value pairs for each property.
+Returns **Iterator&lt;[Array][56]&lt;[string][52]>>** An <code>Iterator</code> for the key/value pairs for each property.
 
 ### forEach
 
-[src/properties-store.js:239-243](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L239-L243 "Source code on GitHub")
+[src/properties-store.js:239-243][57]
 
-Executes the specified <code>callback</code> function once per each property in this [PropertiesStore](#propertiesstore).
+Executes the specified <code>callback</code> function once per each property in this [PropertiesStore][1].
 
-**Parameters**
+#### Parameters
 
--   `callback` **[PropertiesStore~ForEachCallback](#propertiesstoreforeachcallback)** the function to execute for each property
--   `thisArg` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)?** the value to use as <code>this</code> when executing <code>callback</code>
+-   `callback` **[PropertiesStore~ForEachCallback][58]** the function to execute for each property
+-   `thisArg` **[Object][59]?** the value to use as <code>this</code> when executing <code>callback</code>
 
-**Examples**
+#### Examples
 
 ```javascript
 const properties = new PropertiesStore();
@@ -180,21 +209,21 @@ Returns **void**
 
 ### get
 
-[src/properties-store.js:272-279](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L272-L279 "Source code on GitHub")
+[src/properties-store.js:272-279][60]
 
-Returns the value of the property with the specified <code>key</code> in this [PropertiesStore](#propertiesstore).
+Returns the value of the property with the specified <code>key</code> in this [PropertiesStore][1].
 
 <code>key</code> is case sensitive.
 
 If no property is found matching <code>key</code>, then this method will return <code>defaultValue</code>.
 
-**Parameters**
+#### Parameters
 
--   `key` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)?** the key of the property whose value is to be returned (may be <code>null</code>)
+-   `key` **[string][52]?** the key of the property whose value is to be returned (may be <code>null</code>)
 -   `defaultValue` **any?** the default value to be returned if no property with <code>key</code> exists (will be
     cast to a string - may be <code>null</code>)
 
-**Examples**
+#### Examples
 
 ```javascript
 const properties = new PropertiesStore();
@@ -212,13 +241,13 @@ properties.get('fu', 123);
 //=> "123"
 ```
 
-Returns **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)?** The value of the property with <code>key</code> or <code>defaultValue</code> if none exists.
+Returns **[string][52]?** The value of the property with <code>key</code> or <code>defaultValue</code> if none exists.
 
 ### has
 
-[src/properties-store.js:310-322](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L310-L322 "Source code on GitHub")
+[src/properties-store.js:310-322][61]
 
-Returns whether a property with the specified <code>key</code> exists within this [PropertiesStore](#propertiesstore).
+Returns whether a property with the specified <code>key</code> exists within this [PropertiesStore][1].
 
 <code>key</code> is case sensitive. Alternatively, <code>key</code> can be a regular expression which can be used
 to check for the existence of any property with a matching key. It's important to note that using a regular
@@ -226,12 +255,12 @@ expression is considerably slower than using an exact string as the former requi
 including the first matching property - to be iterated over and checked while the latter has the performance of a
 hash lookup.
 
-**Parameters**
+#### Parameters
 
--   `key` **([string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)? | [RegExp](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/RegExp)?)** the key of the property to be checked or a regular expression to check for any
+-   `key` **([string][52]? | [RegExp][53]?)** the key of the property to be checked or a regular expression to check for any
     matching properties (may be <code>null</code>)
 
-**Examples**
+#### Examples
 
 ```javascript
 const properties = new PropertiesStore();
@@ -250,15 +279,15 @@ properties.has(/^ba/);
 //=> false
 ```
 
-Returns **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** <code>true</code> if a property with <code>key</code> exists; otherwise <code>false</code>.
+Returns **[boolean][54]** <code>true</code> if a property with <code>key</code> exists; otherwise <code>false</code>.
 
 ### keys
 
-[src/properties-store.js:337-339](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L337-L339 "Source code on GitHub")
+[src/properties-store.js:337-339][62]
 
-Returns an iterator containing the keys for each property in this [PropertiesStore](#propertiesstore).
+Returns an iterator containing the keys for each property in this [PropertiesStore][1].
 
-**Examples**
+#### Examples
 
 ```javascript
 const properties = new PropertiesStore();
@@ -269,14 +298,14 @@ Array.from(properties.keys());
 //=> ["foo", "fu"]
 ```
 
-Returns **Iterator&lt;[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)>** An <code>Iterator</code> for the keys for each property.
+Returns **Iterator&lt;[string][52]>** An <code>Iterator</code> for the keys for each property.
 
 ### load
 
-[src/properties-store.js:375-386](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L375-L386 "Source code on GitHub")
+[src/properties-store.js:375-386][63]
 
 Reads the property information from the <code>input</code> stream provided and loads it into this
-[PropertiesStore](#propertiesstore).
+[PropertiesStore][1].
 
 If multiple lines are found for the same key in <code>input</code>, the value of the last line with that key will
 be used.
@@ -291,13 +320,13 @@ This method will trigger the following event(s):
   <li><code>load</code> once all properties have been read from <code>input</code></li>
 </ul>
 
-**Parameters**
+#### Parameters
 
--   `input` **[stream.Readable](https://nodejs.org/api/stream.html#stream_class_stream_readable)** the input stream from which the properties are to be read
--   `options` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)?** the options to be used
-    -   `options.encoding` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** the character encoding to be used to read the input (optional, default `"latin1"`)
+-   `input` **[stream.Readable][64]** the input stream from which the properties are to be read
+-   `options` **[Object][59]?** the options to be used
+    -   `options.encoding` **[string][52]** the character encoding to be used to read the input (optional, default `"latin1"`)
 
-**Examples**
+#### Examples
 
 ```javascript
 const properties = new PropertiesStore()
@@ -309,19 +338,19 @@ Array.from(properties);
 //=> [["foo", "bar"], ["fu", "baz"]]
 ```
 
-Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;void, [Error](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error)>** A <code>Promise</code> that is resolved once <code>input</code> has been read into
-this [PropertiesStore](#propertiesstore).
+Returns **[Promise][65]&lt;void, [Error][66]>** A <code>Promise</code> that is resolved once <code>input</code> has been read into
+this [PropertiesStore][1].
 
 ### replace
 
-[src/properties-store.js:430-442](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L430-L442 "Source code on GitHub")
+[src/properties-store.js:430-442][67]
 
 Replaces the value of each property whose key matches the specified regular expression in this
-[PropertiesStore](#propertiesstore), executing the <code>callback</code> provided to determine the replacement value for each
+[PropertiesStore][1], executing the <code>callback</code> provided to determine the replacement value for each
 matching property.
 
 Nothing happens if <code>key</code> is <code>null</code>. If <code>callback</code> returns <code>null</code>,
-[PropertiesStore#delete](#propertiesstoredelete) will be called to removed the matching property.
+[PropertiesStore#delete][68] will be called to removed the matching property.
 
 This method will trigger the following event(s):
 
@@ -330,15 +359,15 @@ This method will trigger the following event(s):
   <li><code>delete</code> if a property is removed</li>
 </ul>
 
-**Parameters**
+#### Parameters
 
--   `regexp` **[RegExp](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/RegExp)?** the regular expression to be used to search for matching properties whose value are to be
+-   `regexp` **[RegExp][53]?** the regular expression to be used to search for matching properties whose value are to be
     set (may be <code>null</code>)
--   `callback` **[PropertiesStore~ReplaceCallback](#propertiesstorereplacecallback)** the function to provide the replacement value for each matching
+-   `callback` **[PropertiesStore~ReplaceCallback][69]** the function to provide the replacement value for each matching
     property
--   `thisArg` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)?** the value to use as <code>this</code> when executing <code>callback</code>
+-   `thisArg` **[Object][59]?** the value to use as <code>this</code> when executing <code>callback</code>
 
-**Examples**
+#### Examples
 
 ```javascript
 const properties = new PropertiesStore();
@@ -359,21 +388,21 @@ Array.from(properties);
 //=> [["foo", "BAR"], ["fizz", "BUZZ"]]
 ```
 
-Returns **[PropertiesStore](#propertiesstore)** A reference to this [PropertiesStore](#propertiesstore).
+Returns **[PropertiesStore][49]** A reference to this [PropertiesStore][1].
 
 ### search
 
-[src/properties-store.js:463-473](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L463-L473 "Source code on GitHub")
+[src/properties-store.js:463-473][70]
 
-Searches for matches between the specified regular expression and the keys within this [PropertiesStore](#propertiesstore),
+Searches for matches between the specified regular expression and the keys within this [PropertiesStore][1],
 returning an iterator containing the key/value pairs for each matching property.
 
-**Parameters**
+#### Parameters
 
--   `regexp` **[RegExp](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/RegExp)?** the regular expression to be used to search for matching properties (may be
+-   `regexp` **[RegExp][53]?** the regular expression to be used to search for matching properties (may be
     <code>null</code>)
 
-**Examples**
+#### Examples
 
 ```javascript
 const properties = new PropertiesStore()
@@ -386,20 +415,20 @@ Array.from(properties.search(/^f/));
 //=> [["foo", "bar"], ["fu", "baz"]]
 ```
 
-Returns **Iterator&lt;[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)>>** An <code>Iterator</code> for the key/value pairs for each property whose key matches
+Returns **Iterator&lt;[Array][56]&lt;[string][52]>>** An <code>Iterator</code> for the key/value pairs for each property whose key matches
 <code>regexp</code>.
 
 ### set
 
-[src/properties-store.js:519-545](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L519-L545 "Source code on GitHub")
+[src/properties-store.js:519-545][71]
 
-Sets the value of the property in this [PropertiesStore](#propertiesstore) with the specified <code>key</code> to
+Sets the value of the property in this [PropertiesStore][1] with the specified <code>key</code> to
 <code>value</code>.
 
 <code>key</code> is case sensitive.
 
 Nothing happens if <code>key</code> is <code>null</code>. If <code>value</code> is <code>null</code>,
-[PropertiesStore#delete](#propertiesstoredelete) will be called to removed the property.
+[PropertiesStore#delete][68] will be called to removed the property.
 
 This method will trigger the following event(s):
 
@@ -408,13 +437,13 @@ This method will trigger the following event(s):
   <li><code>delete</code> if a property is removed</li>
 </ul>
 
-**Parameters**
+#### Parameters
 
--   `key` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)?** the key of the property whose value is to be set (may be <code>null</code>)
+-   `key` **[string][52]?** the key of the property whose value is to be set (may be <code>null</code>)
 -   `value` **any** the new value for the property (will be cast to a string - may be <code>null</code> to remove
     the property instead)
 
-**Examples**
+#### Examples
 
 ```javascript
 const properties = new PropertiesStore();
@@ -438,15 +467,15 @@ Array.from(properties);
 //=> [["foo", "BAR"], ["fu", "baz"]]
 ```
 
-Returns **[PropertiesStore](#propertiesstore)** A reference to this [PropertiesStore](#propertiesstore).
+Returns **[PropertiesStore][49]** A reference to this [PropertiesStore][1].
 
 ### size
 
-[src/properties-store.js:660-662](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L660-L662 "Source code on GitHub")
+[src/properties-store.js:660-662][72]
 
-Returns the number of properties in this [PropertiesStore](#propertiesstore).
+Returns the number of properties in this [PropertiesStore][1].
 
-**Examples**
+#### Examples
 
 ```javascript
 const properties = new PropertiesStore();
@@ -460,13 +489,13 @@ properties.size;
 //=> 2
 ```
 
-Returns **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** The number of properties.
+Returns **[number][73]** The number of properties.
 
 ### store
 
-[src/properties-store.js:594-609](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L594-L609 "Source code on GitHub")
+[src/properties-store.js:594-609][74]
 
-Writes the property information within this [PropertiesStore](#propertiesstore) to the <code>output</code> stream provided.
+Writes the property information within this [PropertiesStore][1] to the <code>output</code> stream provided.
 
 By default, any characters that are not part of the ASCII character set will be converted to Unicode escapes
 ("\\uxxxx" notation) before being written to <code>output</code>. This behaviour can be prevented by disabling the
@@ -478,16 +507,16 @@ This method will trigger the following event(s):
   <li><code>store</code> once all properties have been written to <code>output</code></li>
 </ul>
 
-**Parameters**
+#### Parameters
 
--   `output` **[stream.Writable](https://nodejs.org/api/stream.html#stream_class_stream_writable)** the output stream to which the properties are to be written
--   `options` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)?** the options to be used
-    -   `options.comments` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)?** any comments to be written to the output before the properties
-    -   `options.encoding` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** the character encoding to be used to write the output (optional, default `"latin1"`)
-    -   `options.escapeUnicode` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** <code>true</code> to convert all non-ASCII characters to Unicode
+-   `output` **[stream.Writable][75]** the output stream to which the properties are to be written
+-   `options` **[Object][59]?** the options to be used
+    -   `options.comments` **[string][52]?** any comments to be written to the output before the properties
+    -   `options.encoding` **[string][52]** the character encoding to be used to write the output (optional, default `"latin1"`)
+    -   `options.escapeUnicode` **[string][52]** <code>true</code> to convert all non-ASCII characters to Unicode
         escapes ("\\uxxxx" notation); otherwise <code>false</code> (optional, default `true`)
 
-**Examples**
+#### Examples
 
 ```javascript
 const properties = new PropertiesStore();
@@ -514,16 +543,16 @@ fs.readFileSync('path/to/my.properties', 'utf8');
 //=> "
 ```
 
-Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;void, [Error](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error)>** A <code>Promise</code> that is resolved once this [PropertiesStore](#propertiesstore) has been
+Returns **[Promise][65]&lt;void, [Error][66]>** A <code>Promise</code> that is resolved once this [PropertiesStore][1] has been
 written to <code>output</code>.
 
 ### values
 
-[src/properties-store.js:624-626](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L624-L626 "Source code on GitHub")
+[src/properties-store.js:624-626][76]
 
-Returns an iterator containing the values for each property in this [PropertiesStore](#propertiesstore).
+Returns an iterator containing the values for each property in this [PropertiesStore][1].
 
-**Examples**
+#### Examples
 
 ```javascript
 const properties = new PropertiesStore();
@@ -534,14 +563,14 @@ Array.from(properties.values());
 //=> ["bar", "baz"]
 ```
 
-Returns **Iterator&lt;[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)>** An <code>Iterator</code> for the values for each property.
+Returns **Iterator&lt;[string][52]>** An <code>Iterator</code> for the values for each property.
 
 ### load
 
-[src/properties-store.js:86-91](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L86-L91 "Source code on GitHub")
+[src/properties-store.js:86-91][77]
 
 Reads the property information from the <code>input</code> stream provided and loads it into a new
-[PropertiesStore](#propertiesstore).
+[PropertiesStore][1].
 
 If multiple lines are found for the same key in <code>input</code>, the value of the last line with that key will
 be used.
@@ -549,13 +578,13 @@ be used.
 Any Unicode escapes ("\\uxxxx" notation) read from input will be converted to their corresponding Unicode
 characters.
 
-**Parameters**
+#### Parameters
 
--   `input` **[stream.Readable](https://nodejs.org/api/stream.html#stream_class_stream_readable)** the input stream from which the properties are to be read
--   `options` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)?** the options to be used
-    -   `options.encoding` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** the character encoding to be used to read the input (optional, default `"latin1"`)
+-   `input` **[stream.Readable][64]** the input stream from which the properties are to be read
+-   `options` **[Object][59]?** the options to be used
+    -   `options.encoding` **[string][52]** the character encoding to be used to read the input (optional, default `"latin1"`)
 
-**Examples**
+#### Examples
 
 ```javascript
 const properties = await PropertiesStore.load(fs.createReadStream('path/to/my.properties'), { encoding: 'utf8' });
@@ -565,37 +594,201 @@ Array.from(properties);
 //=> [["foo", "bar"], ["fu", "baz"]]
 ```
 
-Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[PropertiesStore](#propertiesstore), [Error](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error)>** A <code>Promise</code> that is resolved with the new
-[PropertiesStore](#propertiesstore) once <code>input</code> has been read.
+Returns **[Promise][65]&lt;[PropertiesStore][49], [Error][66]>** A <code>Promise</code> that is resolved with the new
+[PropertiesStore][1] once <code>input</code> has been read.
 
 ## PropertiesStore~ForEachCallback
 
-[src/properties-store.js:666-666](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L666-L666 "Source code on GitHub")
+[src/properties-store.js:666-666][78]
 
-The callback function that is passed to [PropertiesStore#forEach](#propertiesstoreforeach).
+The callback function that is passed to [PropertiesStore#forEach][79].
 
-Type: [Function](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function)
+Type: [Function][80]
 
-**Parameters**
+### Parameters
 
--   `value` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** the property value
--   `key` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** the property key
--   `properties` **[PropertiesStore](#propertiesstore)** the [PropertiesStore](#propertiesstore)
+-   `value` **[string][52]** the property value
+-   `key` **[string][52]** the property key
+-   `properties` **[PropertiesStore][49]** the [PropertiesStore][1]
 
 Returns **void** 
 
 ## PropertiesStore~ReplaceCallback
 
-[src/properties-store.js:666-666](https://github.com/NotNinja/properties-store/blob/dae6dcb4b41c0dabd8a57522600fefa2316f5545/src/properties-store.js#L666-L666 "Source code on GitHub")
+[src/properties-store.js:666-666][81]
 
-The callback function that is passed to [PropertiesStore#replace](#propertiesstorereplace).
+The callback function that is passed to [PropertiesStore#replace][82].
 
-Type: [Function](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function)
+Type: [Function][80]
 
-**Parameters**
+### Parameters
 
--   `value` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** the property value
--   `key` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** the property key
--   `properties` **[PropertiesStore](#propertiesstore)** the [PropertiesStore](#propertiesstore)
+-   `value` **[string][52]** the property value
+-   `key` **[string][52]** the property key
+-   `properties` **[PropertiesStore][49]** the [PropertiesStore][1]
 
 Returns **any** The replacement value for the property or <code>null</code> to remove the property instead.
+
+[1]: #propertiesstore
+
+[2]: #parameters
+
+[3]: #examples
+
+[4]: #clear
+
+[5]: #examples-1
+
+[6]: #delete
+
+[7]: #parameters-1
+
+[8]: #examples-2
+
+[9]: #entries
+
+[10]: #examples-3
+
+[11]: #foreach
+
+[12]: #parameters-2
+
+[13]: #examples-4
+
+[14]: #get
+
+[15]: #parameters-3
+
+[16]: #examples-5
+
+[17]: #has
+
+[18]: #parameters-4
+
+[19]: #examples-6
+
+[20]: #keys
+
+[21]: #examples-7
+
+[22]: #load
+
+[23]: #parameters-5
+
+[24]: #examples-8
+
+[25]: #replace
+
+[26]: #parameters-6
+
+[27]: #examples-9
+
+[28]: #search
+
+[29]: #parameters-7
+
+[30]: #examples-10
+
+[31]: #set
+
+[32]: #parameters-8
+
+[33]: #examples-11
+
+[34]: #size
+
+[35]: #examples-12
+
+[36]: #store
+
+[37]: #parameters-9
+
+[38]: #examples-13
+
+[39]: #values
+
+[40]: #examples-14
+
+[41]: #load-1
+
+[42]: #parameters-10
+
+[43]: #examples-15
+
+[44]: #propertiesstoreforeachcallback
+
+[45]: #parameters-11
+
+[46]: #propertiesstorereplacecallback
+
+[47]: #parameters-12
+
+[48]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L61-L664 "Source code on GitHub"
+
+[49]: #propertiesstore
+
+[50]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L128-L140 "Source code on GitHub"
+
+[51]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L182-L204 "Source code on GitHub"
+
+[52]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
+
+[53]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/RegExp
+
+[54]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+
+[55]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L219-L221 "Source code on GitHub"
+
+[56]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+
+[57]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L239-L243 "Source code on GitHub"
+
+[58]: #propertiesstoreforeachcallback
+
+[59]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
+
+[60]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L272-L279 "Source code on GitHub"
+
+[61]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L310-L322 "Source code on GitHub"
+
+[62]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L337-L339 "Source code on GitHub"
+
+[63]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L375-L386 "Source code on GitHub"
+
+[64]: https://nodejs.org/api/stream.html#stream_class_stream_readable
+
+[65]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
+
+[66]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error
+
+[67]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L430-L442 "Source code on GitHub"
+
+[68]: #propertiesstoredelete
+
+[69]: #propertiesstorereplacecallback
+
+[70]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L463-L473 "Source code on GitHub"
+
+[71]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L519-L545 "Source code on GitHub"
+
+[72]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L660-L662 "Source code on GitHub"
+
+[73]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
+
+[74]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L594-L609 "Source code on GitHub"
+
+[75]: https://nodejs.org/api/stream.html#stream_class_stream_writable
+
+[76]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L624-L626 "Source code on GitHub"
+
+[77]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L86-L91 "Source code on GitHub"
+
+[78]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L668-L677 "Source code on GitHub"
+
+[79]: #propertiesstoreforeach
+
+[80]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function
+
+[81]: https://github.com/NotNinja/properties-store/blob/aa183450ee98ccf4f11d4d8875b5b673366f17e5/src/properties-store.js#L679-L688 "Source code on GitHub"
+
+[82]: #propertiesstorereplace
