@@ -1,3 +1,19 @@
+## Version 0.4.0, 2025.08.04
+
+* **Breaking Change:** Rename `escapeUnicode` option for `PropertiesStore#store` to `disableUnicodeEscape` and default
+  to `false`
+* **Breaking Change:** Change `PropertiesStore#replace` to no longer delete entries when `null` or `undefined` is
+  returned
+* **Breaking Change:** Change `PropertiesStore#set` to no longer delete entries when `value` is `null` or `undefined`
+* Change `PropertiesStore` constructor to accept any iterable of string key/value map entries
+* Add `disableTimestamp` option for `PropertiesStore#store` to disable timestamp comment and default to `false`
+* Explicitly add full support for converting characters within the Basic Multilingual Plane (BMP)
+* Rewrite the entire codebase in TypeScript and support both ESM and CJS usage
+* Improve documentation
+* Improve the developer experience for contributors with better tooling
+* Replace `moment-timezone` with lighter weight `luxon` for timestamp formatting
+* Bump all dependencies to latest versions
+
 ## Version 0.3.0, 2018.11.10
 
 * added package-lock.json file to enable "npm audit" [dae6dcb](https://github.com/neocotic/escape-unicode/commit/dae6dcb4b41c0dabd8a57522600fefa2316f5545)

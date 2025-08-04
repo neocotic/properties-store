@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Alasdair Mercer
+ * Copyright (C) 2025 neocotic
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,64 +20,41 @@
  * SOFTWARE.
  */
 
-'use strict';
+import { Writable } from "node:stream";
 
-const { Readable, Writable } = require('stream');
+export class MockWritable extends Writable {
+  readonly error: Error | undefined;
+  #buffer: Buffer = Buffer.alloc(0);
+  #length: number = 0;
 
-class MockReadable extends Readable {
+  constructor({ error }: { error?: Error } = {}) {
+    super();
 
-  constructor(buffer, error, options) {
-    super(options);
-
-    this.buffer = buffer || Buffer.alloc(0);
     this.error = error;
-    this._bufferRead = false;
   }
 
-  _read() {
+  _write(
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
+    chunk: any,
+    encoding: NodeJS.BufferEncoding,
+    callback: (error?: Error | null) => void,
+  ): void {
     if (this.error) {
-      this.emit('error', this.error);
+      Error.captureStackTrace(this.error);
+      callback(this.error);
+      return;
     }
 
-    if (this.buffer.length === 0) {
-      this._bufferRead = true;
-    }
+    this.#length += chunk.length;
+    this.#buffer = Buffer.concat(
+      [this.#buffer, Buffer.from(chunk, encoding)],
+      this.#length,
+    );
 
-    if (this._bufferRead) {
-      this.push(null);
-    } else {
-      this.push(this.buffer);
-
-      this._bufferRead = true;
-    }
+    callback();
   }
 
+  get buffer(): Buffer {
+    return this.#buffer;
+  }
 }
-
-class MockWritable extends Writable {
-
-  constructor(buffer, error, options) {
-    super(options);
-
-    this.buffer = buffer || Buffer.alloc(0);
-    this.error = error;
-    this._length = 0;
-  }
-
-  _write(chunk, encoding, callback) {
-    if (this.error) {
-      return callback(this.error);
-    }
-
-    this._length += chunk.length;
-    this.buffer = Buffer.concat([ this.buffer, Buffer.from(chunk, encoding) ], this._length);
-
-    return callback();
-  }
-
-}
-
-module.exports = {
-  MockReadable,
-  MockWritable
-};

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Alasdair Mercer
+ * Copyright (C) 2025 neocotic
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,27 +20,18 @@
  * SOFTWARE.
  */
 
-'use strict';
-
 /**
  * Contains code points for important ASCII characters.
- *
- * @protected
- * @type {Object.<string, number>}
  */
-const ASCII = {
-  BACKSLASH: 0x5c,
-  COLON: 0x3a,
-  CR: 0x0d,
-  DEL: 0x7f,
-  EQUAL_SIGN: 0x3d,
-  EXC: 0x21,
-  FF: 0x0c,
-  HT: 0x09,
-  LF: 0x0a,
-  NUMBER_SIGN: 0x23,
-  SP: 0x20,
-  TILDE: 0x7e
-};
-
-module.exports = Object.freeze(ASCII);
+export const constants = Object.freeze({
+  BACKSLASH: 0x005c,
+  COLON: 0x003a,
+  CR: 0x000d,
+  EQUAL_SIGN: 0x003d,
+  EXC: 0x0021,
+  FF: 0x000c,
+  HT: 0x0009,
+  LF: 0x000a,
+  NUMBER_SIGN: 0x0023,
+  SP: 0x0020,
+});
