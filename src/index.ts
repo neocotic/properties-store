@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Alasdair Mercer
+ * Copyright (C) 2025 neocotic
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,37 +20,4 @@
  * SOFTWARE.
  */
 
-'use strict';
-
-const assert = require('assert');
-
-const ASCII = require('../../src/constants/ascii');
-
-describe('ASCII', () => {
-  it('should contain correct code points for ASCII characters', () => {
-    const expected = {
-      BACKSLASH: '\\',
-      COLON: ':',
-      CR: '\r',
-      DEL: '\u007f',
-      EQUAL_SIGN: '=',
-      EXC: '!',
-      FF: '\f',
-      HT: '\t',
-      LF: '\n',
-      NUMBER_SIGN: '#',
-      SP: ' ',
-      TILDE: '~'
-    };
-
-    for (const [ name, value ] of Object.entries(ASCII)) {
-      assert.equal(String.fromCharCode(value), expected[name]);
-    }
-  });
-
-  it('should be read-only', () => {
-    assert.throws(() => {
-      ASCII.FOO = 123;
-    }, TypeError);
-  });
-});
+export * from "./properties-store.js";
